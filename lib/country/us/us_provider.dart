@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'us_logic.dart';
 import '../../services/ad_service.dart';
+import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 
 class USProvider extends ChangeNotifier {
@@ -45,11 +46,21 @@ class USProvider extends ChangeNotifier {
       'vehiclePrice': vehiclePrice,
       'tradeInValue': tradeInValue,
       'monthlyPayment': _result!.monthlyPayment,
+      if (isBiWeekly) 'biWeeklyPayment': _result!.biWeeklyPayment,
+      'isBiWeekly': isBiWeekly,
       'effectiveRate': _result!.effectiveRate,
       'totalCost': _result!.totalCost,
+      'totalInterest': _result!.totalInterest,
       'termMonths': termMonths,
       'annualRate': annualRate,
     });
+    AnalyticsService.instance.logCalculation(
+      flavor: 'us',
+      vehiclePrice: vehiclePrice,
+      ratePct: annualRate,
+      termMonths: termMonths,
+    );
+    AnalyticsService.instance.logHistorySaved('us');
     _ads.onCalculation();
     notifyListeners();
   }

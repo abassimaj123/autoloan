@@ -56,4 +56,59 @@ class ThemeUK {
       // TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
     }),
   );
+
+  static const _darkBackground     = Color(0xFF1A0A0A);
+  static const _darkSurface        = Color(0xFF2A1010);
+  static const _darkSurfaceVariant = Color(0xFF3A1818);
+
+  static ThemeData get dark => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+        seedColor: primary, brightness: Brightness.dark,
+        primary: primaryLight, secondary: secondary,
+        surface: _darkSurface),
+    scaffoldBackgroundColor: _darkBackground,
+    appBarTheme: const AppBarTheme(
+        backgroundColor: _darkBackground, foregroundColor: Colors.white, elevation: 0,
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+    cardTheme: CardThemeData(
+        color: _darkSurface, elevation: 2, shadowColor: Colors.black45,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+    sliderTheme: SliderThemeData(
+        activeTrackColor: primaryLight,
+        inactiveTrackColor: primaryLight.withValues(alpha: 0.2),
+        thumbColor: primaryLight),
+    chipTheme: ChipThemeData(
+        color: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected) ? primaryLight : Colors.transparent),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? Colors.white : Colors.grey.shade400),
+      trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? primary : _darkSurfaceVariant),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true, fillColor: _darkSurface,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryLight, width: 2)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
+        backgroundColor: primary, foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0)),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontSize: 52, fontWeight: FontWeight.w800, color: primaryLight),
+      headlineLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
+      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+      bodyLarge: TextStyle(fontSize: 16, color: Colors.white),
+      bodyMedium: TextStyle(fontSize: 14, color: Colors.white),
+      bodySmall: TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+    ),
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+    }),
+  );
 }

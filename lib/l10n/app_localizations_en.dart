@@ -208,4 +208,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalVed => 'Total Road Tax';
+
+  @override
+  String get getPremiumUS => 'Get Premium — \$2.99';
+
+  @override
+  String get getPremiumUK => 'Get Premium — £2.99';
+
+  @override
+  String get getPremiumCA => 'Get Premium — \$3.99 CAD';
+
+  @override
+  String get restorePurchase => 'Restore purchase';
+
+  @override
+  String get rewardDailyLimit => 'Come back tomorrow for another free hour';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsPremiumSubtitle => 'No ads · Unlimited history';
+
+  @override
+  String get settingsPremiumActive => '⭐ Premium — Unlimited access';
+
+  @override
+  String get settingsSupport => 'Support';
+
+  @override
+  String get settingsContact => 'Contact support';
+
+  @override
+  String get settingsPrivacy => 'Privacy policy';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsOtherApps => 'Our other apps';
+
+  @override
+  String get langFrench => 'Français';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get premiumBenefits =>
+      'Amortization schedule · PDF export · Unlimited history';
+
+  @override
+  String get lockSharing => 'Unlock to share & export';
+
+  @override
+  String get compareLoans => 'Compare Loans';
+
+  @override
+  String get scenario => 'Scenario';
+
+  @override
+  String get betterDeal => 'Better Deal';
+
+  @override
+  String get totalSavings => 'Total Savings';
+
+  @override
+  String get financingType => 'Financing Type';
+
+  @override
+  String get standardLoan => 'Standard Loan';
+
+  @override
+  String get pcp => 'PCP';
+
+  @override
+  String get gmfv => 'GMFV (Guaranteed Min. Future Value)';
+
+  @override
+  String get gmfvPercent => 'GMFV % of vehicle price';
+
+  @override
+  String get pcpNote => 'At term end: pay GMFV, trade in, or return vehicle';
+
+  @override
+  String get pcpPayment => 'PCP Monthly Payment';
+
+  @override
+  String get pcpFinalPayment => 'Final Balloon Payment';
+
+  @override
+  String get settingsDisclaimer =>
+      'For informational purposes only. Not financial advice. Consult a qualified advisor before making financial decisions.';
+
+  @override
+  String get maybeLater => 'Maybe later';
 }

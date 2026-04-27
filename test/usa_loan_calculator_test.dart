@@ -434,4 +434,54 @@ void main() {
           reason: '[US-9f] 0% → 27000 / 130');
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // US — TABLEAU AMORTISSEMENT BI-WEEKLY (CAS US-10)
+  // ═══════════════════════════════════════════════════════════════════
+  group('US — Amortissement bi-weekly', () {
+    // financedAmount = 30000 + 30000×8% + 500 - 0 - 3000 = 29900
+    const loanAmt = 29900.0;
+    const rate    = 6.9;
+    const term    = 60;
+    late List<AmortizationRow> rows;
+
+    setUpAll(() {
+      rows = buildSchedule(
+        loanAmount: loanAmt, annualRate: rate,
+        termMonths: term, isBiWeekly: true,
+      );
+    });
+
+    test('[US-10a] Tableau bi-weekly : 130 périodes pour 60 mois', () {
+      expect(rows.length, (term / 12 * 26).round(),
+          reason: '[US-10a] 5 ans × 26 = 130 périodes');
+    });
+
+    test('[US-10b] Somme des principaux ≈ loanAmount ± \$1', () {
+      final sum = rows.fold(0.0, (s, r) => s + r.principal);
+      expect(sum, closeTo(loanAmt, 1.0),
+          reason: '[US-10b] Σ principaux = capital financé');
+    });
+
+    test('[US-10c] Balance finale = \$0 ± \$1', () {
+      expect(rows.last.balance, closeTo(0.0, 1.0),
+          reason: '[US-10c] Prêt entièrement remboursé');
+    });
+
+    test('[US-10d] Paiement bi-weekly < paiement mensuel', () {
+      final monthlyRows = buildSchedule(
+          loanAmount: loanAmt, annualRate: rate, termMonths: term);
+      expect(rows.first.payment, lessThan(monthlyRows.first.payment),
+          reason: '[US-10d] pmt bi-weekly < pmt mensuel');
+    });
+
+    test('[US-10e] Intérêts totaux bi-weekly < intérêts mensuel', () {
+      final monthlyRows = buildSchedule(
+          loanAmount: loanAmt, annualRate: rate, termMonths: term);
+      final biSum = rows.fold(0.0, (s, r) => s + r.interest);
+      final moSum = monthlyRows.fold(0.0, (s, r) => s + r.interest);
+      expect(biSum, lessThan(moSum),
+          reason: '[US-10e] Remboursement bi-weekly = moins d\'intérêts');
+    });
+  });
 }

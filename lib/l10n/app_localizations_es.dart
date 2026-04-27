@@ -214,4 +214,103 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get totalVed => 'Total impuesto de circulación';
+
+  @override
+  String get getPremiumUS => 'Obtener Premium — \$2.99';
+
+  @override
+  String get getPremiumUK => 'Obtener Premium — £2.99';
+
+  @override
+  String get getPremiumCA => 'Obtener Premium — \$3.99 CAD';
+
+  @override
+  String get restorePurchase => 'Restaurar compra';
+
+  @override
+  String get rewardDailyLimit => 'Vuelve mañana para otra hora gratis';
+
+  @override
+  String get settings => 'Configuración';
+
+  @override
+  String get settingsLanguage => 'Idioma';
+
+  @override
+  String get settingsPremiumSubtitle => 'Sin anuncios · Historial ilimitado';
+
+  @override
+  String get settingsPremiumActive => '⭐ Premium — Acceso ilimitado';
+
+  @override
+  String get settingsSupport => 'Soporte';
+
+  @override
+  String get settingsContact => 'Contactar soporte';
+
+  @override
+  String get settingsPrivacy => 'Política de privacidad';
+
+  @override
+  String get settingsAbout => 'Acerca de';
+
+  @override
+  String get settingsOtherApps => 'Nuestras otras aplicaciones';
+
+  @override
+  String get langFrench => 'Français';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get premiumBenefits =>
+      'Tabla de amortización · Exportar PDF · Historial ilimitado';
+
+  @override
+  String get lockSharing => 'Desbloquear para compartir y exportar';
+
+  @override
+  String get compareLoans => 'Comparar préstamos';
+
+  @override
+  String get scenario => 'Escenario';
+
+  @override
+  String get betterDeal => 'Mejor oferta';
+
+  @override
+  String get totalSavings => 'Ahorro total';
+
+  @override
+  String get financingType => 'Tipo de financiamiento';
+
+  @override
+  String get standardLoan => 'Préstamo estándar';
+
+  @override
+  String get pcp => 'PCP';
+
+  @override
+  String get gmfv => 'VMFG (Valor Mín. Futuro Garantizado)';
+
+  @override
+  String get gmfvPercent => 'VMFG % del precio del vehículo';
+
+  @override
+  String get pcpNote =>
+      'Al final del contrato: pagar VMFG, intercambiar o devolver el vehículo';
+
+  @override
+  String get pcpPayment => 'Pago mensual PCP';
+
+  @override
+  String get pcpFinalPayment => 'Pago globo final';
+
+  @override
+  String get settingsDisclaimer =>
+      'Solo con fines informativos. No es asesoramiento financiero. Consulte a un asesor calificado antes de tomar decisiones financieras.';
+
+  @override
+  String get maybeLater => 'Quizás más tarde';
 }

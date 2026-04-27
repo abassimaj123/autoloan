@@ -33,7 +33,7 @@ extension VehicleTypeExt on VehicleType {
 class UKCalculation {
   final double vehiclePrice, downPayment, annualRate;
   final int termMonths;
-  final bool includeRoadTax;
+  final bool includeRoadTax, isBiWeekly;
   final VehicleType vehicleType;
 
   /// Amount borrowed (VAT already included in UK vehicle price)
@@ -42,23 +42,46 @@ class UKCalculation {
   /// Pure loan amortization payment (without VED)
   final double baseLoanPayment;
 
+  /// Bi-weekly loan payment (without VED)
+  final double biWeeklyLoanPayment;
+
   /// Total monthly payment = baseLoanPayment + vedMonthly
   final double monthlyPayment;
 
+  /// Total bi-weekly payment = biWeeklyLoanPayment + vedBiWeekly
+  final double biWeeklyPayment;
+
+  /// Display payment depending on isBiWeekly
+  double get displayPayment => isBiWeekly ? biWeeklyPayment : monthlyPayment;
+
   /// VED monthly instalment (vedAnnual / 12), 0 if not included
   final double vedMonthly;
+
+  /// VED bi-weekly instalment (vedAnnual / 26), 0 if not included
+  double get vedBiWeekly => vedMonthly * 12 / 26;
 
   /// Total VED over loan term (vedAnnual × termMonths / 12)
   final double vedTotal;
 
   final double totalInterest, totalCost;
 
+  // PCP fields
+  final bool isPcp;
+  final double gmfvAmount;       // Guaranteed Minimum Future Value in £
+  final double gmfvPercent;      // GMFV as % of vehicle price
+  /// Total cost if user pays GMFV at end of PCP contract
+  final double pcpTotalIfBuy;
+
   const UKCalculation({
     required this.vehiclePrice, required this.downPayment, required this.annualRate,
     required this.termMonths, required this.includeRoadTax, required this.vehicleType,
     required this.loanAmount, required this.baseLoanPayment, required this.monthlyPayment,
+    required this.biWeeklyLoanPayment, required this.biWeeklyPayment,
     required this.vedMonthly, required this.vedTotal,
     required this.totalInterest, required this.totalCost,
+    this.isBiWeekly = false,
+    this.isPcp = false, this.gmfvAmount = 0, this.gmfvPercent = 0,
+    this.pcpTotalIfBuy = 0,
   });
 
   static UKCalculation calculate({
@@ -69,37 +92,91 @@ class UKCalculation {
     bool includeRoadTax = false,
     VehicleType vehicleType = VehicleType.petrolLarge,
     double customVedAnnual = 0.0,
+    bool isPcp = false,
+    double gmfvPercent = 30.0,
+    bool isBiWeekly = false,
   }) {
     // UK: VAT already included in advertised price — no separate tax to add
     final loanAmount = (vehiclePrice - downPayment).clamp(0.0, double.infinity);
+    final gmfvAmount = isPcp ? vehiclePrice * gmfvPercent / 100 : 0.0;
 
     double baseLoanPayment;
-    if (annualRate <= 0) {
-      baseLoanPayment = termMonths > 0 ? loanAmount / termMonths : 0;
+    if (!isPcp) {
+      // Standard loan
+      if (annualRate <= 0) {
+        baseLoanPayment = termMonths > 0 ? loanAmount / termMonths : 0;
+      } else {
+        final r    = annualRate / 12 / 100;
+        final powN = pow(1 + r, termMonths).toDouble();
+        baseLoanPayment = loanAmount * (r * powN) / (powN - 1);
+      }
     } else {
-      final r    = annualRate / 12 / 100;
-      final powN = pow(1 + r, termMonths).toDouble();
-      baseLoanPayment = loanAmount * (r * powN) / (powN - 1);
+      // PCP: balloon formula — monthly payment on (loanAmount - PV of GMFV)
+      if (annualRate <= 0) {
+        baseLoanPayment = termMonths > 0
+            ? (loanAmount - gmfvAmount) / termMonths
+            : 0;
+      } else {
+        final r    = annualRate / 12 / 100;
+        final powN = pow(1 + r, termMonths).toDouble();
+        // Present value of GMFV
+        final pvGmfv = gmfvAmount / powN;
+        baseLoanPayment = (loanAmount - pvGmfv) * (r * powN) / (powN - 1);
+      }
+    }
+
+    // Bi-weekly loan payment
+    final nBi  = (termMonths / 12 * 26).round();
+    double biWeeklyLoanPayment;
+    if (!isPcp) {
+      if (annualRate <= 0) {
+        biWeeklyLoanPayment = nBi > 0 ? loanAmount / nBi : 0;
+      } else {
+        final rBi  = annualRate / 26 / 100;
+        final powBi = pow(1 + rBi, nBi).toDouble();
+        biWeeklyLoanPayment = loanAmount * (rBi * powBi) / (powBi - 1);
+      }
+    } else {
+      if (annualRate <= 0) {
+        biWeeklyLoanPayment = nBi > 0 ? (loanAmount - gmfvAmount) / nBi : 0;
+      } else {
+        final rBi   = annualRate / 26 / 100;
+        final powBi  = pow(1 + rBi, nBi).toDouble();
+        final pvGmfv = gmfvAmount / pow(1 + annualRate / 12 / 100, termMonths).toDouble();
+        biWeeklyLoanPayment = (loanAmount - pvGmfv) * (rBi * powBi) / (powBi - 1);
+      }
     }
 
     final vedAnnual    = includeRoadTax
         ? (vehicleType == VehicleType.custom ? customVedAnnual : vehicleType.vedAnnual)
         : 0.0;
-    final vedMonthly   = vedAnnual / 12;
-    final vedTotal     = vedAnnual * termMonths / 12;
+    final vedMonthly     = vedAnnual / 12;
+    final vedBiWeekly    = vedAnnual / 26;
+    final vedTotal       = vedAnnual * termMonths / 12;
     final monthlyPayment = baseLoanPayment + vedMonthly;
-    final totalInterest  = (baseLoanPayment * termMonths - loanAmount).clamp(0.0, double.infinity);
+    final biWeeklyPayment = biWeeklyLoanPayment + vedBiWeekly;
+    final totalInterest  = isPcp
+        ? (baseLoanPayment * termMonths + gmfvAmount - loanAmount).clamp(0.0, double.infinity)
+        : (baseLoanPayment * termMonths - loanAmount).clamp(0.0, double.infinity);
 
-    // totalCost = vehiclePrice (includes downPayment) + interest + road tax over term
-    // = loanAmount + totalInterest + vedTotal + downPayment
+    // Standard: totalCost = vehiclePrice + interest + vedTotal
+    // PCP: totalCost = payments during term + vedTotal (not including GMFV — user may return)
     final totalCost = vehiclePrice + totalInterest + vedTotal;
+    // PCP: cost if buying at end = downPayment + all monthly payments + GMFV
+    final pcpTotalIfBuy = isPcp
+        ? downPayment + baseLoanPayment * termMonths + gmfvAmount + vedTotal
+        : 0.0;
 
     return UKCalculation(
       vehiclePrice: vehiclePrice, downPayment: downPayment, annualRate: annualRate,
       termMonths: termMonths, includeRoadTax: includeRoadTax, vehicleType: vehicleType,
       loanAmount: loanAmount, baseLoanPayment: baseLoanPayment, monthlyPayment: monthlyPayment,
+      biWeeklyLoanPayment: biWeeklyLoanPayment, biWeeklyPayment: biWeeklyPayment,
       vedMonthly: vedMonthly, vedTotal: vedTotal,
       totalInterest: totalInterest, totalCost: totalCost,
+      isBiWeekly: isBiWeekly,
+      isPcp: isPcp, gmfvAmount: gmfvAmount, gmfvPercent: gmfvPercent,
+      pcpTotalIfBuy: pcpTotalIfBuy,
     );
   }
 }

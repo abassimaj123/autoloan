@@ -4,12 +4,21 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/ad_banner.dart';
-import '../../widgets/rewarded_button.dart';
+import '../../widgets/premium_gate.dart';
 import '../../services/ad_service.dart';
-import '../../services/trial_service.dart';
+import '../../core/freemium/freemium_service.dart';
+import '../../core/freemium/paywall_service.dart';
+import '../../widgets/paywall_soft.dart';
+import '../../widgets/paywall_hard.dart';
 import '../../features/amortization/amortization_screen.dart';
 import '../../features/history/history_screen.dart';
+import 'package:share_plus/share_plus.dart' show Share;
 import '../../features/pdf/pdf_export_service.dart';
+import '../../features/settings/settings_screen.dart';
+import '../../features/compare/compare_screen.dart';
+import '../../features/early_payoff/early_payoff_screen.dart';
+import '../../services/analytics_service.dart';
+import '../../core/theme/app_theme.dart';
 import 'us_provider.dart';
 import 'us_logic.dart';
 
@@ -18,25 +27,79 @@ class USScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n         = AppLocalizations.of(context)!;
-    final adService    = context.read<AdService>();
-    final trialService = context.read<TrialService>();
+    final l10n      = AppLocalizations.of(context)!;
+    final adService = context.read<AdService>();
 
     return Scaffold(
       appBar: AppBar(
         title: Text('🇺🇸 ${l10n.appNameUS}'),
         actions: [
+          ValueListenableBuilder<bool>(
+            valueListenable: freemiumService.isPremiumNotifier,
+            builder: (_, isPremium, _) => isPremium
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 4),
+                  child: Tooltip(
+                    message: 'Premium active',
+                    child: Icon(Icons.verified_rounded, color: AppTheme.premiumGold, size: 22),
+                  ),
+                )
+              : TextButton.icon(
+                  onPressed: () => PaywallSoft.show(context, priceLabel: r'$2.99'),
+                  icon: const Icon(Icons.workspace_premium, size: 16),
+                  label: const Text('Premium',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.premiumGold,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+          ),
+          if (paywallService.shouldShowRewarded && !freemiumService.isPremium)
+            IconButton(
+              icon: const Icon(Icons.shield_outlined),
+              tooltip: 'Watch ad — 60 min free',
+              onPressed: () => PaywallHard.show(context, priceLabel: r'$2.99', savingsLabel: r'save $100+'),
+            ),
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: l10n.history,
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const HistoryScreen(country: 'us'))),
+            onPressed: () {
+              AnalyticsService.instance.logTabChanged('history');
+              paywallService.recordAction();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const HistoryScreen(country: 'us')));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.compare_arrows),
+            tooltip: l10n.compareLoans,
+            onPressed: () {
+              AnalyticsService.instance.logTabChanged('compare');
+              AnalyticsService.instance.logCompareUsed('us');
+              paywallService.recordAction();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const CompareScreen(flavor: 'us')));
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settings,
+            onPressed: () {
+              AnalyticsService.instance.logTabChanged('settings');
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen(flavor: 'us')));
+            },
           ),
         ],
       ),
       body: Consumer<USProvider>(
-        builder: (context, p, _) => ListView(
-          padding: const EdgeInsets.all(12),
+        builder: (context, p, _) => SafeArea(
+          top: false,
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: ListView(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           children: [
             // ── Vehicle ───────────────────────────────────────────────
             SectionCard(
@@ -150,7 +213,21 @@ class USScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: FilledButton.icon(
-                onPressed: p.calculate,
+                onPressed: () {
+                  if (p.downPayment >= p.vehiclePrice) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Down payment must be less than vehicle price.')),
+                    );
+                    return;
+                  }
+                  p.calculate();
+                  final trigger = paywallService.recordAction();
+                  if (trigger == PaywallTrigger.soft) {
+                    PaywallSoft.show(context, priceLabel: r'$2.99');
+                  } else if (trigger == PaywallTrigger.hard) {
+                    PaywallHard.show(context, priceLabel: r'$2.99');
+                  }
+                },
                 icon: const Icon(Icons.calculate),
                 label: Text(l10n.calculate),
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
@@ -158,13 +235,15 @@ class USScreen extends StatelessWidget {
             ),
 
             if (p.result != null)
-              _USResults(p: p, adService: adService, trialService: trialService),
+              _USResults(p: p, adService: adService),
 
             const SizedBox(height: 16),
             AdBannerWidget(adService: adService),
             const SizedBox(height: 24),
           ],
         ),
+        ),
+      ),
       ),
     );
   }
@@ -181,16 +260,28 @@ class USScreen extends StatelessWidget {
 class _USResults extends StatelessWidget {
   final USProvider p;
   final AdService adService;
-  final TrialService trialService;
-  const _USResults({required this.p, required this.adService, required this.trialService});
+  const _USResults({required this.p, required this.adService});
 
   @override
   Widget build(BuildContext context) {
-    final l10n    = AppLocalizations.of(context)!;
-    final r       = p.result!;
-    final fmt     = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    final hasFull = trialService.isTrialActive || trialService.isRewardedActive;
+    final l10n = AppLocalizations.of(context)!;
+    final r    = p.result!;
+    final fmt  = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.isPremiumNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull = freemiumService.isPremium || freemiumService.isRewarded;
+        return _buildCard(context, l10n, r, fmt, hasFull);
+      },
+    );
+  }
+
+  Widget _buildCard(BuildContext context, AppLocalizations l10n,
+      USCalculation r, NumberFormat fmt, bool hasFull) {
     return SectionCard(
       title: l10n.results,
       children: [
@@ -206,55 +297,101 @@ class _USResults extends StatelessWidget {
         if (r.tradeInValue > 0)
           ResultTile(label: l10n.tradeInValue, value: fmt.format(r.tradeInValue)),
         const Divider(),
+        ResultTile(label: l10n.financedAmount, value: fmt.format(r.financedAmount)),
+        ResultTile(label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
+        ResultTile(label: l10n.downPayment, value: fmt.format(r.downPayment)),
+        const Divider(height: 8),
+        ResultTile(label: l10n.totalCost, value: fmt.format(r.totalCost), isHighlight: true),
+        ResultTile(label: l10n.effectiveRate, value: '${r.effectiveRate.toStringAsFixed(2)}%'),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () {
+            final payment = p.isBiWeekly
+                ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
+                : 'Monthly: ${fmt.format(r.monthlyPayment)}';
+            Share.share(
+              '🇺🇸 Auto Loan USA\n'
+              'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
+              'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
+              '$payment\n'
+              'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
+              '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}',
+            );
+          },
+          icon: const Icon(Icons.share),
+          label: const Text('Share'),
+        ),
+        const SizedBox(height: 8),
         if (hasFull) ...[
-          ResultTile(label: l10n.financedAmount, value: fmt.format(r.financedAmount)),
-          ResultTile(label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
-          ResultTile(label: l10n.downPayment, value: fmt.format(r.downPayment)),
-          const Divider(height: 8),
-          ResultTile(label: l10n.totalCost, value: fmt.format(r.totalCost), isHighlight: true),
-          ResultTile(label: l10n.effectiveRate, value: '${r.effectiveRate.toStringAsFixed(2)}%'),
-          const SizedBox(height: 8),
           OutlinedButton.icon(
-            onPressed: () => adService.showInterstitialThen(() {
-              if (context.mounted) {
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => AmortizationScreen(
-                          loanAmount: r.financedAmount,
-                          annualRate: r.effectiveRate,
-                          termMonths: r.termMonths,
-                          downPayment: r.downPayment,
-                        )));
-              }
-            }),
+            onPressed: () {
+              AnalyticsService.instance.logAmortizationViewed('us');
+              adService.showInterstitialThen(() {
+                if (context.mounted) {
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => AmortizationScreen(
+                            loanAmount: r.financedAmount,
+                            annualRate: r.effectiveRate,
+                            termMonths: r.termMonths,
+                            downPayment: r.downPayment,
+                            isBiWeekly: p.isBiWeekly,
+                          )));
+                }
+              });
+            },
             icon: const Icon(Icons.table_chart),
             label: Text(l10n.amortization),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            onPressed: () => PdfExportService.exportLoanPdf(
-              title: l10n.appNameUS,
-              currencySymbol: '\$',
-              loanAmount: r.financedAmount,
-              annualRate: r.effectiveRate,
-              termMonths: r.termMonths,
-              downPayment: r.downPayment,
-              summary: [
-                MapEntry(l10n.monthlyPayment, '\$${r.monthlyPayment.toStringAsFixed(2)}'),
-                MapEntry(l10n.financedAmount, '\$${r.financedAmount.toStringAsFixed(2)}'),
-                MapEntry(l10n.taxAmount, '\$${r.taxAmount.toStringAsFixed(2)}'),
-                if (r.tradeInValue > 0)
-                  MapEntry(l10n.tradeInValue, '\$${r.tradeInValue.toStringAsFixed(2)}'),
-                MapEntry(l10n.downPayment, '\$${r.downPayment.toStringAsFixed(2)}'),
-                MapEntry(l10n.effectiveRate, '${r.effectiveRate.toStringAsFixed(2)}%'),
-              ],
-            ),
+            onPressed: () {
+              PdfExportService.exportLoanPdf(
+                title: l10n.appNameUS,
+                currencySymbol: '\$',
+                loanAmount: r.financedAmount,
+                annualRate: r.effectiveRate,
+                termMonths: r.termMonths,
+                downPayment: r.downPayment,
+                summary: [
+                  MapEntry(l10n.vehiclePrice,   '\$${r.vehiclePrice.toStringAsFixed(2)}'),
+                  if (r.tradeInValue > 0)
+                    MapEntry(l10n.tradeInValue, '-\$${r.tradeInValue.toStringAsFixed(2)}'),
+                  MapEntry(l10n.downPayment,    '\$${r.downPayment.toStringAsFixed(2)}'),
+                  if (r.dealerFees > 0)
+                    MapEntry(l10n.dealerFees,   '\$${r.dealerFees.toStringAsFixed(2)}'),
+                  MapEntry(l10n.taxAmount,      '\$${r.taxAmount.toStringAsFixed(2)}'),
+                  MapEntry(l10n.financedAmount, '\$${r.financedAmount.toStringAsFixed(2)}'),
+                  MapEntry(l10n.annualRate,     '${r.annualRate.toStringAsFixed(2)}%'),
+                  MapEntry(l10n.effectiveRate,  '${r.effectiveRate.toStringAsFixed(2)}%'),
+                  MapEntry(l10n.termMonths,     '${r.termMonths} mo'),
+                  MapEntry(p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
+                      '\$${r.displayPayment.toStringAsFixed(2)}'),
+                  if (p.isBiWeekly)
+                    MapEntry('${l10n.monthlyPayment} (equiv.)',
+                        '\$${r.monthlyPayment.toStringAsFixed(2)}'),
+                ],
+              );
+              AnalyticsService.instance.logPdfExported('us');
+            },
             icon: const Icon(Icons.picture_as_pdf),
             label: const Text('Export PDF'),
           ),
-        ] else ...[
-          Text(l10n.unlockFull, style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 8),
-          RewardedButton(adService: adService, trialService: trialService, onUnlocked: () {}),
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => EarlyPayoffScreen(
+                        loanAmount: r.financedAmount,
+                        annualRate: r.effectiveRate,
+                        termMonths: r.termMonths,
+                        flavor: 'us',
+                      )));
+            },
+            icon: const Icon(Icons.rocket_launch_outlined),
+            label: const Text('Early Payoff'),
+          ),
+        ] else ...[
+          PremiumGate(adService: adService, flavor: 'us'),
         ],
       ],
     );

@@ -16,6 +16,8 @@ dependencies:
   intl: ^0.20.2
   provider: ^6.1.2
   shared_preferences: ^2.3.2
+  in_app_purchase: ^3.2.0
+  in_app_review: ^2.0.9
 
   # ── Ads & Firebase ────────────────────────────────────────────────────────
   # Android: configured via productFlavors + google-services.json per flavor
@@ -32,12 +34,17 @@ dependencies:
   path_provider: ^2.1.4
   share_plus: ^10.0.2
 
+  # ── Links ─────────────────────────────────────────────────────────────────
+  url_launcher: ^6.3.0
+
   # ── UI ────────────────────────────────────────────────────────────────────
   # cupertino_icons: used for cross-platform icon widgets (safe on Android)
   # TODO: iOS — verify icon appearance on iOS devices
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -49,3 +56,15 @@ flutter:
     - assets/images/ca/
     - assets/images/us/
     - assets/images/uk/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path_android: "assets/icons/icon_foreground.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/icon_foreground.png"
+  min_sdk_android: 21
+  web:
+    generate: false
+  windows:
+    generate: false

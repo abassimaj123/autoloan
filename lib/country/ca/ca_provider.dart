@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'ca_logic.dart';
 import '../../services/ad_service.dart';
+import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 
 class InsuranceOptions {
@@ -11,11 +12,11 @@ class InsuranceOptions {
   bool   gap                  = false;
   double gapAmount            = 0;
 
-  double get monthlyTotal {
+  double monthlyTotal(int termMonths) {
     double t = 0;
     if (lifeDisability) t += lifeDisabilityAmount;
-    if (extendedWarranty && warrantyAmount > 0) t += warrantyAmount / 60;
-    if (gap && gapAmount > 0) t += gapAmount / 60;
+    if (extendedWarranty && warrantyAmount > 0) t += warrantyAmount / termMonths;
+    if (gap && gapAmount > 0) t += gapAmount / termMonths;
     return t;
   }
 }
@@ -61,17 +62,27 @@ class CAProvider extends ChangeNotifier {
       vehiclePrice: vehiclePrice, downPayment: dpAmount,
       annualRate: annualRate, termMonths: termMonths,
       provinceCode: provinceCode, isBiWeekly: isBiWeekly,
-      insuranceMonthly: insurance.monthlyTotal,
+      insuranceMonthly: insurance.monthlyTotal(termMonths),
     );
     _history.add('ca', {
       'timestamp': DateTime.now().toIso8601String(),
       'vehiclePrice': vehiclePrice,
       'monthlyPayment': _result!.monthlyPayment,
+      if (isBiWeekly) 'biWeeklyPayment': _result!.biWeeklyPayment,
+      'isBiWeekly': isBiWeekly,
       'totalCost': _result!.totalCost,
+      'totalInterest': _result!.totalInterest,
       'termMonths': termMonths,
       'annualRate': annualRate,
       'provinceCode': provinceCode,
     });
+    AnalyticsService.instance.logCalculation(
+      flavor: 'ca',
+      vehiclePrice: vehiclePrice,
+      ratePct: annualRate,
+      termMonths: termMonths,
+    );
+    AnalyticsService.instance.logHistorySaved('ca');
     _ads.onCalculation();
     notifyListeners();
   }

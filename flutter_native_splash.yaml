@@ -1,0 +1,22 @@
+# flutter_native_splash configuration
+# Run: flutter pub run flutter_native_splash:create
+# To remove: flutter pub run flutter_native_splash:remove
+#
+# Per-flavor splashes require separate runs with --flavor flag.
+# For now, a single white background splash is used for all flavors.
+# TODO: create per-flavor splash configs once brand assets are finalised.
+
+flutter_native_splash:
+  color: "#0D47A1"
+  image: assets/icons/icon_foreground.png
+  color_dark: "#0D47A1"
+  image_dark: assets/icons/icon_foreground.png
+
+  android: true
+  ios: false
+
+  android_12:
+    image: assets/icons/icon_foreground.png
+    icon_background_color: "#0D47A1"
+    image_dark: assets/icons/icon_foreground.png
+    icon_background_color_dark: "#0D47A1"

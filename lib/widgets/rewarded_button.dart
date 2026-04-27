@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/ad_service.dart';
-import '../services/trial_service.dart';
+import '../core/freemium/freemium_service.dart';
 
-/// Shows a rewarded ad button that unlocks premium access for 60 minutes.
-/// States: loading, ready, already-unlocked.
+/// Rewarded ad button that unlocks history access for 60 minutes.
+///
+/// States:
+///   - Active session / Premium  → "Full access active" chip
+///   - Daily limit reached       → "Come back tomorrow" chip
+///   - Ready to watch            → "Watch ad" FilledButton
 class RewardedButton extends StatefulWidget {
   final AdService adService;
-  final TrialService trialService;
   final VoidCallback onUnlocked;
 
   const RewardedButton({
     super.key,
     required this.adService,
-    required this.trialService,
     required this.onUnlocked,
   });
 
@@ -26,17 +28,24 @@ class _RewardedButtonState extends State<RewardedButton> {
 
   Future<void> _tap() async {
     if (_loading) return;
+    if (!freemiumService.canWatchRewarded()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Daily limit reached. Come back tomorrow for another hour of free access.'),
+        ),
+      );
+      return;
+    }
     setState(() => _loading = true);
     try {
       final got = await widget.adService.showRewarded();
       if (got) {
-        await widget.trialService.activateReward();
+        await freemiumService.activateRewarded();
         if (mounted) widget.onUnlocked();
       } else {
         if (mounted) {
-          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.adNotAvailable)),
+            SnackBar(content: Text(AppLocalizations.of(context)!.adNotAvailable)),
           );
         }
       }
@@ -47,22 +56,41 @@ class _RewardedButtonState extends State<RewardedButton> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n     = AppLocalizations.of(context)!;
-    final unlocked = widget.trialService.isRewardedActive;
-    if (unlocked) {
-      return Chip(
-        avatar: const Icon(Icons.check_circle, size: 16),
-        label: Text(l10n.fullAccessActive),
-      );
-    }
-    return FilledButton.icon(
-      onPressed: _loading ? null : _tap,
-      icon: _loading
-          ? const SizedBox(
-              width: 16, height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-          : const Icon(Icons.play_circle_outline),
-      label: Text(l10n.watchAd),
+    final l10n = AppLocalizations.of(context)!;
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: freemiumService.isRewardedNotifier,
+      builder: (context, isRewarded, _) {
+        if (freemiumService.isPremium || isRewarded) {
+          return Chip(
+            avatar: const Icon(Icons.check_circle, size: 16),
+            label: Text(l10n.fullAccessActive),
+          );
+        }
+        if (!freemiumService.canWatchRewarded()) {
+          return Chip(
+            avatar: const Icon(Icons.schedule, size: 16),
+            label: Text(l10n.rewardDailyLimit),
+          );
+        }
+        final adReady = widget.adService.isRewardedReady;
+        return FilledButton.icon(
+          onPressed: (_loading || !adReady) ? null : _tap,
+          icon: _loading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ))
+              : const Icon(Icons.play_circle_outline),
+          label: Text(adReady ? l10n.watchAd : l10n.adNotAvailable),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 44),
+          ),
+        );
+      },
     );
   }
 }

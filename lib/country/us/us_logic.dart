@@ -80,7 +80,9 @@ class USCalculation {
       biWeeklyPayment = financedAmount * (rBi * powBi) / (powBi - 1);
     }
 
-    final totalInterest = (monthlyPayment * termMonths - financedAmount).clamp(0.0, double.infinity);
+    final totalInterest = isBiWeekly
+        ? (biWeeklyPayment * (termYears * 26).round() - financedAmount).clamp(0.0, double.infinity)
+        : (monthlyPayment * termMonths - financedAmount).clamp(0.0, double.infinity);
     final totalCost     = vehiclePrice + taxAmount + dealerFees + totalInterest - tradeInValue;
 
     return USCalculation(

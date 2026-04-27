@@ -215,7 +215,7 @@ void main() {
           reason: '[CA-3f] insuranceBiWeekly = monthly × 12/26');
     });
 
-    test('[CA-3g] totalInterest identique en mensuel et bi-weekly (basé sur schedule mensuel)', () {
+    test('[CA-3g] totalInterest bi-weekly < totalInterest mensuel (intérêts réels plus bas)', () {
       final rMo = CACalculation.calculate(
         vehiclePrice: 30000, downPayment: 5000, annualRate: 7.9,
         termMonths: 60, provinceCode: 'ON', isBiWeekly: false,
@@ -224,8 +224,10 @@ void main() {
         vehiclePrice: 30000, downPayment: 5000, annualRate: 7.9,
         termMonths: 60, provinceCode: 'ON', isBiWeekly: true,
       );
-      expect(rBi.totalInterest, closeTo(rMo.totalInterest, 0.01),
-          reason: '[CA-3g] totalInterest calculé depuis pmt mensuel dans les 2 modes');
+      expect(rBi.totalInterest, lessThan(rMo.totalInterest),
+          reason: '[CA-3g] bi-weekly rembourse plus vite → moins d\'intérêts totaux');
+      expect(rMo.totalInterest - rBi.totalInterest, greaterThan(40.0),
+          reason: '[CA-3g] Économie bi-weekly > \$40 sur 60 mois');
     });
   });
 
@@ -473,6 +475,61 @@ void main() {
       expect(r.totalInterest, 0.0, reason: '[CA-8h] Pas d\'intérêt à 0%');
       expect(r.monthlyPayment, closeTo(28900.0 / 60, 0.01),
           reason: '[CA-8h] pmt = loanAmount / 60 à 0%');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CA — TABLEAU AMORTISSEMENT BI-WEEKLY (CAS CA-6)
+  // ═══════════════════════════════════════════════════════════════════
+  group('CA — Amortissement bi-weekly', () {
+    const loanAmt = 28900.0;
+    const rate    = 7.9;
+    const term    = 60; // mois → 130 périodes bi-weekly
+    late List<AmortizationRow> rows;
+
+    setUpAll(() {
+      rows = buildSchedule(
+        loanAmount: loanAmt, annualRate: rate,
+        termMonths: term, isBiWeekly: true,
+      );
+    });
+
+    test('[CA-6a] Tableau bi-weekly : 130 périodes pour 60 mois', () {
+      expect(rows.length, (term / 12 * 26).round(),
+          reason: '[CA-6a] 5 ans × 26 = 130 périodes');
+    });
+
+    test('[CA-6b] Somme des principaux ≈ loanAmount ± \$1', () {
+      final sum = rows.fold(0.0, (s, r) => s + r.principal);
+      expect(sum, closeTo(loanAmt, 1.0),
+          reason: '[CA-6b] Σ principaux = capital emprunté');
+    });
+
+    test('[CA-6c] Balance finale = \$0 ± \$1', () {
+      expect(rows.last.balance, closeTo(0.0, 1.0),
+          reason: '[CA-6c] Prêt entièrement remboursé');
+    });
+
+    test('[CA-6d] Paiement bi-weekly < paiement mensuel (26 pmt/an vs 12)', () {
+      final monthlyRows = buildSchedule(
+          loanAmount: loanAmt, annualRate: rate, termMonths: term);
+      expect(rows.first.payment, lessThan(monthlyRows.first.payment),
+          reason: '[CA-6d] pmt bi-weekly < pmt mensuel');
+    });
+
+    test('[CA-6e] Période 1 : intérêt = loanAmt × rate/26/100', () {
+      final expected = loanAmt * (rate / 26 / 100);
+      expect(rows.first.interest, closeTo(expected, 0.01),
+          reason: '[CA-6e] Premier intérêt bi-weekly correct');
+    });
+
+    test('[CA-6f] Somme intérêts bi-weekly < somme intérêts mensuel', () {
+      final monthlyRows = buildSchedule(
+          loanAmount: loanAmt, annualRate: rate, termMonths: term);
+      final biSum  = rows.fold(0.0, (s, r) => s + r.interest);
+      final moSum  = monthlyRows.fold(0.0, (s, r) => s + r.interest);
+      expect(biSum, lessThan(moSum),
+          reason: '[CA-6f] Bi-weekly génère moins d\'intérêts (remboursement plus fréquent)');
     });
   });
 }

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../core/config/ad_config.dart';
+import '../core/freemium/freemium_service.dart';
 
 class AdService {
   final AdConfig _cfg;
@@ -37,6 +39,7 @@ class AdService {
   /// Show interstitial immediately (bypasses the calc counter).
   /// Used for explicit trigger points. Calls [onDone] when dismissed or if no ad ready.
   void showInterstitialThen(void Function() onDone) {
+    if (freemiumService.isRewarded || freemiumService.isPremium) { onDone(); return; }
     if (_inter == null) { onDone(); return; }
     _lastInterTime = DateTime.now();
     _calcCount = 0;
@@ -54,6 +57,7 @@ class AdService {
   /// Call after every completed calculation.
   /// Shows interstitial after [_calcThreshold] calculations with [_cooldownMinutes] cooldown.
   void onCalculation() {
+    if (!freemiumService.showAds) return;
     _calcCount++;
     if (_calcCount < _calcThreshold) return;
     if (_lastInterTime != null) {
@@ -83,12 +87,21 @@ class AdService {
 
   Future<bool> showRewarded() async {
     if (_rewarded == null) return false;
+    final completer = Completer<bool>();
     bool earned = false;
     _rewarded!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent:    (a) { a.dispose(); _rewarded = null; _loadRewarded(); },
-      onAdFailedToShowFullScreenContent: (a, _) { a.dispose(); _rewarded = null; _loadRewarded(); },
+      onAdDismissedFullScreenContent: (a) {
+        a.dispose(); _rewarded = null; _loadRewarded();
+        if (!completer.isCompleted) completer.complete(earned);
+      },
+      onAdFailedToShowFullScreenContent: (a, _) {
+        a.dispose(); _rewarded = null; _loadRewarded();
+        if (!completer.isCompleted) completer.complete(false);
+      },
     );
-    await _rewarded!.show(onUserEarnedReward: (ad, reward) => earned = true);
-    return earned;
+    _rewarded!.show(onUserEarnedReward: (ad, reward) {
+      earned = true;
+    });
+    return completer.future;
   }
 }

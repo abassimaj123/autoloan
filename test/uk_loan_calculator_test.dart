@@ -350,4 +350,198 @@ void main() {
           reason: '[UK-5i] loanAmount ne peut être négatif');
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // UK — PCP (Personal Contract Purchase) (CAS UK-6)
+  // Référence: prix=£25,000 | down=£5,000 | 6.90% | 60 mois | GMFV 30%
+  // ═══════════════════════════════════════════════════════════════════
+  group('UK — PCP (Personal Contract Purchase)', () {
+    // Helper: PCP monthly payment formula
+    double pcpPmt(double loanAmount, double gmfvAmount, double rate, int term) {
+      if (rate <= 0) return term > 0 ? (loanAmount - gmfvAmount) / term : 0;
+      final r     = rate / 12 / 100;
+      final powN  = pow(1 + r, term).toDouble();
+      final pvGmfv = gmfvAmount / powN;
+      return (loanAmount - pvGmfv) * (r * powN) / (powN - 1);
+    }
+
+    late UKCalculation rPcp30;
+
+    setUpAll(() {
+      rPcp30 = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: 6.9, termMonths: 60,
+        includeRoadTax: false,
+        isPcp: true, gmfvPercent: 30.0,
+      );
+    });
+
+    test('[UK-6a] isPcp activé → isPcp = true', () {
+      expect(rPcp30.isPcp, isTrue, reason: '[UK-6a] isPcp doit être true');
+    });
+
+    test('[UK-6b] GMFV 30% → gmfvAmount = £7,500', () {
+      expect(rPcp30.gmfvAmount, closeTo(7500.0, 0.01),
+          reason: '[UK-6b] 25000 × 30% = £7,500');
+    });
+
+    test('[UK-6c] Paiement mensuel PCP < paiement standard (balloon réduit les mensualités)', () {
+      final stdPmt = _pmt(20000.0, 6.9 / 12 / 100, 60);
+      expect(rPcp30.baseLoanPayment, lessThan(stdPmt),
+          reason: '[UK-6c] PCP mensualité < standard car GMFV est différée');
+    });
+
+    test('[UK-6d] Paiement mensuel PCP = formule balloon (£289–£292)', () {
+      final expected = pcpPmt(20000.0, 7500.0, 6.9, 60);
+      expect(rPcp30.baseLoanPayment, closeTo(expected, 0.01),
+          reason: '[UK-6d] Formule balloon PCP');
+      expect(rPcp30.baseLoanPayment, closeTo(290.0, 2.0),
+          reason: '[UK-6d] Approximation ≈ £290/mo');
+    });
+
+    test('[UK-6e] Total intérêts PCP = pmt×60 + GMFV − loanAmount', () {
+      final expected = (rPcp30.baseLoanPayment * 60 + rPcp30.gmfvAmount - rPcp30.loanAmount)
+          .clamp(0.0, double.infinity);
+      expect(rPcp30.totalInterest, closeTo(expected, 0.01),
+          reason: '[UK-6e] totalInterest inclut l\'effet du balloon');
+    });
+
+    test('[UK-6f] pcpTotalIfBuy = down + mensualités + GMFV', () {
+      final expected = 5000.0 + rPcp30.baseLoanPayment * 60 + rPcp30.gmfvAmount;
+      expect(rPcp30.pcpTotalIfBuy, closeTo(expected, 0.01),
+          reason: '[UK-6f] Coût total si rachat au bout du contrat PCP');
+    });
+
+    test('[UK-6g] Cas limite gmfvPercent=0 → paiement PCP = paiement standard', () {
+      final rPcp0 = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: 6.9, termMonths: 60,
+        includeRoadTax: false,
+        isPcp: true, gmfvPercent: 0.0,
+      );
+      final stdPmt = _pmt(20000.0, 6.9 / 12 / 100, 60);
+      expect(rPcp0.baseLoanPayment, closeTo(stdPmt, 0.01),
+          reason: '[UK-6g] GMFV=0% → mensualité PCP = mensualité standard');
+      expect(rPcp0.gmfvAmount, 0.0,
+          reason: '[UK-6g] Pas de balloon → gmfvAmount = £0');
+    });
+
+    test('[UK-6h] Cas limite gmfvPercent=60 → mensualité plus basse que gmfvPercent=30', () {
+      final rPcp60 = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: 6.9, termMonths: 60,
+        includeRoadTax: false,
+        isPcp: true, gmfvPercent: 60.0,
+      );
+      expect(rPcp60.baseLoanPayment, lessThan(rPcp30.baseLoanPayment),
+          reason: '[UK-6h] Plus le GMFV est élevé, plus les mensualités sont basses');
+      expect(rPcp60.gmfvAmount, closeTo(15000.0, 0.01),
+          reason: '[UK-6h] 25000 × 60% = £15,000');
+    });
+
+    test('[UK-6i] Sans PCP → isPcp=false, gmfvAmount=0, pcpTotalIfBuy=0', () {
+      final rStd = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: 6.9, termMonths: 60,
+        includeRoadTax: false,
+        isPcp: false,
+      );
+      expect(rStd.isPcp,        isFalse,               reason: '[UK-6i] isPcp = false par défaut');
+      expect(rStd.gmfvAmount,   0.0,                   reason: '[UK-6i] gmfvAmount = 0 si isPcp=false');
+      expect(rStd.pcpTotalIfBuy, 0.0,                  reason: '[UK-6i] pcpTotalIfBuy = 0 si isPcp=false');
+    });
+
+    test('[UK-6j] PCP avec VED — monthlyPayment = baseLoanPayment + vedMonthly', () {
+      final rPcpVed = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: 6.9, termMonths: 60,
+        includeRoadTax: true, vehicleType: VehicleType.petrolLarge,
+        isPcp: true, gmfvPercent: 30.0,
+      );
+      expect(rPcpVed.monthlyPayment,
+          closeTo(rPcpVed.baseLoanPayment + rPcpVed.vedMonthly, 0.01),
+          reason: '[UK-6j] VED s\'ajoute au paiement PCP de la même façon');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // UK — BI-WEEKLY (UK-7a à UK-7f)
+  // ═══════════════════════════════════════════════════════════════════
+  group('UK — Bi-weekly payments', () {
+    // Params: £25 000, down £5 000, 6.9%, 60 mois
+    // loanAmount = £20 000, nBi = 60/12*26 = 130 périodes, rBi = 6.9/26/100
+    const loan = 20000.0;
+    const rate = 6.9;
+    const term = 60;
+    final nBi  = (term / 12 * 26).round(); // 130
+    final rBi  = rate / 26 / 100;
+    final powBi = pow(1 + rBi, nBi).toDouble();
+    final expectedBiWeeklyLoan = loan * (rBi * powBi) / (powBi - 1);
+
+    late UKCalculation rBiW;
+    late UKCalculation rMon;
+    setUpAll(() {
+      rBiW = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: rate, termMonths: term,
+        includeRoadTax: false, isBiWeekly: true,
+      );
+      rMon = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: rate, termMonths: term,
+        includeRoadTax: false, isBiWeekly: false,
+      );
+    });
+
+    test('[UK-7a] nBi = 130 périodes (60 mois → 26 pmt/an)', () {
+      // Verify indirectly: biWeeklyLoanPayment matches formula for n=130
+      expect(rBiW.biWeeklyLoanPayment, closeTo(expectedBiWeeklyLoan, 0.01),
+          reason: '[UK-7a] PMT(20000, 6.9/26%, 130) correspond à la formule');
+    });
+
+    test('[UK-7b] biWeeklyPayment < monthlyPayment (même prêt, plus petits versements)', () {
+      expect(rBiW.biWeeklyPayment, lessThan(rMon.monthlyPayment),
+          reason: '[UK-7b] Versement bi-hebdomadaire < versement mensuel');
+    });
+
+    test('[UK-7c] isBiWeekly=true → displayPayment = biWeeklyPayment', () {
+      expect(rBiW.displayPayment, closeTo(rBiW.biWeeklyPayment, 0.001),
+          reason: '[UK-7c] displayPayment doit retourner biWeeklyPayment');
+    });
+
+    test('[UK-7d] isBiWeekly=false → displayPayment = monthlyPayment', () {
+      expect(rMon.displayPayment, closeTo(rMon.monthlyPayment, 0.001),
+          reason: '[UK-7d] displayPayment doit retourner monthlyPayment');
+    });
+
+    test('[UK-7e] Bi-weekly avec VED — biWeeklyPayment = loan_biwk + ved/26', () {
+      final rVed = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: rate, termMonths: term,
+        includeRoadTax: true, vehicleType: VehicleType.petrolLarge,
+        isBiWeekly: true,
+      );
+      // vedAnnual = 280, vedBiWeekly = 280/26
+      expect(rVed.biWeeklyPayment,
+          closeTo(rVed.biWeeklyLoanPayment + 280.0 / 26, 0.01),
+          reason: '[UK-7e] VED bi-hebdomadaire = VED annuel / 26');
+    });
+
+    test('[UK-7f] Bi-weekly + PCP — biWeeklyLoanPayment < paiement mensuel PCP', () {
+      final rPcpBi = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: rate, termMonths: term,
+        includeRoadTax: false, isPcp: true, gmfvPercent: 30.0,
+        isBiWeekly: true,
+      );
+      final rPcpMon = UKCalculation.calculate(
+        vehiclePrice: 25000, downPayment: 5000,
+        annualRate: rate, termMonths: term,
+        includeRoadTax: false, isPcp: true, gmfvPercent: 30.0,
+        isBiWeekly: false,
+      );
+      expect(rPcpBi.biWeeklyLoanPayment, lessThan(rPcpMon.baseLoanPayment),
+          reason: '[UK-7f] PCP bi-hebdomadaire < mensualité PCP standard');
+    });
+  });
 }

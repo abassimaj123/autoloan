@@ -27,4 +27,6 @@ const kCAProvinces = [
 ];
 
 CAProvince caProvinceByCode(String code) =>
-    kCAProvinces.firstWhere((p) => p.code == code, orElse: () => kCAProvinces[8]);
+    kCAProvinces.firstWhere((p) => p.code == code,
+        orElse: () => kCAProvinces.firstWhere((p) => p.code == 'ON',
+            orElse: () => kCAProvinces.first));

@@ -77,8 +77,10 @@ class CACalculation {
     final insuranceBiWeekly = insuranceMonthly * 12 / 26;
     final biWeeklyPayment   = baseLoanBiWeekly + insuranceBiWeekly;
 
-    // ── Totals (based on monthly schedule) ────────────────────────────────
-    final totalInterest  = (baseLoanMonthly * termMonths - loanAmount).clamp(0.0, double.infinity);
+    // ── Totals ────────────────────────────────────────────────────────────
+    final monthlyTotalInterest = (baseLoanMonthly * termMonths - loanAmount).clamp(0.0, double.infinity);
+    final biWeeklyTotalInterest = (baseLoanBiWeekly * nBiPeriods - loanAmount).clamp(0.0, double.infinity);
+    final totalInterest  = isBiWeekly ? biWeeklyTotalInterest : monthlyTotalInterest;
     final insuranceTotal = insuranceMonthly * termMonths;
     final totalCost      = vehiclePrice + taxAmount + totalInterest + insuranceTotal;
 

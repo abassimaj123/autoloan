@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
+
+/// Parses a numeric string that may use either `.` or `,` as decimal separator.
+double? parseNumericInput(String v) {
+  if (v.isEmpty) return null;
+  final s = (v.contains('.') && v.contains(','))
+      ? v.replaceAll(',', '') // comma = thousands separator
+      : v.replaceAll(',', '.'); // comma = decimal separator (French)
+  return double.tryParse(s.replaceAll(RegExp(r'\s'), ''));
+}
 
 // ── Currency slider ────────────────────────────────────────────────────────────
 
@@ -46,9 +56,9 @@ class CurrencySliderInput extends StatelessWidget {
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(fmt.format(min),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         Text(fmt.format(max),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]),
     ]);
   }
@@ -100,9 +110,9 @@ class PercentSliderInput extends StatelessWidget {
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('${min.toStringAsFixed(decimals)}%',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         Text('${max.toStringAsFixed(decimals)}%',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]),
     ]);
   }
@@ -193,7 +203,7 @@ class _DurationChipsState extends State<DurationChips> {
           }),
           // Custom chip
           ChoiceChip(
-            label: const Text('Custom'),
+            label: Text(AppLocalizations.of(context)!.customDuration),
             selected: _isCustomSelected,
             backgroundColor: Colors.transparent,
             selectedColor: Theme.of(context).colorScheme.primary,
@@ -285,6 +295,7 @@ class _RateInputFieldState extends State<RateInputField> {
     return TextField(
       controller: _ctrl,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
       decoration: InputDecoration(
         labelText: widget.label,
         suffixText: '%',
@@ -292,7 +303,7 @@ class _RateInputFieldState extends State<RateInputField> {
         isDense: true,
       ),
       onChanged: (s) {
-        final v = double.tryParse(s);
+        final v = parseNumericInput(s);
         if (v != null && v >= 0 && v <= 30) widget.onChanged(v);
       },
     );
@@ -353,13 +364,17 @@ class ResultTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label,
-            style: isHighlight
-                ? Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)
-                : Theme.of(context).textTheme.bodyMedium),
+        Flexible(
+          child: Text(label,
+              overflow: TextOverflow.ellipsis,
+              style: isHighlight
+                  ? Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold)
+                  : Theme.of(context).textTheme.bodyMedium),
+        ),
+        const SizedBox(width: 8),
         Text(value,
             style: isHighlight
                 ? Theme.of(context).textTheme.titleMedium?.copyWith(

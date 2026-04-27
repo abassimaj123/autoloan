@@ -477,6 +477,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Road Tax'**
   String get totalVed;
+
+  /// No description provided for @getPremiumUS.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium — \$2.99'**
+  String get getPremiumUS;
+
+  /// No description provided for @getPremiumUK.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium — £2.99'**
+  String get getPremiumUK;
+
+  /// No description provided for @getPremiumCA.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium — \$3.99 CAD'**
+  String get getPremiumCA;
+
+  /// No description provided for @restorePurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get restorePurchase;
+
+  /// No description provided for @rewardDailyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Come back tomorrow for another free hour'**
+  String get rewardDailyLimit;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsPremiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No ads · Unlimited history'**
+  String get settingsPremiumSubtitle;
+
+  /// No description provided for @settingsPremiumActive.
+  ///
+  /// In en, this message translates to:
+  /// **'⭐ Premium — Unlimited access'**
+  String get settingsPremiumActive;
+
+  /// No description provided for @settingsSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSupport;
+
+  /// No description provided for @settingsContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get settingsContact;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get settingsPrivacy;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsOtherApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Our other apps'**
+  String get settingsOtherApps;
+
+  /// No description provided for @langFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Français'**
+  String get langFrench;
+
+  /// No description provided for @langEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get langEnglish;
+
+  /// No description provided for @premiumBenefits.
+  ///
+  /// In en, this message translates to:
+  /// **'Amortization schedule · PDF export · Unlimited history'**
+  String get premiumBenefits;
+
+  /// No description provided for @lockSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to share & export'**
+  String get lockSharing;
+
+  /// No description provided for @compareLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Loans'**
+  String get compareLoans;
+
+  /// No description provided for @scenario.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario'**
+  String get scenario;
+
+  /// No description provided for @betterDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Better Deal'**
+  String get betterDeal;
+
+  /// No description provided for @totalSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Savings'**
+  String get totalSavings;
+
+  /// No description provided for @financingType.
+  ///
+  /// In en, this message translates to:
+  /// **'Financing Type'**
+  String get financingType;
+
+  /// No description provided for @standardLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard Loan'**
+  String get standardLoan;
+
+  /// No description provided for @pcp.
+  ///
+  /// In en, this message translates to:
+  /// **'PCP'**
+  String get pcp;
+
+  /// No description provided for @gmfv.
+  ///
+  /// In en, this message translates to:
+  /// **'GMFV (Guaranteed Min. Future Value)'**
+  String get gmfv;
+
+  /// No description provided for @gmfvPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'GMFV % of vehicle price'**
+  String get gmfvPercent;
+
+  /// No description provided for @pcpNote.
+  ///
+  /// In en, this message translates to:
+  /// **'At term end: pay GMFV, trade in, or return vehicle'**
+  String get pcpNote;
+
+  /// No description provided for @pcpPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'PCP Monthly Payment'**
+  String get pcpPayment;
+
+  /// No description provided for @pcpFinalPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Balloon Payment'**
+  String get pcpFinalPayment;
+
+  /// No description provided for @settingsDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'For informational purposes only. Not financial advice. Consult a qualified advisor before making financial decisions.'**
+  String get settingsDisclaimer;
+
+  /// No description provided for @maybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get maybeLater;
 }
 
 class _AppLocalizationsDelegate
