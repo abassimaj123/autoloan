@@ -1,0 +1,76 @@
+======================================================
+PLAY STORE LISTING — AutoLoan (es-US)
+======================================================
+
+TÍTULO DE LA APP (30 caracteres máx.)
+--------------------------------------
+Calculadora de Préstamo Auto
+
+DESCRIPCIÓN CORTA (80 caracteres máx.)
+----------------------------------------
+Calcula pagos, intereses y amortización. Gratis.
+
+DESCRIPCIÓN COMPLETA (4000 caracteres máx.)
+---------------------------------------------
+Calculadora de Préstamo Automóvil es la herramienta más completa para financiar tu próximo vehículo en Estados Unidos — diseñada para compradores de autos que quieren saber exactamente cuánto pagarán antes de llegar al concesionario.
+
+★ HERRAMIENTAS INCLUIDAS
+
+🚗 CALCULADORA DE PAGO MENSUAL
+Calcula tu pago mensual o quincenal con impuesto de ventas estatal integrado. Ingresa el precio del vehículo, enganche, tasa de interés y plazo — obtén tu cuota exacta de inmediato.
+
+📊 TABLA DE AMORTIZACIÓN
+Visualiza cada pago durante la vida del préstamo. Desglose mes a mes de capital vs. interés, con el saldo pendiente actualizado en cada periodo.
+
+💰 PAGO ANTICIPADO
+Descubre cuánto interés ahorras haciendo pagos extra cada mes o con un abono único al capital. Conoce tu nueva fecha de liquidación antes de comprometerte.
+
+⚖️ COMPARADOR DE OFERTAS
+Compara dos préstamos lado a lado — diferentes tasas, plazos o comisiones del concesionario. Ve cuál opción te ahorra más dinero en el total del financiamiento.
+
+🔄 ESTIMADOR DE AUTO USADO
+Deduce el valor de tu vehículo actual como enganche y calcula el monto neto a financiar para tu próximo auto.
+
+📄 EXPORTAR EN PDF
+Guarda y comparte un reporte limpio con todos los detalles del préstamo — perfecto para comparar ofertas o negociar con el banco.
+
+★ ¿POR QUÉ ESTA APP?
+
+✅ Impuesto de ventas estatal integrado — calcula el monto financiado exacto según tu estado
+✅ Nivel de score crediticio — ajusta la tasa efectiva (Excelente / Bueno / Regular / Bajo)
+✅ Modo pago quincenal — muestra el beneficio de liquidación anticipada
+✅ Campo de comisiones del concesionario — gastos de documentación, registro y cargos incluidos
+✅ Sin cuenta requerida — funciona 100% sin conexión, tus datos permanecen en tu dispositivo
+✅ Comparte resultados por SMS, correo o cualquier app
+✅ Modo oscuro
+
+★ MODELO FREEMIUM
+
+Gratis: 5 cálculos guardados, calculadora de pago y amortización básica
+Premium ($2.99 pago único): guardados ilimitados, exportación PDF, tabla de amortización completa, comparador de préstamos, sin anuncios — para siempre
+Ver un anuncio corto: 60 minutos sin anuncios, hasta 2× por día
+
+★ PERFECTO PARA
+
+• Compradores de auto que quieren entender su financiamiento antes de ir al concesionario
+• Personas que comparan ofertas de banco vs. financiamiento del distribuidor
+• Quienes evalúan si conviene hacer pagos extra para reducir intereses
+• Cualquiera que necesite calcular su cuota mensual de forma rápida y precisa
+
+Sin cuenta. Sin recopilación de datos. Sin suscripción. Solo matemáticas.
+
+CATEGORÍA
+---------
+Finanzas
+
+CALIFICACIÓN DE CONTENIDO
+--------------------------
+Para todos
+
+CORREO DE CONTACTO
+-------------------
+abassimaj@gmail.com
+
+SITIO WEB / POLÍTICA DE PRIVACIDAD
+------------------------------------
+https://abassimaj.github.io/autoloan-privacy/

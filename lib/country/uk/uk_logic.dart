@@ -180,3 +180,76 @@ class UKCalculation {
     );
   }
 }
+
+// ── UK TCO Calculation ─────────────────────────────────────────────────────────
+
+class UKTcoCalculation {
+  final double annualMiles;
+  final double mpg;
+  final double fuelPricePencePerLitre;
+  final double annualInsurance;
+  final double annualMot;
+  final int    termMonths;
+
+  final double totalFuel;
+  final double totalInsurance;
+  final double totalMot;
+  final double totalVed;
+  final double totalInterest;
+  final double grandTotal;
+
+  const UKTcoCalculation({
+    required this.annualMiles,
+    required this.mpg,
+    required this.fuelPricePencePerLitre,
+    required this.annualInsurance,
+    required this.annualMot,
+    required this.termMonths,
+    required this.totalFuel,
+    required this.totalInsurance,
+    required this.totalMot,
+    required this.totalVed,
+    required this.totalInterest,
+    required this.grandTotal,
+  });
+
+  /// [fuelPricePencePerLitre] — pence per litre (e.g. 148.0 for 148p/L)
+  /// [annualMiles] — miles driven per year
+  /// [mpg] — miles per gallon (UK imperial: 1 gallon = 4.54609 L)
+  static UKTcoCalculation calculate({
+    required double annualMiles,
+    required double mpg,
+    required double fuelPricePencePerLitre,
+    required double annualInsurance,
+    required double annualMot,
+    required int    termMonths,
+    required double totalInterest,
+    required double totalVed,
+  }) {
+    const litresPerGallon = 4.54609;
+    final termYears     = termMonths / 12;
+    // Annual fuel cost in £: (miles / mpg) gallons × litresPerGallon × (pence/L / 100)
+    final annualFuelCost = mpg > 0
+        ? (annualMiles / mpg) * litresPerGallon * (fuelPricePencePerLitre / 100)
+        : 0.0;
+    final totalFuel      = annualFuelCost * termYears;
+    final totalInsurance = annualInsurance * termYears;
+    final totalMot       = annualMot * termYears;
+    final grandTotal     = totalFuel + totalInsurance + totalMot + totalVed + totalInterest;
+
+    return UKTcoCalculation(
+      annualMiles:            annualMiles,
+      mpg:                    mpg,
+      fuelPricePencePerLitre: fuelPricePencePerLitre,
+      annualInsurance:        annualInsurance,
+      annualMot:              annualMot,
+      termMonths:             termMonths,
+      totalFuel:              totalFuel,
+      totalInsurance:         totalInsurance,
+      totalMot:               totalMot,
+      totalVed:               totalVed,
+      totalInterest:          totalInterest,
+      grandTotal:             grandTotal,
+    );
+  }
+}

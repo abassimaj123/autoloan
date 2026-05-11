@@ -203,7 +203,7 @@ class _DurationChipsState extends State<DurationChips> {
           }),
           // Custom chip
           ChoiceChip(
-            label: Text(AppLocalizations.of(context)!.customDuration),
+            label: const Text('Custom'),
             selected: _isCustomSelected,
             backgroundColor: Colors.transparent,
             selectedColor: Theme.of(context).colorScheme.primary,
@@ -222,8 +222,8 @@ class _DurationChipsState extends State<DurationChips> {
       ),
       if (_showCustom) ...[
         const SizedBox(height: 10),
-        SizedBox(
-          width: 160,
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 160),
           child: TextField(
             controller: _ctrl,
             keyboardType: TextInputType.number,

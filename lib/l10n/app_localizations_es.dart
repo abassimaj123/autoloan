@@ -313,4 +313,58 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maybeLater => 'Quizás más tarde';
+
+  @override
+  String get onboardingTitle1 => 'Calcula tu préstamo auto';
+
+  @override
+  String get onboardingSubtitle1 =>
+      'Obtén tu pago mensual, interés total y costo completo al instante. Compatible con CA, UK y US.';
+
+  @override
+  String get onboardingTitle2 => 'Compara escenarios';
+
+  @override
+  String get onboardingSubtitle2 =>
+      'Compara dos préstamos lado a lado — distintos plazos, enganches o tasas de interés. Encuentra la mejor oferta.';
+
+  @override
+  String get onboardingTitle3 => 'Hazte premium';
+
+  @override
+  String get onboardingSubtitle3 =>
+      'Desbloquea la tabla de amortización, exportación PDF e historial ilimitado. Una sola compra, sin suscripción.';
+
+  @override
+  String get onboardingNext => 'Siguiente';
+
+  @override
+  String get onboardingStart => 'Comenzar';
+
+  @override
+  String get onboardingFeaturePayment => 'Pago mensual';
+
+  @override
+  String get onboardingFeatureInterest => 'Interés total';
+
+  @override
+  String get onboardingFeatureCost => 'Costo total';
+
+  @override
+  String get onboardingFeatureAmortization => 'Amortización';
+
+  @override
+  String get onboardingFeatureCompare => 'Comparación';
+
+  @override
+  String get onboardingFeaturePDF => 'Exportar PDF';
+
+  @override
+  String get onboardingPremiumBullet1 => 'Tabla de amortización completa';
+
+  @override
+  String get onboardingPremiumBullet2 => 'Exportación PDF y compartir';
+
+  @override
+  String get onboardingPremiumBullet3 => 'Historial de cálculos ilimitado';
 }

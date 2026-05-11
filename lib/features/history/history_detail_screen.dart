@@ -162,7 +162,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(dateFmt.format(ts),
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
                 ),
 
               // ── Details card ──────────────────────────────────────────
@@ -178,7 +178,7 @@ class HistoryDetailScreen extends StatelessWidget {
                         children: [
                           Text(r.label,
                               style: TextStyle(
-                                  color: Colors.grey.shade600, fontSize: 14)),
+                                  color: Color(0xFF475569), fontSize: 14)),
                           Text(r.value,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 14)),
@@ -222,8 +222,12 @@ class HistoryDetailScreen extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => HistoryDetailScreen(entry: entry)),
+                        PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => HistoryDetailScreen(entry: entry),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ),
                       );
                     }
                   },

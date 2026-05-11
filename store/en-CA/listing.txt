@@ -1,0 +1,38 @@
+APP NAME
+Auto Loan Calculator — Canada
+
+SHORT DESCRIPTION (80 chars max)
+Calculate your car loan with provincial tax (HST/GST/PST), compare & export PDF.
+
+FULL DESCRIPTION
+The only auto loan calculator built specifically for Canadian borrowers. Every province — every tax rate — calculated correctly.
+
+TOOLS INCLUDED
+• Payment Calculator — monthly or bi-weekly payment with accurate provincial tax (HST / GST+PST / QST)
+• Amortization Schedule — full month-by-month breakdown of principal vs. interest
+• Early Payoff — see how extra payments reduce your total cost
+• Loan Comparator — compare two loan offers side by side
+• Trade-In Estimator — deduct your trade-in before tax is applied (province-specific rules)
+• History & PDF Export — save unlimited calculations and share clean PDF reports
+
+PROVINCE TAX SUPPORT
+AB · BC · MB · NB · NL · NS · NT · NU · ON · PE · QC · SK · YT
+Tax rates kept current — including QC's 14.975% combined rate.
+
+FEATURES
+• Life & disability insurance toggle with monthly cost
+• Extended warranty and GAP insurance included in financing
+• Bi-weekly payment mode — shows how accelerated payments save interest
+• Down payment as dollar amount or percentage of vehicle price
+• Works offline — no account, no login, no data collected
+
+FREEMIUM
+Free tier: 5 saved calculations
+Premium (one-time $3.99 CAD): unlimited saves, PDF export, amortization table, loan comparator, zero ads — forever
+
+LANGUAGES
+English · Français
+
+---
+KEYWORDS
+calculateur prêt auto, car loan calculator Canada, provincial tax, HST GST PST, amortization schedule, paiement mensuel voiture, early payoff

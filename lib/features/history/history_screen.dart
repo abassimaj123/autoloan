@@ -140,8 +140,12 @@ class HistoryScreen extends StatelessWidget {
                       flavor: country,
                       onUnlocked: () => Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => HistoryScreen(country: country))),
+                          PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => HistoryScreen(country: country),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  )),
                     ),
                   ),
 
@@ -219,8 +223,12 @@ class _HistoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => HistoryDetailScreen(entry: entry)),
-        ),
+          PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => HistoryDetailScreen(entry: entry),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  )),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(

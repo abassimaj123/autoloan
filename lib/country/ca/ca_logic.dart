@@ -1,6 +1,165 @@
 import 'dart:math';
 import 'ca_taxes.dart';
 
+// ── CA Trade-In Result ─────────────────────────────────────────────────────────
+
+class CATradeInResult {
+  final double netTradeIn;           // tradeInValue - remainingBalance
+  final double effectiveDownPayment; // dpAmount + netTradeIn
+  final double adjustedLoanAmount;   // vehiclePriceWithTax - effectiveDownPayment
+
+  const CATradeInResult({
+    required this.netTradeIn,
+    required this.effectiveDownPayment,
+    required this.adjustedLoanAmount,
+  });
+}
+
+// ── CA Affordability helpers ───────────────────────────────────────────────────
+
+/// Reverse PMT: compute the loan principal (PV) that produces [maxMonthlyPayment]
+/// at [annualRate]% over [termMonths] months, then add [downPayment] to get
+/// the total max vehicle price.
+///
+/// Formula: PV = PMT × (1 - (1+r)^-n) / r   (for r > 0)
+///          PV = PMT × n                      (for r == 0)
+double maxAffordablePrice({
+  required double monthlyIncome,
+  required double annualRate,
+  required int termMonths,
+  required double downPayment,
+}) {
+  final maxPmt = monthlyIncome * 0.15;
+  double loanPV;
+  if (annualRate <= 0 || termMonths <= 0) {
+    loanPV = termMonths > 0 ? maxPmt * termMonths : 0;
+  } else {
+    final r = annualRate / 12 / 100;
+    loanPV = maxPmt * (1 - pow(1 + r, -termMonths)) / r;
+  }
+  return loanPV + downPayment;
+}
+
+// ── CA Lease Calculation ───────────────────────────────────────────────────────
+
+class CALeaseCalculation {
+  final double vehiclePrice;
+  final double residualPercent;   // e.g. 50.0 for 50%
+  final double residualValue;     // vehiclePrice × residualPercent / 100
+  final double moneyFactor;       // rate ÷ 2400
+  final int    leaseTerm;         // months: 24, 36, 48
+  final double fees;              // add-on fees (insurance, etc.)
+
+  final double monthlyLease;      // lease payment
+  final double totalLeaseCost;    // monthlyLease × leaseTerm
+
+  const CALeaseCalculation({
+    required this.vehiclePrice,
+    required this.residualPercent,
+    required this.residualValue,
+    required this.moneyFactor,
+    required this.leaseTerm,
+    required this.fees,
+    required this.monthlyLease,
+    required this.totalLeaseCost,
+  });
+
+  static CALeaseCalculation calculate({
+    required double vehiclePrice,
+    required double residualPercent,
+    required double moneyFactor,
+    required int leaseTerm,
+    double fees = 0,
+  }) {
+    final residualValue = vehiclePrice * residualPercent / 100;
+    // Standard lease formula
+    final monthlyLease = (vehiclePrice - residualValue + fees) / leaseTerm
+        + (vehiclePrice + residualValue) * moneyFactor;
+    final totalLeaseCost = monthlyLease * leaseTerm;
+    return CALeaseCalculation(
+      vehiclePrice: vehiclePrice,
+      residualPercent: residualPercent,
+      residualValue: residualValue,
+      moneyFactor: moneyFactor,
+      leaseTerm: leaseTerm,
+      fees: fees,
+      monthlyLease: monthlyLease,
+      totalLeaseCost: totalLeaseCost,
+    );
+  }
+}
+
+// ── CA TCO Calculation ─────────────────────────────────────────────────────────
+
+class CATcoCalculation {
+  final double annualKm;
+  final double fuelPer100km;
+  final double fuelPricePerL;
+  final double annualInsurance;
+  final double annualMaintenance;
+  final int    termMonths;
+
+  final double totalFuel;
+  final double totalInsurance;
+  final double totalMaintenance;
+  final double totalInterest;
+  final double netVehicleCost;    // vehiclePrice - tradeIn/downPayment component
+  final double grandTotal;
+
+  const CATcoCalculation({
+    required this.annualKm,
+    required this.fuelPer100km,
+    required this.fuelPricePerL,
+    required this.annualInsurance,
+    required this.annualMaintenance,
+    required this.termMonths,
+    required this.totalFuel,
+    required this.totalInsurance,
+    required this.totalMaintenance,
+    required this.totalInterest,
+    required this.netVehicleCost,
+    required this.grandTotal,
+  });
+
+  static CATcoCalculation calculate({
+    required double annualKm,
+    required double fuelPer100km,
+    required double fuelPricePerL,
+    required double annualInsurance,
+    required double annualMaintenance,
+    required int termMonths,
+    required double totalInterest,
+    required double vehiclePrice,
+    required double downPayment,
+  }) {
+    final termYears        = termMonths / 12;
+    final totalFuel        = annualKm / 100 * fuelPer100km * fuelPricePerL * termYears;
+    final totalInsurance   = annualInsurance * termYears;
+    final totalMaintenance = annualMaintenance * termYears;
+    // TCO = all money the user spends to own the vehicle over the term.
+    // downPayment is NOT subtracted here — the user already paid it, so it IS
+    // part of total cost.  vehiclePrice here already represents the full cost
+    // (trade-in is handled at the loan level in CA).
+    final netVehicleCost   = vehiclePrice;
+    final grandTotal       = totalFuel + totalInsurance + totalMaintenance
+                             + totalInterest + netVehicleCost;
+    return CATcoCalculation(
+      annualKm: annualKm,
+      fuelPer100km: fuelPer100km,
+      fuelPricePerL: fuelPricePerL,
+      annualInsurance: annualInsurance,
+      annualMaintenance: annualMaintenance,
+      termMonths: termMonths,
+      totalFuel: totalFuel,
+      totalInsurance: totalInsurance,
+      totalMaintenance: totalMaintenance,
+      totalInterest: totalInterest,
+      netVehicleCost: netVehicleCost,
+      grandTotal: grandTotal,
+    );
+  }
+}
+
 class CACalculation {
   final double vehiclePrice, downPayment, annualRate;
   final int termMonths;

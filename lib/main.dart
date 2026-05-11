@@ -10,11 +10,13 @@ import 'dart:async' show Completer, unawaited;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:calcwise_core/calcwise_core.dart' show themeModeService, PaywallSessionService;
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
 import 'services/analytics_service.dart';
@@ -22,7 +24,6 @@ import 'core/config/ad_config.dart';
 import 'core/locale_notifier.dart';
 import 'core/freemium/freemium_service.dart';
 import 'core/freemium/iap_service.dart' show IAPService, iapErrorNotifier;
-import 'core/freemium/paywall_service.dart';
 import 'core/theme/theme_ca.dart';
 import 'core/theme/theme_uk.dart';
 import 'core/theme/theme_us.dart';
@@ -31,9 +32,9 @@ import 'services/history_service.dart';
 import 'country/ca/ca_provider.dart';
 import 'country/uk/uk_provider.dart';
 import 'country/us/us_provider.dart';
-import 'country/ca/ca_screen.dart';
-import 'country/uk/uk_screen.dart';
-import 'country/us/us_screen.dart';
+import 'screens/splash_screen.dart';
+
+final paywallSession = PaywallSessionService(appKey: 'autoloan');
 
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
@@ -57,14 +58,22 @@ void main() async {
 
   // 3. App data
   final prefs = await SharedPreferences.getInstance();
+  await themeModeService.initialize();
   await freemiumService.initialize();
   await IAPService.instance.initialize();
-  await paywallService.init();
-  await paywallService.recordSession();
+  await paywallSession.initialize();
+  await paywallSession.recordSession();
   AnalyticsService.instance.setUserPremium(freemiumService.isPremium);
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
   final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Color(0xFF0D0B1E),
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
 
   runApp(AutoLoanApp(
     prefs:          prefs,
@@ -129,11 +138,13 @@ class AutoLoanApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => USProvider(adService, historyService)),
       ],
       child: Consumer<LocaleNotifier>(
-        builder: (_, localeNotifier, _) => MaterialApp(
+        builder: (_, localeNotifier, _) => ValueListenableBuilder<ThemeMode>(
+          valueListenable: themeModeService.notifier,
+          builder: (_, themeMode, __) => MaterialApp(
           title: _appTitle,
           theme: _theme,
           darkTheme: _darkTheme,
-          themeMode: ThemeMode.system,
+          themeMode: themeMode,
           locale: localeNotifier.locale,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
@@ -143,7 +154,18 @@ class AutoLoanApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: _supportedLocales,
-          home: _homeScreen,
+          builder: (context, child) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+              systemNavigationBarColor:
+                  Theme.of(context).scaffoldBackgroundColor,
+              systemNavigationBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
+            ));
+            return child!;
+          },
+          home: const SplashScreen(),
+          ),
         ),
       ),
     );
@@ -181,13 +203,6 @@ class AutoLoanApp extends StatelessWidget {
     }
   }
 
-  Widget get _homeScreen {
-    switch (flavor) {
-      case 'uk': return const _IapErrorWrapper(child: UKScreen());
-      case 'us': return const _IapErrorWrapper(child: USScreen());
-      default:   return const _IapErrorWrapper(child: CAScreen());
-    }
-  }
 }
 
 /// Thin stateful wrapper that listens to [iapErrorNotifier] and shows a

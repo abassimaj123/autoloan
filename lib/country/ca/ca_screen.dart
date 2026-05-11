@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:calcwise_core/calcwise_core.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/ad_banner.dart';
 import '../../widgets/premium_gate.dart';
 import '../../services/ad_service.dart';
 import '../../core/freemium/freemium_service.dart';
-import '../../core/freemium/paywall_service.dart';
+import '../../main.dart' show paywallSession;
 import '../../widgets/paywall_soft.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../features/amortization/amortization_screen.dart';
@@ -18,7 +20,10 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
 import '../../services/analytics_service.dart';
+import '../../services/review_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/insight_engine.dart';
+import '../../widgets/insight_card.dart';
 import 'ca_provider.dart';
 import 'ca_logic.dart';
 import 'ca_taxes.dart';
@@ -56,7 +61,7 @@ class CAScreen extends StatelessWidget {
                   ),
                 ),
           ),
-          if (paywallService.shouldShowRewarded && !freemiumService.isPremium)
+          if (paywallSession.sessionCount >= 2 && !freemiumService.isPremium)
             IconButton(
               icon: const Icon(Icons.shield_outlined),
               tooltip: 'Watch ad — 60 min free',
@@ -67,9 +72,14 @@ class CAScreen extends StatelessWidget {
             tooltip: l10n.history,
             onPressed: () {
               AnalyticsService.instance.logTabChanged('history');
-              paywallService.recordAction();
+              paywallSession.recordAction();
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const HistoryScreen(country: 'ca')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const HistoryScreen(country: 'ca'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
           IconButton(
@@ -78,9 +88,14 @@ class CAScreen extends StatelessWidget {
             onPressed: () {
               AnalyticsService.instance.logTabChanged('compare');
               AnalyticsService.instance.logCompareUsed('ca');
-              paywallService.recordAction();
+              paywallSession.recordAction();
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const CompareScreen(flavor: 'ca')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'ca'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
           IconButton(
@@ -89,7 +104,12 @@ class CAScreen extends StatelessWidget {
             onPressed: () {
               AnalyticsService.instance.logTabChanged('settings');
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen(flavor: 'ca')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const SettingsScreen(flavor: 'ca'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
         ],
@@ -99,9 +119,14 @@ class CAScreen extends StatelessWidget {
           top: false,
           child: GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
-            child: ListView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-          children: [
+            child: SingleChildScrollView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    child: CalcwisePageEntrance(child: Column(
+                      children: [
             // ── Vehicle ──────────────────────────────────────────────
             SectionCard(
               title: l10n.vehicle,
@@ -265,7 +290,7 @@ class CAScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: FilledButton.icon(
-                onPressed: () {
+                onPressed: () async {
                   if (p.dpAmount >= p.vehiclePrice) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Down payment must be less than vehicle price.')),
@@ -273,7 +298,9 @@ class CAScreen extends StatelessWidget {
                     return;
                   }
                   p.calculate();
-                  final trigger = paywallService.recordAction();
+                  HapticFeedback.mediumImpact();
+                  ReviewService.instance.requestAfterSave();
+                  final trigger = await paywallSession.recordAction();
                   if (trigger == PaywallTrigger.soft) {
                     PaywallSoft.show(context, priceLabel: r'$3.99 CAD');
                   } else if (trigger == PaywallTrigger.hard) {
@@ -290,11 +317,28 @@ class CAScreen extends StatelessWidget {
             if (p.result != null)
               _CAResults(p: p, adService: adService),
 
-            const SizedBox(height: 16),
-            AdBannerWidget(adService: adService),
-            const SizedBox(height: 24),
-          ],
-        ),
+            // ── Lease vs Buy ─────────────────────────────────────────
+            _CALeaseSection(p: p),
+
+            // ── Total Cost of Ownership ───────────────────────────────
+            if (p.result != null)
+              _CATcoSection(p: p),
+
+            // ── Trade-In Value Calculator ─────────────────────────────
+            _CATradeInSection(p: p),
+
+            // ── Affordability Guide ───────────────────────────────────
+            _CAAffordabilitySection(p: p),
+
+                      const SizedBox(height: 16),
+                      AdBannerWidget(adService: adService),
+                      const SizedBox(height: 24),
+                    ],
+                  )),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
       ),
@@ -362,6 +406,19 @@ class _CAResults extends StatelessWidget {
         const Divider(height: 8),
         ResultTile(label: l10n.totalCost, value: fmt.format(r.totalCost), isHighlight: true),
         const SizedBox(height: 8),
+        // ── Smart Insights ────────────────────────────────────────────
+        InsightCard(
+          insights: InsightEngine.generate(
+            vehiclePrice:   r.vehiclePrice,
+            loanAmount:     r.loanAmount,
+            annualRatePct:  r.annualRate,
+            termMonths:     r.termMonths,
+            monthlyPayment: r.monthlyPayment,
+            totalInterest:  r.totalInterest,
+            downPayment:    r.downPayment,
+          ),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: () {
             final payment = p.isBiWeekly
@@ -386,15 +443,19 @@ class _CAResults extends StatelessWidget {
               AnalyticsService.instance.logAmortizationViewed('ca');
               adService.showInterstitialThen(() {
                 if (context.mounted) {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => AmortizationScreen(
+                  Navigator.push(context, PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => AmortizationScreen(
                             loanAmount: r.loanAmount,
                             annualRate: r.annualRate,
                             termMonths: r.termMonths,
                             downPayment: r.downPayment,
                             insuranceMonthly: p.insurance.monthlyTotal(r.termMonths),
                             isBiWeekly: p.isBiWeekly,
-                          )));
+                          ),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
                 }
               });
             },
@@ -435,19 +496,713 @@ class _CAResults extends StatelessWidget {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => EarlyPayoffScreen(
+              Navigator.push(context, PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => EarlyPayoffScreen(
                         loanAmount: r.loanAmount,
                         annualRate: r.annualRate,
                         termMonths: r.termMonths,
-                        flavor: 'ca',
-                      )));
+                        flavor: 'ca',),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
             icon: const Icon(Icons.rocket_launch_outlined),
             label: const Text('Early Payoff'),
           ),
         ] else ...[
           PremiumGate(adService: adService, flavor: 'ca'),
+        ],
+      ],
+    );
+  }
+}
+
+// ── CA Lease vs Buy ────────────────────────────────────────────────────────────
+
+class _CALeaseSection extends StatefulWidget {
+  final CAProvider p;
+  const _CALeaseSection({required this.p});
+
+  @override
+  State<_CALeaseSection> createState() => _CALeaseSectionState();
+}
+
+class _CALeaseSectionState extends State<_CALeaseSection> {
+  bool _expanded = false;
+
+  double _residualPercent = 50.0;
+  double _moneyFactor     = 0.00175; // ~4.2% ÷ 2400
+  int    _leaseTerm       = 36;
+
+  CALeaseCalculation? _lease;
+
+  void _calculate() {
+    setState(() {
+      _lease = CALeaseCalculation.calculate(
+        vehiclePrice:    widget.p.vehiclePrice,
+        residualPercent: _residualPercent,
+        moneyFactor:     _moneyFactor,
+        leaseTerm:       _leaseTerm,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final r   = widget.p.result;
+
+    return SectionCard(
+      title: 'Lease vs Buy Comparison',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Show Lease vs Buy')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          // Residual %
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Residual Value %'),
+              Text('${_residualPercent.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold)),
+            ]),
+            Slider(
+              value: _residualPercent,
+              min: 30, max: 70, divisions: 40,
+              onChanged: (v) => setState(() => _residualPercent = v),
+            ),
+          ]),
+          const SizedBox(height: 8),
+          // Money factor
+          TextFormField(
+            initialValue: (_moneyFactor * 2400).toStringAsFixed(2),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
+              border: OutlineInputBorder(),
+              isDense: true,
+              suffixText: '%',
+            ),
+            onChanged: (v) {
+              final rate = double.tryParse(v);
+              if (rate != null && rate > 0) {
+                setState(() => _moneyFactor = rate / 2400);
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          // Lease term chips
+          Wrap(
+            spacing: 8,
+            children: [24, 36, 48].map((mo) {
+              final selected = mo == _leaseTerm;
+              return ChoiceChip(
+                label: Text('${mo ~/ 12} yr'),
+                selected: selected,
+                backgroundColor: Colors.transparent,
+                selectedColor: Theme.of(context).colorScheme.primary,
+                labelStyle: TextStyle(
+                  color: selected ? Colors.white : Theme.of(context).colorScheme.primary,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                ),
+                side: selected
+                    ? BorderSide.none
+                    : BorderSide(color: Theme.of(context).colorScheme.primary),
+                onSelected: (_) => setState(() => _leaseTerm = mo),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _calculate,
+            icon: const Icon(Icons.compare),
+            label: const Text('Compare'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+          ),
+          if (_lease != null && r != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            // Compute buy equivalent monthly for the lease term
+            _ComparisonCard(
+              fmt: fmt,
+              lease: _lease!,
+              buyMonthly: r.monthlyPayment,
+              buyTermMonths: widget.p.termMonths,
+              leaseTermMonths: _leaseTerm,
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _ComparisonCard extends StatelessWidget {
+  final NumberFormat fmt;
+  final CALeaseCalculation lease;
+  final double buyMonthly;
+  final int buyTermMonths;
+  final int leaseTermMonths;
+
+  const _ComparisonCard({
+    required this.fmt,
+    required this.lease,
+    required this.buyMonthly,
+    required this.buyTermMonths,
+    required this.leaseTermMonths,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Buy total cost over the same lease term (partial buy)
+    final buyTotalOverLeaseTerm = buyMonthly * leaseTermMonths;
+    final diff  = lease.totalLeaseCost - buyTotalOverLeaseTerm;
+    final leaseWins = diff < 0;
+    final absDiff = diff.abs();
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Expanded(
+          child: _ComparisonColumn(
+            label: 'Lease ($leaseTermMonths mo)',
+            monthly: fmt.format(lease.monthlyLease),
+            total: fmt.format(lease.totalLeaseCost),
+            highlight: leaseWins,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ComparisonColumn(
+            label: 'Buy ($buyTermMonths mo)',
+            monthly: fmt.format(buyMonthly),
+            total: fmt.format(buyTotalOverLeaseTerm),
+            highlight: !leaseWins,
+            footnote: 'over $leaseTermMonths mo',
+          ),
+        ),
+      ]),
+      const SizedBox(height: 10),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          leaseWins
+              ? 'Lease saves ${fmt.format(absDiff)} over $leaseTermMonths months'
+              : 'Buy saves ${fmt.format(absDiff)} over $leaseTermMonths months',
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(
+        'Residual: ${fmt.format(lease.residualValue)} · '
+        'Money factor: ${lease.moneyFactor.toStringAsFixed(5)}',
+        style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        textAlign: TextAlign.center,
+      ),
+    ]);
+  }
+}
+
+class _ComparisonColumn extends StatelessWidget {
+  final String label;
+  final String monthly;
+  final String total;
+  final bool highlight;
+  final String? footnote;
+
+  const _ComparisonColumn({
+    required this.label,
+    required this.monthly,
+    required this.total,
+    required this.highlight,
+    this.footnote,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: highlight
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.outline,
+          width: highlight ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(monthly,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        Text('/month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+        const SizedBox(height: 4),
+        Text('Total: $total',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+        if (footnote != null)
+          Text(footnote!,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      ]),
+    );
+  }
+}
+
+// ── CA Total Cost of Ownership ─────────────────────────────────────────────────
+
+class _CATcoSection extends StatefulWidget {
+  final CAProvider p;
+  const _CATcoSection({required this.p});
+
+  @override
+  State<_CATcoSection> createState() => _CATcoSectionState();
+}
+
+class _CATcoSectionState extends State<_CATcoSection> {
+  bool _expanded = false;
+
+  double _annualKm        = 20000;
+  double _fuelPer100km    = 10.0;
+  double _fuelPrice       = 1.65;
+  double _annualInsurance = 1800;
+  double _annualMaint     = 800;
+
+  CATcoCalculation? _tco;
+
+  void _calculate() {
+    final r = widget.p.result!;
+    setState(() {
+      _tco = CATcoCalculation.calculate(
+        annualKm:         _annualKm,
+        fuelPer100km:     _fuelPer100km,
+        fuelPricePerL:    _fuelPrice,
+        annualInsurance:  _annualInsurance,
+        annualMaintenance: _annualMaint,
+        termMonths:       r.termMonths,
+        totalInterest:    r.totalInterest,
+        vehiclePrice:     r.vehiclePrice,
+        downPayment:      r.downPayment,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt  = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final r    = widget.p.result!;
+    final termYears = r.termMonths ~/ 12;
+
+    return SectionCard(
+      title: 'Total Cost of Ownership',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Calculate true ownership cost')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          _TcoSlider(
+            label: 'Annual km driven',
+            value: _annualKm,
+            min: 5000, max: 50000, step: 1000,
+            display: '${_annualKm.toStringAsFixed(0)} km',
+            onChanged: (v) => setState(() => _annualKm = v),
+          ),
+          const SizedBox(height: 8),
+          _TcoSlider(
+            label: 'Fuel consumption (L/100km)',
+            value: _fuelPer100km,
+            min: 4, max: 20, step: 0.5,
+            display: '${_fuelPer100km.toStringAsFixed(1)} L/100km',
+            onChanged: (v) => setState(() => _fuelPer100km = v),
+          ),
+          const SizedBox(height: 8),
+          _TcoSlider(
+            label: 'Fuel price (\$/L)',
+            value: _fuelPrice,
+            min: 1.00, max: 2.50, step: 0.05,
+            display: fmt2.format(_fuelPrice),
+            onChanged: (v) => setState(() => _fuelPrice = v),
+          ),
+          const SizedBox(height: 8),
+          _TcoSlider(
+            label: 'Annual insurance (\$)',
+            value: _annualInsurance,
+            min: 600, max: 5000, step: 100,
+            display: fmt.format(_annualInsurance),
+            onChanged: (v) => setState(() => _annualInsurance = v),
+          ),
+          const SizedBox(height: 8),
+          _TcoSlider(
+            label: 'Annual maintenance (\$)',
+            value: _annualMaint,
+            min: 200, max: 3000, step: 100,
+            display: fmt.format(_annualMaint),
+            onChanged: (v) => setState(() => _annualMaint = v),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _calculate,
+            icon: const Icon(Icons.calculate_outlined),
+            label: const Text('Calculate TCO'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+          ),
+          if (_tco != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            ResultTile(label: 'Net vehicle cost', value: fmt.format(_tco!.netVehicleCost)),
+            ResultTile(label: 'Total interest', value: fmt.format(_tco!.totalInterest)),
+            ResultTile(label: 'Total fuel', value: fmt.format(_tco!.totalFuel)),
+            ResultTile(label: 'Total insurance', value: fmt.format(_tco!.totalInsurance)),
+            ResultTile(label: 'Total maintenance', value: fmt.format(_tco!.totalMaintenance)),
+            const Divider(height: 8),
+            ResultTile(
+              label: 'True cost of ownership over $termYears years',
+              value: fmt.format(_tco!.grandTotal),
+              isHighlight: true,
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _TcoSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final String display;
+  final ValueChanged<double> onChanged;
+
+  const _TcoSlider({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.step,
+    required this.display,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+      Text(display,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              )),
+      Flexible(
+        child: SizedBox(
+          width: 120,
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              overlayShape: SliderComponentShape.noOverlay,
+            ),
+            child: Slider(
+              value: value.clamp(min, max),
+              min: min, max: max,
+              divisions: ((max - min) / step).round().clamp(1, 500),
+              onChanged: (v) => onChanged((v / step).round() * step),
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+// ── CA Trade-In Value Calculator ───────────────────────────────────────────────
+
+class _CATradeInSection extends StatefulWidget {
+  final CAProvider p;
+  const _CATradeInSection({required this.p});
+
+  @override
+  State<_CATradeInSection> createState() => _CATradeInSectionState();
+}
+
+class _CATradeInSectionState extends State<_CATradeInSection> {
+  bool _expanded       = false;
+  double _tradeInValue = 0;
+  double _remaining    = 0;
+
+  CATradeInResult? _result;
+
+  void _compute() {
+    final p = widget.p;
+    final province = caProvinceByCode(p.provinceCode);
+    final taxAmount = p.vehiclePrice * province.totalRate;
+    final priceWithTax = p.vehiclePrice + taxAmount;
+
+    final netTradeIn           = _tradeInValue - _remaining;
+    final effectiveDownPayment = p.dpAmount + netTradeIn;
+    final adjustedLoan = (priceWithTax - effectiveDownPayment).clamp(0.0, double.infinity);
+
+    setState(() {
+      _result = CATradeInResult(
+        netTradeIn: netTradeIn,
+        effectiveDownPayment: effectiveDownPayment,
+        adjustedLoanAmount: adjustedLoan,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+
+    return SectionCard(
+      title: 'Trade-In Value Calculator',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Show Trade-In Calculator')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          CurrencySliderInput(
+            label: 'Trade-in value',
+            value: _tradeInValue,
+            min: 0,
+            max: 30000,
+            step: 500,
+            symbol: '\$',
+            onChanged: (v) => setState(() => _tradeInValue = v),
+          ),
+          const SizedBox(height: 12),
+          CurrencySliderInput(
+            label: 'Remaining balance on current loan',
+            value: _remaining,
+            min: 0,
+            max: 30000,
+            step: 500,
+            symbol: '\$',
+            onChanged: (v) => setState(() => _remaining = v),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _compute,
+            icon: const Icon(Icons.calculate_outlined),
+            label: const Text('Calculate Trade-In'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+          ),
+          if (_result != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            // Equity / negative equity message
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: _result!.netTradeIn >= 0
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _result!.netTradeIn >= 0
+                    ? 'Equity of ${fmt.format(_result!.netTradeIn)} applied to down payment'
+                    : 'Negative equity of ${fmt.format(_result!.netTradeIn.abs())} added to loan',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: _result!.netTradeIn >= 0
+                          ? Theme.of(context).colorScheme.onPrimaryContainer
+                          : Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ResultTile(
+              label: 'Net trade-in',
+              value: fmt.format(_result!.netTradeIn),
+            ),
+            ResultTile(
+              label: 'Effective down payment',
+              value: fmt.format(_result!.effectiveDownPayment),
+            ),
+            ResultTile(
+              label: 'Adjusted loan amount',
+              value: fmt.format(_result!.adjustedLoanAmount),
+              isHighlight: true,
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () {
+                final dp = _result!.effectiveDownPayment.clamp(0.0, double.infinity);
+                widget.p.setDpIsPercent(false);
+                widget.p.setDownPayment(dp);
+                setState(() => _expanded = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Down payment updated to ${fmt.format(dp)}',
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('Apply to Calculator'),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+// ── CA Affordability Guide ─────────────────────────────────────────────────────
+
+class _CAAffordabilitySection extends StatefulWidget {
+  final CAProvider p;
+  const _CAAffordabilitySection({required this.p});
+
+  @override
+  State<_CAAffordabilitySection> createState() => _CAAffordabilitySectionState();
+}
+
+class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
+  bool   _expanded     = false;
+  double _monthlyIncome = 5000;
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt  = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+    final p              = widget.p;
+    final maxRecommended = _monthlyIncome * 0.15;
+    final maxVehicle     = maxAffordablePrice(
+      monthlyIncome: _monthlyIncome,
+      annualRate:    p.annualRate,
+      termMonths:    p.termMonths,
+      downPayment:   p.dpAmount,
+    );
+
+    // Traffic-light: compare actual monthly payment vs income
+    final CACalculation? r = p.result;
+    Color? _trafficColor;
+    String _trafficLabel = '';
+    if (r != null) {
+      final ratio = r.monthlyPayment / _monthlyIncome;
+      if (ratio < 0.12) {
+        _trafficColor = Colors.green;
+        _trafficLabel = 'Comfortable (< 12% of income)';
+      } else if (ratio <= 0.18) {
+        _trafficColor = Colors.orange;
+        _trafficLabel = 'Moderate (12–18% of income)';
+      } else {
+        _trafficColor = Colors.red;
+        _trafficLabel = 'Over budget (> 18% of income)';
+      }
+    }
+
+    return SectionCard(
+      title: 'Affordability Guide',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Show Affordability Guide')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          // Income slider
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Gross monthly income'),
+              Text(
+                fmt.format(_monthlyIncome),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ]),
+            Slider(
+              value: _monthlyIncome.clamp(2000, 20000),
+              min: 2000,
+              max: 20000,
+              divisions: ((20000 - 2000) / 500).round(),
+              onChanged: (v) =>
+                  setState(() => _monthlyIncome = (v / 500).round() * 500),
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(fmt.format(2000),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      )),
+              Text(fmt.format(20000),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      )),
+            ]),
+          ]),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          ResultTile(
+            label: 'Recommended max payment (15% of income)',
+            value: '${fmt2.format(maxRecommended)}/mo',
+          ),
+          ResultTile(
+            label: 'Max affordable vehicle (at current rate/term)',
+            value: fmt.format(maxVehicle),
+            isHighlight: true,
+          ),
+          if (r != null) ...[
+            const SizedBox(height: 12),
+            // Traffic-light indicator
+            Row(children: [
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: _trafficColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Your payment ${fmt2.format(r.monthlyPayment)}/mo — $_trafficLabel',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: _trafficColor,
+                      ),
+                ),
+              ),
+            ]),
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              'Calculate a loan above to see your payment rating.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
         ],
       ],
     );

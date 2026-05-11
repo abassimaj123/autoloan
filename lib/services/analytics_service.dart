@@ -100,6 +100,12 @@ class AnalyticsService {
   Future<void> setUserPremium(bool isPremium) =>
       _fa.setUserProperty(name: 'is_premium', value: isPremium ? 'true' : 'false');
 
+
+  // ── Error & limit tracking ──────────────────────────────────────────────
+  Future<void> logRewardedAdFailed() => _log('rewarded_ad_failed');
+  Future<void> logRewardedDailyLimit() => _log('rewarded_daily_limit_reached');
+  Future<void> logBannerFailed() => _log('banner_ad_failed');
+
   // ── Internals ─────────────────────────────────────────────────────────────
 
   Future<void> _log(String name, [Map<String, Object>? params]) async {
@@ -107,7 +113,10 @@ class AnalyticsService {
       debugPrint('[Analytics] $name ${params ?? ''}');
       return;
     }
-    await _fa.logEvent(name: name, parameters: params);
+    await _fa.logEvent(
+      name: name,
+      parameters: {'app_name': 'AutoLoan', ...?params},
+    );
   }
 
   String _priceBucket(double price) {

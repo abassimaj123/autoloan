@@ -105,5 +105,22 @@
   "pcpPayment": "PCP Monthly Payment",
   "pcpFinalPayment": "Final Balloon Payment",
   "settingsDisclaimer": "For informational purposes only. Not financial advice. Consult a qualified advisor before making financial decisions.",
-  "maybeLater": "Maybe later"
+  "maybeLater": "Maybe later",
+  "onboardingTitle1": "Calculate your auto loan",
+  "onboardingSubtitle1": "Get your monthly payment, total interest, and full cost instantly. Supports CA, UK, and US markets.",
+  "onboardingTitle2": "Compare scenarios",
+  "onboardingSubtitle2": "Compare two loan scenarios side by side — different terms, down payments, or interest rates. Find the best deal.",
+  "onboardingTitle3": "Go premium",
+  "onboardingSubtitle3": "Unlock the amortization schedule, PDF export, and unlimited history. One small purchase, no subscription.",
+  "onboardingNext": "Next",
+  "onboardingStart": "Get started",
+  "onboardingFeaturePayment": "Monthly payment",
+  "onboardingFeatureInterest": "Total interest",
+  "onboardingFeatureCost": "Full loan cost",
+  "onboardingFeatureAmortization": "Amortization",
+  "onboardingFeatureCompare": "Loan comparison",
+  "onboardingFeaturePDF": "PDF export",
+  "onboardingPremiumBullet1": "Full amortization schedule",
+  "onboardingPremiumBullet2": "PDF export & sharing",
+  "onboardingPremiumBullet3": "Unlimited calculation history"
 }

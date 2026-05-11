@@ -105,5 +105,22 @@
   "pcpPayment": "Paiement mensuel PCP",
   "pcpFinalPayment": "Paiement ballon final",
   "settingsDisclaimer": "À titre informatif seulement. Ce n'est pas un conseil financier. Consultez un conseiller qualifié avant de prendre des décisions financières.",
-  "maybeLater": "Peut-être plus tard"
+  "maybeLater": "Peut-être plus tard",
+  "onboardingTitle1": "Calculez votre prêt auto",
+  "onboardingSubtitle1": "Obtenez instantanément vos paiements mensuels, les intérêts totaux et le coût complet. Disponible pour CA, UK et US.",
+  "onboardingTitle2": "Comparez les scénarios",
+  "onboardingSubtitle2": "Comparez deux prêts côte à côte — différentes durées, mises de fonds ou taux d'intérêt. Trouvez la meilleure offre.",
+  "onboardingTitle3": "Passez en premium",
+  "onboardingSubtitle3": "Déverrouillez le tableau d'amortissement, l'export PDF et l'historique illimité. Un seul achat, sans abonnement.",
+  "onboardingNext": "Suivant",
+  "onboardingStart": "Commencer",
+  "onboardingFeaturePayment": "Paiement mensuel",
+  "onboardingFeatureInterest": "Intérêts totaux",
+  "onboardingFeatureCost": "Coût total",
+  "onboardingFeatureAmortization": "Amortissement",
+  "onboardingFeatureCompare": "Comparaison",
+  "onboardingFeaturePDF": "Export PDF",
+  "onboardingPremiumBullet1": "Tableau d'amortissement complet",
+  "onboardingPremiumBullet2": "Export PDF et partage",
+  "onboardingPremiumBullet3": "Historique de calculs illimité"
 }

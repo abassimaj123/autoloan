@@ -1,0 +1,34 @@
+APP NAME
+Auto Loan Calculator — UK
+
+SHORT DESCRIPTION (80 chars max)
+HP & PCP car finance calculator with VED road tax, amortisation schedule & PDF.
+
+FULL DESCRIPTION
+Plan your next car finance deal with confidence. Auto Loan Calculator UK handles both standard Hire Purchase (HP) and Personal Contract Purchase (PCP) — the way British borrowers actually buy cars.
+
+TOOLS INCLUDED
+• Payment Calculator — monthly or fortnightly payment for HP and PCP
+• Amortisation Schedule — full month-by-month breakdown of capital vs. interest
+• Early Payoff — calculate the benefit of overpayments under FCA CONC rules
+• Loan Comparator — compare two finance deals side by side
+• Trade-In Estimator — subtract your part-exchange value before financing
+• History & PDF Export — save unlimited calculations and export summary PDFs
+
+UK-SPECIFIC FEATURES
+• PCP mode — enter your GMFV (guaranteed minimum future value / balloon payment) as a percentage of vehicle price
+• Road Tax (VED) — built-in 2024/25 annual rates for Electric, Petrol <1000cc, Petrol >1000cc, Diesel/Hybrid, and custom entry
+• Representative APR display with FCA CONC compliance note
+• DVLA-compliant VED annual rates shown in the calculator
+• VAT-inclusive vehicle price input
+
+FREEMIUM
+Free tier: 5 saved calculations
+Premium (one-time £2.99): unlimited saves, PDF export, amortisation table, loan comparator, zero ads — forever
+
+LANGUAGES
+English
+
+---
+KEYWORDS
+car finance calculator UK, PCP calculator, HP car loan, VED road tax, amortisation schedule, GMFV, personal contract purchase, hire purchase, FCA

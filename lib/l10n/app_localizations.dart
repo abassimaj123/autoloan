@@ -669,6 +669,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maybe later'**
   String get maybeLater;
+
+  /// No description provided for @onboardingTitle1.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate your auto loan'**
+  String get onboardingTitle1;
+
+  /// No description provided for @onboardingSubtitle1.
+  ///
+  /// In en, this message translates to:
+  /// **'Get your monthly payment, total interest, and full cost instantly. Supports CA, UK, and US markets.'**
+  String get onboardingSubtitle1;
+
+  /// No description provided for @onboardingTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare scenarios'**
+  String get onboardingTitle2;
+
+  /// No description provided for @onboardingSubtitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare two loan scenarios side by side — different terms, down payments, or interest rates. Find the best deal.'**
+  String get onboardingSubtitle2;
+
+  /// No description provided for @onboardingTitle3.
+  ///
+  /// In en, this message translates to:
+  /// **'Go premium'**
+  String get onboardingTitle3;
+
+  /// No description provided for @onboardingSubtitle3.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock the amortization schedule, PDF export, and unlimited history. One small purchase, no subscription.'**
+  String get onboardingSubtitle3;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingStart;
+
+  /// No description provided for @onboardingFeaturePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly payment'**
+  String get onboardingFeaturePayment;
+
+  /// No description provided for @onboardingFeatureInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Total interest'**
+  String get onboardingFeatureInterest;
+
+  /// No description provided for @onboardingFeatureCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Full loan cost'**
+  String get onboardingFeatureCost;
+
+  /// No description provided for @onboardingFeatureAmortization.
+  ///
+  /// In en, this message translates to:
+  /// **'Amortization'**
+  String get onboardingFeatureAmortization;
+
+  /// No description provided for @onboardingFeatureCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan comparison'**
+  String get onboardingFeatureCompare;
+
+  /// No description provided for @onboardingFeaturePDF.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF export'**
+  String get onboardingFeaturePDF;
+
+  /// No description provided for @onboardingPremiumBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Full amortization schedule'**
+  String get onboardingPremiumBullet1;
+
+  /// No description provided for @onboardingPremiumBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF export & sharing'**
+  String get onboardingPremiumBullet2;
+
+  /// No description provided for @onboardingPremiumBullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited calculation history'**
+  String get onboardingPremiumBullet3;
 }
 
 class _AppLocalizationsDelegate

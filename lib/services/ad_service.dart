@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../core/config/ad_config.dart';
 import '../core/freemium/freemium_service.dart';
+import './analytics_service.dart';
 
 class AdService {
   final AdConfig _cfg;
@@ -9,7 +10,7 @@ class AdService {
   RewardedAd?     _rewarded;
 
   // ── Interstitial frequency gate ───────────────────────────────────────────
-  static const int _calcThreshold  = 5;            // show after every 5 calculations
+  static const int _calcThreshold  = 8;            // show after every 8 calculations
   static const int _cooldownMinutes = 5;           // 5-minute minimum cooldown
   int       _calcCount      = 0;
   DateTime? _lastInterTime;
@@ -17,7 +18,9 @@ class AdService {
   AdService(this._cfg);
 
   String get bannerId        => _cfg.bannerId;
-  bool   get isRewardedReady => _rewarded != null;
+  bool   get isRewardedReady => _rewarded != null &&
+      !freemiumService.isPremium &&
+      !freemiumService.isRewarded;
 
   Future<void> initialize() async {
     await MobileAds.instance.initialize();
@@ -81,7 +84,10 @@ class AdService {
     request: const AdRequest(),
     rewardedAdLoadCallback: RewardedAdLoadCallback(
       onAdLoaded:       (a) => _rewarded = a,
-      onAdFailedToLoad: (_) => _rewarded = null,
+      onAdFailedToLoad: (_) {
+          _rewarded = null;
+          AnalyticsService.instance.logRewardedAdFailed();
+        },
     ),
   );
 

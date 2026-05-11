@@ -1,7 +1,7 @@
 name: auto_loan
 description: Auto Loan Calculator — CA / AU / US
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.11.4
@@ -11,9 +11,11 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  calcwise_core:
+    path: ../packages/calcwise_core
 
   # ── Core ──────────────────────────────────────────────────────────────────
-  intl: ^0.20.2
+  intl: ^0.20.0
   provider: ^6.1.2
   shared_preferences: ^2.3.2
   in_app_purchase: ^3.2.0
@@ -41,6 +43,7 @@ dependencies:
   # cupertino_icons: used for cross-platform icon widgets (safe on Android)
   # TODO: iOS — verify icon appearance on iOS devices
   cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.1
@@ -56,6 +59,7 @@ flutter:
     - assets/images/ca/
     - assets/images/us/
     - assets/images/uk/
+    - assets/icons/
 
 flutter_launcher_icons:
   android: true

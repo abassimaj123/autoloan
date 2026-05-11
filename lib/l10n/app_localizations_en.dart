@@ -306,4 +306,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maybeLater => 'Maybe later';
+
+  @override
+  String get onboardingTitle1 => 'Calculate your auto loan';
+
+  @override
+  String get onboardingSubtitle1 =>
+      'Get your monthly payment, total interest, and full cost instantly. Supports CA, UK, and US markets.';
+
+  @override
+  String get onboardingTitle2 => 'Compare scenarios';
+
+  @override
+  String get onboardingSubtitle2 =>
+      'Compare two loan scenarios side by side — different terms, down payments, or interest rates. Find the best deal.';
+
+  @override
+  String get onboardingTitle3 => 'Go premium';
+
+  @override
+  String get onboardingSubtitle3 =>
+      'Unlock the amortization schedule, PDF export, and unlimited history. One small purchase, no subscription.';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Get started';
+
+  @override
+  String get onboardingFeaturePayment => 'Monthly payment';
+
+  @override
+  String get onboardingFeatureInterest => 'Total interest';
+
+  @override
+  String get onboardingFeatureCost => 'Full loan cost';
+
+  @override
+  String get onboardingFeatureAmortization => 'Amortization';
+
+  @override
+  String get onboardingFeatureCompare => 'Loan comparison';
+
+  @override
+  String get onboardingFeaturePDF => 'PDF export';
+
+  @override
+  String get onboardingPremiumBullet1 => 'Full amortization schedule';
+
+  @override
+  String get onboardingPremiumBullet2 => 'PDF export & sharing';
+
+  @override
+  String get onboardingPremiumBullet3 => 'Unlimited calculation history';
 }

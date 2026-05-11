@@ -104,7 +104,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
     final l10n       = AppLocalizations.of(context)!;
     final cs         = Theme.of(context).colorScheme;
     final isRewarded = freemiumService.isRewarded;
-    final minsLeft   = freemiumService.rewardedMinutesLeft;
+    final minsLeft   = freemiumService.rewardedRemaining?.inMinutes ?? 0;
     final canWatch   = freemiumService.canWatchRewarded();
     final adReady    = widget.adService.isRewardedReady;
 

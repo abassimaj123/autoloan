@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:calcwise_core/calcwise_core.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/ad_banner.dart';
 import '../../widgets/premium_gate.dart';
 import '../../services/ad_service.dart';
 import '../../core/freemium/freemium_service.dart';
-import '../../core/freemium/paywall_service.dart';
+import '../../main.dart' show paywallSession;
 import '../../widgets/paywall_soft.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../features/amortization/amortization_screen.dart';
@@ -18,7 +20,10 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
 import '../../services/analytics_service.dart';
+import '../../services/review_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/insight_engine.dart';
+import '../../widgets/insight_card.dart';
 import 'uk_provider.dart';
 import 'uk_logic.dart';
 
@@ -55,7 +60,7 @@ class UKScreen extends StatelessWidget {
                   ),
                 ),
           ),
-          if (paywallService.shouldShowRewarded && !freemiumService.isPremium)
+          if (paywallSession.sessionCount >= 2 && !freemiumService.isPremium)
             IconButton(
               icon: const Icon(Icons.shield_outlined),
               tooltip: 'Watch ad — 60 min free',
@@ -66,9 +71,14 @@ class UKScreen extends StatelessWidget {
             tooltip: l10n.history,
             onPressed: () {
               AnalyticsService.instance.logTabChanged('history');
-              paywallService.recordAction();
+              paywallSession.recordAction();
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const HistoryScreen(country: 'uk')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const HistoryScreen(country: 'uk'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
           IconButton(
@@ -77,9 +87,14 @@ class UKScreen extends StatelessWidget {
             onPressed: () {
               AnalyticsService.instance.logTabChanged('compare');
               AnalyticsService.instance.logCompareUsed('uk');
-              paywallService.recordAction();
+              paywallSession.recordAction();
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const CompareScreen(flavor: 'uk')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'uk'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
           IconButton(
@@ -88,7 +103,12 @@ class UKScreen extends StatelessWidget {
             onPressed: () {
               AnalyticsService.instance.logTabChanged('settings');
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen(flavor: 'uk')));
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const SettingsScreen(flavor: 'uk'),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
           ),
         ],
@@ -98,9 +118,14 @@ class UKScreen extends StatelessWidget {
           top: false,
           child: GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),
-            child: ListView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-          children: [
+            child: SingleChildScrollView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    child: CalcwisePageEntrance(child: Column(
+                      children: [
             // ── Vehicle ───────────────────────────────────────────────
             SectionCard(
               title: l10n.vehicle,
@@ -334,7 +359,7 @@ class UKScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: FilledButton.icon(
-                onPressed: () {
+                onPressed: () async {
                   if (p.downPayment >= p.vehiclePrice) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Down payment must be less than vehicle price.')),
@@ -342,7 +367,9 @@ class UKScreen extends StatelessWidget {
                     return;
                   }
                   p.calculate();
-                  final trigger = paywallService.recordAction();
+                  HapticFeedback.mediumImpact();
+                  ReviewService.instance.requestAfterSave();
+                  final trigger = await paywallSession.recordAction();
                   if (trigger == PaywallTrigger.soft) {
                     PaywallSoft.show(context, priceLabel: '£2.99');
                   } else if (trigger == PaywallTrigger.hard) {
@@ -358,11 +385,35 @@ class UKScreen extends StatelessWidget {
             if (p.result != null)
               _UKResults(p: p, adService: adService),
 
-            const SizedBox(height: 16),
-            AdBannerWidget(adService: adService),
-            const SizedBox(height: 24),
-          ],
-        ),
+            // ── PCP vs HP Comparison (only when PCP is on) ────────────
+            if (p.result != null && p.isPcp)
+              _UKPcpHpSection(p: p),
+
+            // ── Total Cost of Credit ──────────────────────────────────
+            if (p.result != null)
+              _UKCostOfCreditSection(p: p),
+
+            // ── Early Settlement ──────────────────────────────────────
+            if (p.result != null)
+              _UKEarlySettlementSection(p: p),
+
+            // ── TCO ───────────────────────────────────────────────────
+            if (p.result != null)
+              _UKTcoSection(p: p),
+
+            // ── HP vs PCP Comparison ──────────────────────────────────
+            if (p.result != null)
+              _UKHpVsPcpSection(p: p),
+
+                      const SizedBox(height: 16),
+                      AdBannerWidget(adService: adService),
+                      const SizedBox(height: 24),
+                    ],
+                  )),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
       ),
@@ -435,6 +486,20 @@ class _UKResults extends StatelessWidget {
             value: fmt.format(r.pcpTotalIfBuy),
           ),
         const SizedBox(height: 8),
+        // ── Smart Insights ────────────────────────────────────────────
+        InsightCard(
+          insights: InsightEngine.generate(
+            vehiclePrice:    r.vehiclePrice,
+            loanAmount:      r.loanAmount,
+            annualRatePct:   r.annualRate,
+            termMonths:      r.termMonths,
+            monthlyPayment:  r.baseLoanPayment,
+            totalInterest:   r.totalInterest,
+            downPayment:     r.downPayment,
+            currencySymbol:  '£',
+          ),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: () {
             final payment = p.isBiWeekly
@@ -459,8 +524,8 @@ class _UKResults extends StatelessWidget {
               AnalyticsService.instance.logAmortizationViewed('uk');
               adService.showInterstitialThen(() {
                 if (context.mounted) {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => AmortizationScreen(
+                  Navigator.push(context, PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => AmortizationScreen(
                             loanAmount: r.loanAmount,
                             annualRate: r.annualRate,
                             termMonths: r.termMonths,
@@ -469,8 +534,11 @@ class _UKResults extends StatelessWidget {
                             insuranceMonthly: r.vedMonthly,
                             currencySymbol: '£',
                             title: 'Amortisation Schedule',
-                            isBiWeekly: p.isBiWeekly,
-                          )));
+                            isBiWeekly: p.isBiWeekly,),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
                 }
               });
             },
@@ -522,20 +590,732 @@ class _UKResults extends StatelessWidget {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => EarlyPayoffScreen(
+              Navigator.push(context, PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => EarlyPayoffScreen(
                         loanAmount: r.loanAmount,
                         annualRate: r.annualRate,
                         termMonths: r.termMonths,
                         currencySymbol: '£',
-                        flavor: 'uk',
-                      )));
+                        flavor: 'uk',),
+                    transitionsBuilder: (_, anim, __, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: const Duration(milliseconds: 250),
+                  ));
             },
             icon: const Icon(Icons.rocket_launch_outlined),
             label: const Text('Early Payoff'),
           ),
         ] else ...[
           PremiumGate(adService: adService, flavor: 'uk'),
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK PCP vs HP Comparison ────────────────────────────────────────────────────
+
+class _UKPcpHpSection extends StatelessWidget {
+  final UKProvider p;
+  const _UKPcpHpSection({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
+    final r   = p.result!;
+
+    // Compute HP equivalent with same vehicle price, down payment, rate, term
+    final hp = UKCalculation.calculate(
+      vehiclePrice:  p.vehiclePrice,
+      downPayment:   p.downPayment,
+      annualRate:    p.annualRate,
+      termMonths:    p.termMonths,
+      includeRoadTax: p.includeRoadTax,
+      vehicleType:   p.vehicleType,
+      customVedAnnual: p.customVedAnnual,
+      isPcp:         false,
+      isBiWeekly:    p.isBiWeekly,
+    );
+
+    final pcpMonthly = r.displayPayment;
+    final hpMonthly  = hp.displayPayment;
+    final pcpTotal   = r.pcpTotalIfBuy;  // total if buying at end
+    final hpTotal    = hp.totalCost;
+
+    final pcpSavesPerMo = hpMonthly - pcpMonthly;
+    final hpSavesTotal  = pcpTotal - hpTotal;
+
+    return SectionCard(
+      title: 'PCP vs HP Comparison',
+      children: [
+        Row(children: [
+          Expanded(
+            child: _UKCompareCol(
+              label: 'PCP',
+              monthly: fmt.format(pcpMonthly),
+              total: fmt.format(pcpTotal),
+              footnote: 'incl. £${r.gmfvAmount.toStringAsFixed(0)} balloon',
+              highlight: pcpSavesPerMo > 0,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _UKCompareCol(
+              label: 'HP',
+              monthly: fmt.format(hpMonthly),
+              total: fmt.format(hpTotal),
+              footnote: 'full ownership',
+              highlight: pcpSavesPerMo <= 0,
+            ),
+          ),
+        ]),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(children: [
+            if (pcpSavesPerMo > 0)
+              Text(
+                'PCP saves ${fmt.format(pcpSavesPerMo)}/mo during contract',
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            if (hpSavesTotal > 0)
+              Text(
+                'HP saves ${fmt.format(hpSavesTotal)} total (if buying at end of PCP)',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            if (hpSavesTotal <= 0 && pcpSavesPerMo <= 0)
+              Text(
+                'PCP total cost similar to HP for these inputs',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+class _UKCompareCol extends StatelessWidget {
+  final String label;
+  final String monthly;
+  final String total;
+  final String footnote;
+  final bool highlight;
+
+  const _UKCompareCol({
+    required this.label,
+    required this.monthly,
+    required this.total,
+    required this.footnote,
+    required this.highlight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: highlight
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.outline,
+          width: highlight ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(children: [
+        Text(label, style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(monthly, style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        Text('/month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+        const SizedBox(height: 4),
+        Text('Total: $total',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+        Text(footnote,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.center),
+      ]),
+    );
+  }
+}
+
+// ── UK Total Cost of Credit ────────────────────────────────────────────────────
+
+class _UKCostOfCreditSection extends StatelessWidget {
+  final UKProvider p;
+  const _UKCostOfCreditSection({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
+    final r   = p.result!;
+
+    // Total amount payable = all monthly payments + balloon if PCP
+    final totalPayable = r.isPcp
+        ? r.baseLoanPayment * r.termMonths + r.gmfvAmount + r.downPayment + r.vedTotal
+        : r.monthlyPayment * r.termMonths + r.downPayment;
+    final costOfCredit = totalPayable - p.vehiclePrice;
+
+    // APR flat-rate warning: if rate looks like a flat rate (typically < 5%)
+    final flatRateAprApprox = p.annualRate * 1.8;
+    final looksLikeFlat     = p.annualRate < 6.0;
+
+    return SectionCard(
+      title: 'Total Cost of Credit',
+      children: [
+        ResultTile(
+          label: 'Vehicle price',
+          value: fmt.format(p.vehiclePrice),
+        ),
+        ResultTile(
+          label: r.isPcp ? 'Total amount payable (if buying)' : 'Total amount payable',
+          value: fmt.format(totalPayable),
+          isHighlight: true,
+        ),
+        ResultTile(
+          label: 'Cost of credit',
+          value: fmt.format(costOfCredit),
+        ),
+        if (r.vedTotal > 0)
+          ResultTile(
+            label: 'Includes VED (road tax)',
+            value: fmt.format(r.vedTotal),
+          ),
+        if (r.isPcp) ...[
+          ResultTile(label: 'Optional final balloon', value: fmt.format(r.gmfvAmount)),
+        ],
+        if (looksLikeFlat) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: Theme.of(context).colorScheme.tertiary, size: 18),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'If this is a flat rate, your APR is approx '
+                  '${flatRateAprApprox.toStringAsFixed(1)}% '
+                  '(flat rate × 1.8). Confirm with your lender.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ]),
+          ),
+        ],
+        const SizedBox(height: 4),
+        Text(
+          'FCA CONC 3.5.4 — Representative APR must be disclosed.',
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+}
+
+// ── UK TCO Slider helper ───────────────────────────────────────────────────────
+
+class _UKTcoSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final String display;
+  final ValueChanged<double> onChanged;
+
+  const _UKTcoSlider({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.step,
+    required this.display,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+      Text(
+        display,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+      Flexible(
+        child: SizedBox(
+          width: 120,
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              overlayShape: SliderComponentShape.noOverlay,
+            ),
+            child: Slider(
+              value: value.clamp(min, max),
+              min: min,
+              max: max,
+              divisions: ((max - min) / step).round().clamp(1, 500),
+              onChanged: (v) => onChanged((v / step).round() * step),
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+// ── UK Total Cost of Ownership ─────────────────────────────────────────────────
+
+class _UKTcoSection extends StatefulWidget {
+  final UKProvider p;
+  const _UKTcoSection({required this.p});
+
+  @override
+  State<_UKTcoSection> createState() => _UKTcoSectionState();
+}
+
+class _UKTcoSectionState extends State<_UKTcoSection> {
+  bool _expanded = false;
+
+  double _annualMiles          = 10000;
+  double _mpg                  = 40.0;
+  double _fuelPricePence       = 148.0;
+  double _annualInsurance      = 800;
+  double _annualMot            = 80;
+
+  UKTcoCalculation? _tco;
+
+  void _calculate() {
+    final r = widget.p.result!;
+    setState(() {
+      _tco = UKTcoCalculation.calculate(
+        annualMiles:            _annualMiles,
+        mpg:                    _mpg,
+        fuelPricePencePerLitre: _fuelPricePence,
+        annualInsurance:        _annualInsurance,
+        annualMot:              _annualMot,
+        termMonths:             r.termMonths,
+        totalInterest:          r.totalInterest,
+        totalVed:               r.vedTotal,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt      = NumberFormat.currency(symbol: '£', decimalDigits: 0);
+    final fmt2     = NumberFormat.currency(symbol: '£', decimalDigits: 2);
+    final r        = widget.p.result!;
+    final termYears = r.termMonths ~/ 12;
+
+    return SectionCard(
+      title: 'Total Cost of Ownership',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Calculate true ownership cost')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          _UKTcoSlider(
+            label: 'Annual miles driven',
+            value: _annualMiles,
+            min: 2000, max: 30000, step: 1000,
+            display: '${_annualMiles.toStringAsFixed(0)} mi',
+            onChanged: (v) => setState(() => _annualMiles = v),
+          ),
+          const SizedBox(height: 8),
+          _UKTcoSlider(
+            label: 'Fuel efficiency (MPG)',
+            value: _mpg,
+            min: 20, max: 80, step: 1,
+            display: '${_mpg.toStringAsFixed(0)} mpg',
+            onChanged: (v) => setState(() => _mpg = v),
+          ),
+          const SizedBox(height: 8),
+          _UKTcoSlider(
+            label: 'Fuel price (p/litre)',
+            value: _fuelPricePence,
+            min: 100, max: 200, step: 1,
+            display: '${_fuelPricePence.toStringAsFixed(0)}p/L',
+            onChanged: (v) => setState(() => _fuelPricePence = v),
+          ),
+          const SizedBox(height: 8),
+          _UKTcoSlider(
+            label: 'Annual insurance (£)',
+            value: _annualInsurance,
+            min: 300, max: 5000, step: 50,
+            display: fmt.format(_annualInsurance),
+            onChanged: (v) => setState(() => _annualInsurance = v),
+          ),
+          const SizedBox(height: 8),
+          _UKTcoSlider(
+            label: 'Annual MOT & service (£)',
+            value: _annualMot,
+            min: 0, max: 500, step: 10,
+            display: fmt.format(_annualMot),
+            onChanged: (v) => setState(() => _annualMot = v),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _calculate,
+            icon: const Icon(Icons.calculate_outlined),
+            label: const Text('Calculate TCO'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+          ),
+          if (_tco != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            ResultTile(label: 'Total fuel', value: fmt2.format(_tco!.totalFuel)),
+            ResultTile(label: 'Total insurance', value: fmt2.format(_tco!.totalInsurance)),
+            ResultTile(label: 'Total MOT & service', value: fmt2.format(_tco!.totalMot)),
+            if (_tco!.totalVed > 0)
+              ResultTile(label: 'Total VED (road tax)', value: fmt2.format(_tco!.totalVed)),
+            ResultTile(label: 'Total interest', value: fmt2.format(_tco!.totalInterest)),
+            const Divider(height: 8),
+            ResultTile(
+              label: 'Grand total over $termYears years',
+              value: fmt2.format(_tco!.grandTotal),
+              isHighlight: true,
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK HP vs PCP Comparison ────────────────────────────────────────────────────
+
+class _UKHpVsPcpSection extends StatefulWidget {
+  final UKProvider p;
+  const _UKHpVsPcpSection({required this.p});
+
+  @override
+  State<_UKHpVsPcpSection> createState() => _UKHpVsPcpSectionState();
+}
+
+class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
+  bool   _expanded    = false;
+  double _gmfvPercent = 30.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
+    final p   = widget.p;
+
+    // HP calculation: standard loan (no GMFV)
+    final hp = UKCalculation.calculate(
+      vehiclePrice:    p.vehiclePrice,
+      downPayment:     p.downPayment,
+      annualRate:      p.annualRate,
+      termMonths:      p.termMonths,
+      includeRoadTax:  p.includeRoadTax,
+      vehicleType:     p.vehicleType,
+      customVedAnnual: p.customVedAnnual,
+      isPcp:           false,
+      isBiWeekly:      false,
+    );
+
+    // PCP calculation with local GMFV slider
+    final pcp = UKCalculation.calculate(
+      vehiclePrice:    p.vehiclePrice,
+      downPayment:     p.downPayment,
+      annualRate:      p.annualRate,
+      termMonths:      p.termMonths,
+      includeRoadTax:  p.includeRoadTax,
+      vehicleType:     p.vehicleType,
+      customVedAnnual: p.customVedAnnual,
+      isPcp:           true,
+      gmfvPercent:     _gmfvPercent,
+      isBiWeekly:      false,
+    );
+
+    final hpMonthly  = hp.baseLoanPayment;
+    final pcpMonthly = pcp.baseLoanPayment;
+    final hpTotal    = hp.totalCost;
+    // PCP total: payments only (not GMFV), per spec
+    final pcpPaymentsTotal = pcp.baseLoanPayment * pcp.termMonths.toDouble();
+    final gmfvBalloon      = pcp.gmfvAmount;
+
+    final pcpSavesPerMo  = hpMonthly - pcpMonthly;
+    final hpSavesOverall = pcpPaymentsTotal + gmfvBalloon - hpTotal;
+
+    return SectionCard(
+      title: 'HP vs PCP Comparison',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Compare Hire Purchase vs PCP side-by-side')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          // GMFV slider
+          _UKTcoSlider(
+            label: 'GMFV balloon (%)',
+            value: _gmfvPercent,
+            min: 10, max: 60, step: 1,
+            display: '${_gmfvPercent.toStringAsFixed(0)}%  (£${gmfvBalloon.toStringAsFixed(0)})',
+            onChanged: (v) => setState(() => _gmfvPercent = v),
+          ),
+          const SizedBox(height: 12),
+          // Side-by-side cards
+          Row(children: [
+            Expanded(
+              child: _UKFinanceCol(
+                label: 'HP',
+                monthly: fmt.format(hpMonthly),
+                totalLabel: 'Total cost',
+                total: fmt.format(hpTotal),
+                footnote: 'You own it outright',
+                highlight: pcpSavesPerMo <= 0,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _UKFinanceCol(
+                label: 'PCP',
+                monthly: fmt.format(pcpMonthly),
+                totalLabel: 'Payments total',
+                total: fmt.format(pcpPaymentsTotal),
+                footnote: '+ £${gmfvBalloon.toStringAsFixed(0)} balloon',
+                highlight: pcpSavesPerMo > 0,
+              ),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          // Verdict banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(children: [
+              if (pcpSavesPerMo > 0) ...[
+                Text(
+                  'PCP saves ${fmt.format(pcpSavesPerMo)}/mo during contract',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  'but £${gmfvBalloon.toStringAsFixed(0)} balloon payment at end',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ] else ...[
+                Text(
+                  'HP: you own it outright — no balloon payment',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (hpSavesOverall > 0) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'HP saves £${hpSavesOverall.toStringAsFixed(0)} overall vs PCP if buying at end',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ]),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'PCP total excludes GMFV balloon. HP total = vehicle price + all interest.',
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _UKFinanceCol extends StatelessWidget {
+  final String label;
+  final String monthly;
+  final String totalLabel;
+  final String total;
+  final String footnote;
+  final bool   highlight;
+
+  const _UKFinanceCol({
+    required this.label,
+    required this.monthly,
+    required this.totalLabel,
+    required this.total,
+    required this.footnote,
+    required this.highlight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: highlight
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.outline,
+          width: highlight ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(children: [
+        Text(label,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(monthly,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: color, fontWeight: FontWeight.bold)),
+        Text('/month',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+        const SizedBox(height: 4),
+        Text('$totalLabel: $total',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
+            textAlign: TextAlign.center),
+        Text(footnote,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.center),
+      ]),
+    );
+  }
+}
+
+// ── UK Early Settlement ────────────────────────────────────────────────────────
+
+class _UKEarlySettlementSection extends StatefulWidget {
+  final UKProvider p;
+  const _UKEarlySettlementSection({required this.p});
+
+  @override
+  State<_UKEarlySettlementSection> createState() => _UKEarlySettlementSectionState();
+}
+
+class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
+  bool _expanded = false;
+  int  _monthsPaid = 12;
+  double? _settlement;
+  double? _percentPaid;
+
+  void _calculate() {
+    final r = widget.p.result!;
+    final N = r.termMonths;
+    final n = N - _monthsPaid; // remaining payments
+    if (n <= 0 || n > N) return;
+
+    // Remaining principal (approximate via amortisation)
+    // Use simple Rule of 78 as specified
+    final totalInterest = r.totalInterest;
+    final interestEarned = totalInterest * (_monthsPaid * (2 * N - _monthsPaid + 1))
+        / (N * (N + 1));
+    final principalRepaid = r.baseLoanPayment * _monthsPaid - interestEarned;
+    final remainingPrincipal = (r.loanAmount - principalRepaid).clamp(0.0, double.infinity);
+
+    // Rule of 78 settlement figure
+    final settlementFigure = remainingPrincipal
+        + (totalInterest * (n * (n + 1)) / (N * (N + 1)));
+
+    final totalCostPaid = r.displayPayment * _monthsPaid + widget.p.downPayment;
+    final pctPaid = totalCostPaid / r.totalCost * 100;
+
+    setState(() {
+      _settlement  = settlementFigure.clamp(0.0, double.infinity);
+      _percentPaid = pctPaid.clamp(0.0, 100.0);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
+    final r   = widget.p.result!;
+
+    return SectionCard(
+      title: 'Early Settlement',
+      children: [
+        Row(children: [
+          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
+          const Expanded(child: Text('Calculate settlement figure')),
+        ]),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Months already paid'),
+              Text('$_monthsPaid months',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold)),
+            ]),
+            Slider(
+              value: _monthsPaid.toDouble(),
+              min: 1,
+              max: (r.termMonths - 1).toDouble(),
+              divisions: r.termMonths - 2,
+              onChanged: (v) => setState(() => _monthsPaid = v.round()),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: _calculate,
+            icon: const Icon(Icons.receipt_long_outlined),
+            label: const Text('Calculate Settlement'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+          ),
+          if (_settlement != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            ResultTile(
+              label: 'Settlement figure (Rule of 78)',
+              value: fmt.format(_settlement!),
+              isHighlight: true,
+            ),
+            ResultTile(
+              label: 'You\'ve paid',
+              value: '${_percentPaid!.toStringAsFixed(1)}% of total cost',
+            ),
+            ResultTile(
+              label: 'Months remaining',
+              value: '${r.termMonths - _monthsPaid} months',
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Settlement is calculated using the Rule of 78 (sum of digits). '
+              'Your lender may quote a slightly different figure.',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ],
         ],
       ],
     );

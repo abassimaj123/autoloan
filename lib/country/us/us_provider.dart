@@ -8,12 +8,12 @@ class USProvider extends ChangeNotifier {
   final AdService      _ads;
   final HistoryService _history;
 
-  double vehiclePrice    = 30000;
+  double vehiclePrice    = 35000;
   double tradeInValue    = 0;
-  double downPayment     = 3000;
+  double downPayment     = 5000;
   double dealerFees      = 500;
   double salesTaxPercent = 8.0;
-  double annualRate      = 6.9;
+  double annualRate      = 7.5;
   int    termMonths      = 60;
   CreditScore creditScore = CreditScore.good;
   bool   isBiWeekly      = false;

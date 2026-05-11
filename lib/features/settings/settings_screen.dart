@@ -1,3 +1,4 @@
+import 'package:calcwise_core/calcwise_core.dart' show themeModeService;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -70,6 +71,28 @@ class SettingsScreen extends StatelessWidget {
             ),
             const Divider(),
           ],
+
+          // ── Appearance ────────────────────────────────────────────
+          Consumer<LocaleNotifier>(builder: (_, ln, __) {
+            final isFr = ln.isFrench;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SectionHeader(isFr ? 'Apparence' : 'Appearance'),
+                ValueListenableBuilder<ThemeMode>(
+                  valueListenable: themeModeService.notifier,
+                  builder: (_, __, ___) => ListTile(
+                    leading: Icon(themeModeService.icon,
+                        color: Theme.of(context).colorScheme.primary),
+                    title: Text(themeModeService.label(isFrench: isFr)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => themeModeService.toggle(),
+                  ),
+                ),
+                const Divider(),
+              ],
+            );
+          }),
 
           // ── Premium ────────────────────────────────────────────────
           _SectionHeader('Premium'),

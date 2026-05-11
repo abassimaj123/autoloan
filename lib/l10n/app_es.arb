@@ -105,5 +105,22 @@
   "pcpPayment": "Pago mensual PCP",
   "pcpFinalPayment": "Pago globo final",
   "settingsDisclaimer": "Solo con fines informativos. No es asesoramiento financiero. Consulte a un asesor calificado antes de tomar decisiones financieras.",
-  "maybeLater": "Quizás más tarde"
+  "maybeLater": "Quizás más tarde",
+  "onboardingTitle1": "Calcula tu préstamo auto",
+  "onboardingSubtitle1": "Obtén tu pago mensual, interés total y costo completo al instante. Compatible con CA, UK y US.",
+  "onboardingTitle2": "Compara escenarios",
+  "onboardingSubtitle2": "Compara dos préstamos lado a lado — distintos plazos, enganches o tasas de interés. Encuentra la mejor oferta.",
+  "onboardingTitle3": "Hazte premium",
+  "onboardingSubtitle3": "Desbloquea la tabla de amortización, exportación PDF e historial ilimitado. Una sola compra, sin suscripción.",
+  "onboardingNext": "Siguiente",
+  "onboardingStart": "Comenzar",
+  "onboardingFeaturePayment": "Pago mensual",
+  "onboardingFeatureInterest": "Interés total",
+  "onboardingFeatureCost": "Costo total",
+  "onboardingFeatureAmortization": "Amortización",
+  "onboardingFeatureCompare": "Comparación",
+  "onboardingFeaturePDF": "Exportar PDF",
+  "onboardingPremiumBullet1": "Tabla de amortización completa",
+  "onboardingPremiumBullet2": "Exportación PDF y compartir",
+  "onboardingPremiumBullet3": "Historial de cálculos ilimitado"
 }

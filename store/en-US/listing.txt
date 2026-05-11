@@ -1,0 +1,35 @@
+APP NAME
+Auto Loan Calculator — US
+
+SHORT DESCRIPTION (80 chars max)
+Calculate your car loan payment, compare offers & export a full amortization PDF.
+
+FULL DESCRIPTION
+Take the guesswork out of financing your next vehicle. Auto Loan Calculator US gives you every number you need — before you walk into the dealership.
+
+TOOLS INCLUDED
+• Payment Calculator — monthly or bi-weekly payment with state sales tax built in
+• Amortization Schedule — full month-by-month breakdown of principal vs. interest
+• Early Payoff — see how extra payments slash your total interest cost
+• Loan Comparator — compare two loan offers side by side (rate, term, fees)
+• Trade-In Estimator — deduct your trade-in and calculate the net financed amount
+• History & PDF Export — save unlimited calculations and export clean PDF reports
+
+FEATURES
+• State sales tax — enter your exact state tax rate for a precise financed amount
+• Credit score tier — adjusts the effective rate (Excellent / Good / Fair / Poor)
+• Bi-weekly payment mode — shows the accelerated payoff benefit
+• Dealer fees field — doc fees, registration, and other charges included in financing
+• Share results instantly via SMS, email, or any app
+• Works offline — no account, no login, no data collected
+
+FREEMIUM
+Free tier: 5 saved calculations
+Premium (one-time $2.99): unlimited saves, PDF export, amortization table, loan comparator, zero ads — forever
+
+LANGUAGES
+English · Español
+
+---
+KEYWORDS
+car loan calculator, auto loan payment, amortization schedule, car payment estimator, trade-in value, loan comparison, early payoff, dealer fees, US auto finance
