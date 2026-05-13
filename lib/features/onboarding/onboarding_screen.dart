@@ -1,20 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:calcwise_core/calcwise_core.dart' show isOnboardingComplete, markOnboardingComplete;
 import '../../l10n/app_localizations.dart';
-
-const _kOnboardingCompleteKey = 'onboarding_complete';
-
-/// Returns true if the onboarding has already been completed.
-Future<bool> isOnboardingComplete() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getBool(_kOnboardingCompleteKey) ?? false;
-}
-
-/// Mark onboarding as done (persists across restarts).
-Future<void> markOnboardingComplete() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool(_kOnboardingCompleteKey, true);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -52,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finish() async {
-    await markOnboardingComplete();
+    await markOnboardingComplete('autoloan');
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(

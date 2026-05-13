@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
 
-      final onboardingDone = await isOnboardingComplete();
+      final onboardingDone = await isOnboardingComplete('autoloan');
       if (!mounted) return;
 
       if (onboardingDone) {
