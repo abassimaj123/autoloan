@@ -259,7 +259,7 @@ class _HistoryCard extends StatelessWidget {
     final dateFmt = DateFormat('MMM d, y');
     final timeFmt = DateFormat('HH:mm');
 
-    final ts = DateTime.tryParse(entry['timestamp'] ?? '');
+    final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     final price = _d('vehiclePrice') ?? 0;
     final payment = _d('monthlyPayment') ?? _d('regularMonthly') ?? 0;
     final biWeekly = _d('biWeeklyPayment');

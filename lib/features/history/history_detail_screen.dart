@@ -87,7 +87,7 @@ class HistoryDetailScreen extends StatelessWidget {
 
   String _buildShareText() {
     final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
-    final ts = DateTime.tryParse(entry['timestamp'] ?? '');
+    final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     const sep = '─────────────────────';
     final buf = StringBuffer();
     buf.writeln('Auto Loan $_country — Loan Summary');
@@ -111,7 +111,7 @@ class HistoryDetailScreen extends StatelessWidget {
 
   Future<void> _exportPdf() async {
     final dateFmt = DateFormat('MMM d, yyyy');
-    final ts = DateTime.tryParse(entry['timestamp'] ?? '');
+    final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     final pdf = pw.Document();
     pdf.addPage(
       pw.Page(
@@ -195,7 +195,7 @@ class HistoryDetailScreen extends StatelessWidget {
     final adService = context.read<CalcwiseAdService>();
 
     final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
-    final ts = DateTime.tryParse(entry['timestamp'] ?? '');
+    final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
 
     return ListenableBuilder(
       listenable: Listenable.merge([
