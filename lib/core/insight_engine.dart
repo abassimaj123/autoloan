@@ -1,5 +1,4 @@
-import 'package:calcwise_core/calcwise_core.dart'
-    show Insight, InsightSeverity;
+import 'package:calcwise_core/calcwise_core.dart' show Insight, InsightSeverity;
 
 // ── Engine ────────────────────────────────────────────────────────────────────
 

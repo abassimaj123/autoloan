@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdService;
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../services/analytics_service.dart';
 import '../core/freemium/freemium_service.dart';
 

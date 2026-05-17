@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../l10n/app_localizations.dart';
-import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdFooter;
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdFooter;
 
 class AmortizationRow {
   final int period;

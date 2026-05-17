@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdService;
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../core/freemium/freemium_service.dart';
 
 /// Rewarded ad button that unlocks history access for 60 minutes.
