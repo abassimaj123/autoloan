@@ -16,7 +16,16 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:calcwise_core/calcwise_core.dart' show themeModeService, PaywallSessionService;
+import 'package:calcwise_core/calcwise_core.dart'
+    show
+        themeModeService,
+        PaywallSessionService,
+        CalcwiseAdService,
+        CalcwiseAdConfig,
+        requestCalcwiseConsent,
+        CalcwiseAdFooter,
+        CalcwiseRewardAdSheet
+    hide SectionCard, ResultTile;
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
 import 'services/analytics_service.dart';
@@ -27,11 +36,12 @@ import 'core/freemium/iap_service.dart' show IAPService, iapErrorNotifier;
 import 'core/theme/theme_ca.dart';
 import 'core/theme/theme_uk.dart';
 import 'core/theme/theme_us.dart';
-import 'services/ad_service.dart';
+// AdService removed — using CalcwiseAdService from calcwise_core
 import 'services/history_service.dart';
 import 'country/ca/ca_provider.dart';
 import 'country/uk/uk_provider.dart';
 import 'country/us/us_provider.dart';
+import 'features/cashback_vs_lowapr/cashback_vs_lowapr_screen.dart';
 import 'screens/splash_screen.dart';
 
 final paywallSession = PaywallSessionService(appKey: 'autoloan');
@@ -49,11 +59,21 @@ void main() async {
 
   // 1. GDPR / PIPEDA consent (UK + CA require it; UMP handles region detection)
   //    Must run BEFORE MobileAds.instance.initialize().
-  await _requestConsent();
+  await requestCalcwiseConsent();
 
   // 2. AdMob + ads (consent already obtained above)
-  final adConfig  = AdConfig(_flavor.toLowerCase());
-  final adService = AdService(adConfig);
+  final adConfig = AdConfig(_flavor.toLowerCase());
+  final adService = CalcwiseAdService(
+    config: CalcwiseAdConfig(
+      bannerAndroid: adConfig.bannerId,
+      interstitialAndroid: adConfig.interId,
+      rewardedAndroid: adConfig.rewardedId,
+      calcThreshold: AdConfig.calcThreshold,
+      cooldownMinutes: AdConfig.cooldownMinutes,
+    ),
+    freemium: freemiumService,
+    analytics: AnalyticsService.instance,
+  );
   await adService.initialize();
 
   // 3. App data
@@ -63,53 +83,42 @@ void main() async {
   await IAPService.instance.initialize();
   await paywallSession.initialize();
   await paywallSession.recordSession();
-  AnalyticsService.instance.setUserPremium(freemiumService.isPremium);
+  AnalyticsService.instance.setUserPremium(freemiumService.hasFullAccess);
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
   final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF0D0B1E),
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
-
-  runApp(AutoLoanApp(
-    prefs:          prefs,
-    adService:      adService,
-    flavor:         _flavor.toLowerCase(),
-    localeNotifier: localeNotifier,
-  ));
-}
-
-/// Request GDPR/PIPEDA consent via Google UMP.
-/// Proceeds (resolves) even on error so the app always launches.
-Future<void> _requestConsent() async {
-  final completer = Completer<void>();
-
-  ConsentRequestParameters params = ConsentRequestParameters();
-  ConsentInformation.instance.requestConsentInfoUpdate(
-    params,
-    () async {
-      // Successfully got consent info
-      if (await ConsentInformation.instance.isConsentFormAvailable()) {
-        ConsentForm.loadAndShowConsentFormIfRequired(
-          (_) => completer.complete(), // complete regardless of form error
-        );
-      } else {
-        completer.complete();
-      }
-    },
-    (_) => completer.complete(), // Error → proceed without consent
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF0D0B1E),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
   );
 
-  return completer.future;
+  CalcwiseAdFooter.configure(
+    adService: adService,
+    freemium: freemiumService,
+    onGetPremium: () => IAPService.instance.buy(),
+  );
+  CalcwiseRewardAdSheet.configure(
+    adService: adService,
+    freemium: freemiumService,
+  );
+  runApp(
+    AutoLoanApp(
+      prefs: prefs,
+      adService: adService,
+      flavor: _flavor.toLowerCase(),
+      localeNotifier: localeNotifier,
+    ),
+  );
 }
 
 class AutoLoanApp extends StatelessWidget {
   final SharedPreferences prefs;
-  final AdService adService;
+  final CalcwiseAdService adService;
   final String flavor;
   final LocaleNotifier localeNotifier;
 
@@ -127,44 +136,58 @@ class AutoLoanApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        Provider<AdService>.value(value: adService),
+        Provider<CalcwiseAdService>.value(value: adService),
         Provider<HistoryService>.value(value: historyService),
         ChangeNotifierProvider<LocaleNotifier>.value(value: localeNotifier),
         if (flavor == 'ca')
-          ChangeNotifierProvider(create: (_) => CAProvider(adService, historyService)),
+          ChangeNotifierProvider(
+            create: (_) => CAProvider(adService, historyService),
+          ),
         if (flavor == 'uk')
-          ChangeNotifierProvider(create: (_) => UKProvider(adService, historyService)),
+          ChangeNotifierProvider(
+            create: (_) => UKProvider(adService, historyService),
+          ),
         if (flavor == 'us')
-          ChangeNotifierProvider(create: (_) => USProvider(adService, historyService)),
+          ChangeNotifierProvider(
+            create: (_) => USProvider(adService, historyService),
+          ),
       ],
       child: Consumer<LocaleNotifier>(
         builder: (_, localeNotifier, _) => ValueListenableBuilder<ThemeMode>(
           valueListenable: themeModeService.notifier,
           builder: (_, themeMode, __) => MaterialApp(
-          title: _appTitle,
-          theme: _theme,
-          darkTheme: _darkTheme,
-          themeMode: themeMode,
-          locale: localeNotifier.locale,
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: _supportedLocales,
-          builder: (context, child) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-              systemNavigationBarColor:
-                  Theme.of(context).scaffoldBackgroundColor,
-              systemNavigationBarIconBrightness:
-                  isDark ? Brightness.light : Brightness.dark,
-            ));
-            return child!;
-          },
-          home: const SplashScreen(),
+            title: _appTitle,
+            theme: _theme,
+            darkTheme: _darkTheme,
+            themeMode: themeMode,
+            locale: localeNotifier.locale,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: _supportedLocales,
+            builder: (context, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              SystemChrome.setSystemUIOverlayStyle(
+                SystemUiOverlayStyle(
+                  systemNavigationBarColor: Theme.of(
+                    context,
+                  ).scaffoldBackgroundColor,
+                  systemNavigationBarIconBrightness: isDark
+                      ? Brightness.light
+                      : Brightness.dark,
+                ),
+              );
+              return child!;
+            },
+            home: const SplashScreen(),
+            routes: {
+              '/cashback-vs-lowapr': (_) =>
+                  CashbackVsLowAprScreen(flavor: flavor),
+            },
           ),
         ),
       ),
@@ -173,36 +196,47 @@ class AutoLoanApp extends StatelessWidget {
 
   ThemeData get _theme {
     switch (flavor) {
-      case 'uk': return ThemeUK.theme;
-      case 'us': return ThemeUS.theme;
-      default:   return ThemeCA.theme;
+      case 'uk':
+        return ThemeUK.theme;
+      case 'us':
+        return ThemeUS.theme;
+      default:
+        return ThemeCA.theme;
     }
   }
 
   ThemeData get _darkTheme {
     switch (flavor) {
-      case 'uk': return ThemeUK.dark;
-      case 'us': return ThemeUS.dark;
-      default:   return ThemeCA.dark;
+      case 'uk':
+        return ThemeUK.dark;
+      case 'us':
+        return ThemeUS.dark;
+      default:
+        return ThemeCA.dark;
     }
   }
 
   String get _appTitle {
     switch (flavor) {
-      case 'uk': return 'Auto Loan UK';
-      case 'us': return 'Auto Loan USA';
-      default:   return 'Auto Loan Canada';
+      case 'uk':
+        return 'Auto Loan UK';
+      case 'us':
+        return 'Auto Loan USA';
+      default:
+        return 'Auto Loan Canada';
     }
   }
 
   List<Locale> get _supportedLocales {
     switch (flavor) {
-      case 'us': return const [Locale('en'), Locale('es')];
-      case 'uk': return const [Locale('en')];
-      default:   return const [Locale('fr'), Locale('en')];
+      case 'us':
+        return const [Locale('en'), Locale('es')];
+      case 'uk':
+        return const [Locale('en')];
+      default:
+        return const [Locale('fr'), Locale('en')];
     }
   }
-
 }
 
 /// Thin stateful wrapper that listens to [iapErrorNotifier] and shows a

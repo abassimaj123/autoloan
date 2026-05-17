@@ -1,5 +1,6 @@
 // ignore: constant_identifier_names
 enum Country { CA, UK, US }
+
 enum TaxSystem { provincial, gst, vat, manual }
 
 class AppConfig {

@@ -4,14 +4,15 @@ import '../l10n/app_localizations.dart';
 import '../core/freemium/freemium_service.dart';
 import '../core/theme/app_theme.dart';
 import '../core/freemium/iap_service.dart';
-import '../services/ad_service.dart';
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../services/analytics_service.dart';
 
 /// Full-screen bottom sheet with two options: Watch Ad (60 min) or Get Premium.
 /// Replaces the inline PremiumGate card.
 class UnlockSheet extends StatefulWidget {
-  final AdService    adService;
-  final String       flavor;
+  final CalcwiseAdService adService;
+  final String flavor;
   final VoidCallback? onUnlocked;
 
   const UnlockSheet({
@@ -23,30 +24,29 @@ class UnlockSheet extends StatefulWidget {
 
   static Future<void> show(
     BuildContext context, {
-    required AdService  adService,
-    required String     flavor,
-    VoidCallback?       onUnlocked,
-  }) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (_) => UnlockSheet(
-          adService: adService,
-          flavor: flavor,
-          onUnlocked: onUnlocked,
-        ),
-      );
+    required CalcwiseAdService adService,
+    required String flavor,
+    VoidCallback? onUnlocked,
+  }) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (_) => UnlockSheet(
+      adService: adService,
+      flavor: flavor,
+      onUnlocked: onUnlocked,
+    ),
+  );
 
   @override
   State<UnlockSheet> createState() => _UnlockSheetState();
 }
 
 class _UnlockSheetState extends State<UnlockSheet> {
-  bool   _loading = false;
+  bool _loading = false;
   Timer? _ticker;
 
   @override
@@ -66,9 +66,12 @@ class _UnlockSheetState extends State<UnlockSheet> {
 
   String _premiumLabel(AppLocalizations l10n) {
     switch (widget.flavor) {
-      case 'uk': return l10n.getPremiumUK;
-      case 'us': return l10n.getPremiumUS;
-      default:   return l10n.getPremiumCA;
+      case 'uk':
+        return l10n.getPremiumUK;
+      case 'us':
+        return l10n.getPremiumUS;
+      default:
+        return l10n.getPremiumCA;
     }
   }
 
@@ -83,16 +86,18 @@ class _UnlockSheetState extends State<UnlockSheet> {
         AnalyticsService.instance.logRewardedAdWatched();
         if (!mounted) return;
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.fullAccessActive),
-          backgroundColor: AppTheme.rewardedGreen,
-          duration: const Duration(seconds: 3),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.fullAccessActive),
+            backgroundColor: AppTheme.rewardedGreen,
+            duration: const Duration(seconds: 3),
+          ),
+        );
         widget.onUnlocked?.call();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.adNotAvailable),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.adNotAvailable)),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -101,16 +106,18 @@ class _UnlockSheetState extends State<UnlockSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n       = AppLocalizations.of(context)!;
-    final cs         = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     final isRewarded = freemiumService.isRewarded;
-    final minsLeft   = freemiumService.rewardedRemaining?.inMinutes ?? 0;
-    final canWatch   = freemiumService.canWatchRewarded();
-    final adReady    = widget.adService.isRewardedReady;
+    final minsLeft = freemiumService.rewardedRemaining?.inMinutes ?? 0;
+    final canWatch = freemiumService.canWatchRewarded();
+    final adReady = widget.adService.isRewardedReady;
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 20,
+        left: 24,
+        right: 24,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
       child: Column(
@@ -118,7 +125,8 @@ class _UnlockSheetState extends State<UnlockSheet> {
         children: [
           // ── Handle ────────────────────────────────────────────────
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: cs.onSurfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
@@ -128,14 +136,15 @@ class _UnlockSheetState extends State<UnlockSheet> {
 
           // ── Icon ──────────────────────────────────────────────────
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppSpacing.mdPlus),
             decoration: BoxDecoration(
               color: cs.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isRewarded ? Icons.lock_open_outlined : Icons.lock_outline,
-              size: 30, color: cs.primary,
+              isRewarded ? Icons.lock_open_rounded : Icons.lock_outline,
+              size: 30,
+              color: cs.primary,
             ),
           ),
           const SizedBox(height: 14),
@@ -143,15 +152,17 @@ class _UnlockSheetState extends State<UnlockSheet> {
           Text(
             l10n.unlockFull,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
             l10n.premiumBenefits,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
 
@@ -169,7 +180,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
                 style: const TextStyle(
                   color: AppTheme.rewardedGreenText,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AppTextSize.md,
                 ),
               ),
             ),
@@ -209,16 +220,18 @@ class _UnlockSheetState extends State<UnlockSheet> {
             onPressed: () => IAPService.instance.restore(),
             child: Text(
               l10n.restorePurchase,
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               l10n.maybeLater,
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ),
         ],
@@ -229,13 +242,13 @@ class _UnlockSheetState extends State<UnlockSheet> {
 
 // ── Option tile ────────────────────────────────────────────────────────────────
 class _OptionTile extends StatelessWidget {
-  final IconData     icon;
-  final String       title;
-  final String       subtitle;
-  final bool         enabled;
-  final bool         loading;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool enabled;
+  final bool loading;
   final VoidCallback onTap;
-  final ColorScheme  cs;
+  final ColorScheme cs;
 
   const _OptionTile({
     required this.icon,
@@ -255,7 +268,7 @@ class _OptionTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
@@ -264,41 +277,55 @@ class _OptionTile extends StatelessWidget {
                     ? cs.primary.withValues(alpha: 0.4)
                     : cs.outline.withValues(alpha: 0.3),
               ),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
-            child: Row(children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: cs.primary, size: 22),
                 ),
-                child: Icon(icon, color: cs.primary, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
                         style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 15)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
+                          fontWeight: FontWeight.w600,
+                          fontSize: AppTextSize.bodyMd,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
                         style: TextStyle(
-                            color: cs.onSurfaceVariant, fontSize: 13)),
-                  ],
+                          color: cs.onSurfaceVariant,
+                          fontSize: AppTextSize.md,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (loading)
-                SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: cs.primary),
-                )
-              else
-                Icon(Icons.chevron_right, color: cs.onSurfaceVariant),
-            ]),
+                if (loading)
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: cs.primary,
+                    ),
+                  )
+                else
+                  Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
+              ],
+            ),
           ),
         ),
       ),

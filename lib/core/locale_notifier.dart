@@ -9,7 +9,7 @@ class LocaleNotifier extends ChangeNotifier {
   Locale _locale;
 
   LocaleNotifier(this._prefs, this.flavor)
-      : _locale = _initLocale(_prefs, flavor);
+    : _locale = _initLocale(_prefs, flavor);
 
   static Locale _initLocale(SharedPreferences prefs, String flavor) {
     if (flavor != 'ca') return const Locale('en');
@@ -20,8 +20,8 @@ class LocaleNotifier extends ChangeNotifier {
     return deviceLang == 'fr' ? const Locale('fr') : const Locale('en');
   }
 
-  Locale get locale  => _locale;
-  bool   get isFrench => _locale.languageCode == 'fr';
+  Locale get locale => _locale;
+  bool get isFrench => _locale.languageCode == 'fr';
 
   void setLocale(Locale locale) {
     if (_locale == locale) return;

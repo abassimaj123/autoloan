@@ -27,25 +27,31 @@ void main() {
       expect(r.totalCost, greaterThan(r.loanAmount));
     });
 
-    test('bi-weekly uses proper amortization formula (r=rate/26, n=years×26)', () {
-      final r = CACalculation.calculate(
-        vehiclePrice: 25000,
-        downPayment: 3000,
-        annualRate: 6.5,
-        termMonths: 48,
-        provinceCode: 'QC',
-        isBiWeekly: true,
-      );
-      // nBiPeriods = round(48/12 × 26) = 104
-      expect(r.nBiPeriods, 104);
-      // Bi-weekly loan payment uses independent formula
-      final rBi  = 6.5 / 26 / 100;
-      final powN = pow(1 + rBi, 104).toDouble();
-      final expected = r.loanAmount * (rBi * powN) / (powN - 1);
-      expect(r.baseLoanBiWeekly, closeTo(expected, 0.0001));
-      // Insurance bi-weekly = monthly × 12/26 (correct conversion)
-      expect(r.insuranceBiWeekly, closeTo(r.insuranceMonthly * 12 / 26, 0.0001));
-    });
+    test(
+      'bi-weekly uses proper amortization formula (r=rate/26, n=years×26)',
+      () {
+        final r = CACalculation.calculate(
+          vehiclePrice: 25000,
+          downPayment: 3000,
+          annualRate: 6.5,
+          termMonths: 48,
+          provinceCode: 'QC',
+          isBiWeekly: true,
+        );
+        // nBiPeriods = round(48/12 × 26) = 104
+        expect(r.nBiPeriods, 104);
+        // Bi-weekly loan payment uses independent formula
+        final rBi = 6.5 / 26 / 100;
+        final powN = pow(1 + rBi, 104).toDouble();
+        final expected = r.loanAmount * (rBi * powN) / (powN - 1);
+        expect(r.baseLoanBiWeekly, closeTo(expected, 0.0001));
+        // Insurance bi-weekly = monthly × 12/26 (correct conversion)
+        expect(
+          r.insuranceBiWeekly,
+          closeTo(r.insuranceMonthly * 12 / 26, 0.0001),
+        );
+      },
+    );
 
     test('zero rate loan splits evenly', () {
       final r = CACalculation.calculate(
@@ -92,8 +98,7 @@ void main() {
         isBiWeekly: false,
         insuranceMonthly: 20,
       );
-      expect(with_.monthlyPayment - without.monthlyPayment,
-          closeTo(20, 0.001));
+      expect(with_.monthlyPayment - without.monthlyPayment, closeTo(20, 0.001));
     });
 
     test('down payment cannot exceed vehicle price', () {
@@ -161,8 +166,10 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.petrolSmall,
       );
-      expect(r.totalCost,
-          closeTo(r.vehiclePrice + r.totalInterest + r.vedTotal, 0.01));
+      expect(
+        r.totalCost,
+        closeTo(r.vehiclePrice + r.totalInterest + r.vedTotal, 0.01),
+      );
     });
   });
 
@@ -198,18 +205,21 @@ void main() {
         creditScore: CreditScore.excellent,
       );
       expect(excellent.effectiveRate, closeTo(5.4, 0.001));
-      expect(excellent.monthlyPayment, lessThan(
-        USCalculation.calculate(
-          vehiclePrice: 30000,
-          tradeInValue: 0,
-          downPayment: 3000,
-          dealerFees: 0,
-          salesTaxPercent: 0,
-          annualRate: 6.9,
-          termMonths: 60,
-          creditScore: CreditScore.poor,
-        ).monthlyPayment,
-      ));
+      expect(
+        excellent.monthlyPayment,
+        lessThan(
+          USCalculation.calculate(
+            vehiclePrice: 30000,
+            tradeInValue: 0,
+            downPayment: 3000,
+            dealerFees: 0,
+            salesTaxPercent: 0,
+            annualRate: 6.9,
+            termMonths: 60,
+            creditScore: CreditScore.poor,
+          ).monthlyPayment,
+        ),
+      );
     });
 
     test('trade-in reduces financed amount', () {
@@ -233,8 +243,10 @@ void main() {
         termMonths: 48,
         creditScore: CreditScore.good,
       );
-      expect(withTrade.financedAmount,
-          closeTo(noTrade.financedAmount - 5000, 0.01));
+      expect(
+        withTrade.financedAmount,
+        closeTo(noTrade.financedAmount - 5000, 0.01),
+      );
       expect(withTrade.monthlyPayment, lessThan(noTrade.monthlyPayment));
     });
 
@@ -277,9 +289,17 @@ void main() {
         termMonths: 60,
         creditScore: CreditScore.good,
       );
-      expect(r.totalCost,
-          closeTo(r.vehiclePrice + r.taxAmount + r.dealerFees +
-                  r.totalInterest - r.tradeInValue, 0.01));
+      expect(
+        r.totalCost,
+        closeTo(
+          r.vehiclePrice +
+              r.taxAmount +
+              r.dealerFees +
+              r.totalInterest -
+              r.tradeInValue,
+          0.01,
+        ),
+      );
     });
   });
 }

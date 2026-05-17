@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:calcwise_core/calcwise_core.dart' show isOnboardingComplete, markOnboardingComplete;
+import 'package:calcwise_core/calcwise_core.dart'
+    show isOnboardingComplete, markOnboardingComplete;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,10 +44,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder:        (_, __, ___) => widget.nextScreen,
+        pageBuilder: (_, __, ___) => widget.nextScreen,
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
-        transitionDuration:        const Duration(milliseconds: 250),
+        transitionDuration: AppDuration.base,
         reverseTransitionDuration: const Duration(milliseconds: 200),
       ),
     );
@@ -59,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n       = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -74,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(3, (i) {
                   return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+                    duration: AppDuration.page,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     width: _page == i ? 24 : 8,
                     height: 8,
@@ -82,7 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       color: _page == i
                           ? colorScheme.primary
                           : colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                   );
                 }),
@@ -116,11 +118,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: colorScheme.outline),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(AppRadius.xl),
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                         ),
-                        child: Icon(Icons.arrow_back_rounded,
-                            color: colorScheme.onSurfaceVariant),
+                        child: Icon(
+                          Icons.arrow_back_rounded,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -136,13 +141,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(AppRadius.xl),
+                          ),
                           elevation: 0,
                         ),
                         child: Text(
-                          _page == 2 ? l10n.onboardingStart : l10n.onboardingNext,
+                          _page == 2
+                              ? l10n.onboardingStart
+                              : l10n.onboardingNext,
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                            fontSize: AppTextSize.bodyLg,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -183,8 +193,7 @@ class _Page1 extends StatelessWidget {
               borderRadius: BorderRadius.circular(32),
             ),
             child: const Center(
-              child: Text('\u{1F697}',
-                  style: TextStyle(fontSize: 56)),
+              child: Text('\u{1F697}', style: TextStyle(fontSize: 56)),
             ),
           ),
 
@@ -194,7 +203,7 @@ class _Page1 extends StatelessWidget {
             l10n.onboardingTitle1,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: AppTextSize.display,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
               height: 1.2,
@@ -207,7 +216,7 @@ class _Page1 extends StatelessWidget {
             l10n.onboardingSubtitle1,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTextSize.bodyLg,
               color: colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
@@ -259,8 +268,7 @@ class _Page2 extends StatelessWidget {
               borderRadius: BorderRadius.circular(32),
             ),
             child: const Center(
-              child: Text('\u{1F4CA}',
-                  style: TextStyle(fontSize: 56)),
+              child: Text('\u{1F4CA}', style: TextStyle(fontSize: 56)),
             ),
           ),
 
@@ -270,7 +278,7 @@ class _Page2 extends StatelessWidget {
             l10n.onboardingTitle2,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: AppTextSize.display,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
               height: 1.2,
@@ -283,7 +291,7 @@ class _Page2 extends StatelessWidget {
             l10n.onboardingSubtitle2,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTextSize.bodyLg,
               color: colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
@@ -307,10 +315,10 @@ class _CompareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
@@ -325,10 +333,13 @@ class _CompareCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text('vs',
-                style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold)),
+            child: Text(
+              'vs',
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           Expanded(
             child: _ScenarioColumn(
@@ -362,27 +373,33 @@ class _ScenarioColumn extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
         color: highlight ? colorScheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.mdPlus),
         border: highlight
             ? Border.all(color: colorScheme.primary, width: 1.5)
             : null,
       ),
       child: Column(
         children: [
-          Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: highlight
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: AppTextSize.sm,
+              color: highlight
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(detail,
-              style: TextStyle(
-                  fontSize: 11,
-                  color: highlight
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurfaceVariant)),
+          Text(
+            detail,
+            style: TextStyle(
+              fontSize: AppTextSize.xs,
+              color: highlight
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -406,7 +423,10 @@ class _Page3 extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('\u{2B50}', style: TextStyle(fontSize: 72)),
+          const Text(
+            '\u{2B50}',
+            style: TextStyle(fontSize: AppTextSize.heroXl),
+          ),
 
           const SizedBox(height: 24),
 
@@ -414,7 +434,7 @@ class _Page3 extends StatelessWidget {
             l10n.onboardingTitle3,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: AppTextSize.display,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
               height: 1.2,
@@ -427,7 +447,7 @@ class _Page3 extends StatelessWidget {
             l10n.onboardingSubtitle3,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AppTextSize.bodyLg,
               color: colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
@@ -437,26 +457,31 @@ class _Page3 extends StatelessWidget {
 
           // Premium features card
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
               color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colorScheme.primary.withValues(alpha: 0.4)),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.4),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _BulletRow(
-                    label: l10n.onboardingPremiumBullet1,
-                    colorScheme: colorScheme),
+                  label: l10n.onboardingPremiumBullet1,
+                  colorScheme: colorScheme,
+                ),
                 const SizedBox(height: 12),
                 _BulletRow(
-                    label: l10n.onboardingPremiumBullet2,
-                    colorScheme: colorScheme),
+                  label: l10n.onboardingPremiumBullet2,
+                  colorScheme: colorScheme,
+                ),
                 const SizedBox(height: 12),
                 _BulletRow(
-                    label: l10n.onboardingPremiumBullet3,
-                    colorScheme: colorScheme),
+                  label: l10n.onboardingPremiumBullet3,
+                  colorScheme: colorScheme,
+                ),
               ],
             ),
           ),
@@ -475,15 +500,14 @@ class _BulletRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.check_circle_rounded,
-            color: colorScheme.primary, size: 20),
+        Icon(Icons.check_circle_rounded, color: colorScheme.primary, size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
             style: TextStyle(
               color: colorScheme.onPrimaryContainer,
-              fontSize: 14,
+              fontSize: AppTextSize.body,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -514,9 +538,10 @@ class _FeaturePill extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-            color: colorScheme.onSurface,
-            fontSize: 13,
-            fontWeight: FontWeight.w500),
+          color: colorScheme.onSurface,
+          fontSize: AppTextSize.md,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

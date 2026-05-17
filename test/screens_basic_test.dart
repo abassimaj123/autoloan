@@ -33,8 +33,10 @@ void main() {
                 mainAxisSize: MainAxisSize.min,
                 children: const [
                   Text('Monthly Payment'),
-                  Text(r'$587.43',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text(
+                    r'$587.43',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
@@ -86,24 +88,36 @@ void main() {
   group('Regression guard — CA', () {
     test('RG-CA-1: paiement ON 30k @ 7.9% / 60 mois', () {
       final r = CACalculation.calculate(
-        vehiclePrice: 30000, downPayment: 5000, annualRate: 7.9,
-        termMonths: 60, provinceCode: 'ON', isBiWeekly: false,
+        vehiclePrice: 30000,
+        downPayment: 5000,
+        annualRate: 7.9,
+        termMonths: 60,
+        provinceCode: 'ON',
+        isBiWeekly: false,
       );
       expect(r.monthlyPayment, closeTo(587, 5.0));
     });
 
     test('RG-CA-2: taxe ON = 13% sur prix véhicule', () {
       final r = CACalculation.calculate(
-        vehiclePrice: 30000, downPayment: 0, annualRate: 5.0,
-        termMonths: 60, provinceCode: 'ON', isBiWeekly: false,
+        vehiclePrice: 30000,
+        downPayment: 0,
+        annualRate: 5.0,
+        termMonths: 60,
+        provinceCode: 'ON',
+        isBiWeekly: false,
       );
       expect(r.taxAmount, closeTo(3900, 0.01));
     });
 
     test('RG-CA-3: taxe QC = 14.975%', () {
       final r = CACalculation.calculate(
-        vehiclePrice: 30000, downPayment: 0, annualRate: 5.0,
-        termMonths: 60, provinceCode: 'QC', isBiWeekly: false,
+        vehiclePrice: 30000,
+        downPayment: 0,
+        annualRate: 5.0,
+        termMonths: 60,
+        provinceCode: 'QC',
+        isBiWeekly: false,
       );
       expect(r.taxAmount, closeTo(4492.50, 1.0));
     });
@@ -112,10 +126,15 @@ void main() {
   group('Regression guard — US', () {
     test('RG-US-1: paiement 25k @ 6.5% / 60 mois', () {
       final r = USCalculation.calculate(
-        vehiclePrice: 25000, downPayment: 5000, tradeInValue: 0,
-        dealerFees: 0, salesTaxPercent: 0,
-        annualRate: 6.5, termMonths: 60,
-        creditScore: CreditScore.excellent, isBiWeekly: false,
+        vehiclePrice: 25000,
+        downPayment: 5000,
+        tradeInValue: 0,
+        dealerFees: 0,
+        salesTaxPercent: 0,
+        annualRate: 6.5,
+        termMonths: 60,
+        creditScore: CreditScore.excellent,
+        isBiWeekly: false,
       );
       expect(r.monthlyPayment, closeTo(377.42, 1.0));
     });
@@ -124,8 +143,11 @@ void main() {
   group('Regression guard — UK', () {
     test('RG-UK-1: paiement 15k GBP @ 8.9% / 48 mois', () {
       final r = UKCalculation.calculate(
-        vehiclePrice: 15000, downPayment: 3000, annualRate: 8.9,
-        termMonths: 48, isBiWeekly: false,
+        vehiclePrice: 15000,
+        downPayment: 3000,
+        annualRate: 8.9,
+        termMonths: 48,
+        isBiWeekly: false,
       );
       expect(r.monthlyPayment, closeTo(295, 10.0));
     });

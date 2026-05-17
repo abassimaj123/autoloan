@@ -10,7 +10,7 @@ final configUK = AppConfig(
   tradeIn: false,
   roadTax: true,
   languages: ['en'],
-  taxSystem: TaxSystem.vat,  // VAT already included in UK advertised price
+  taxSystem: TaxSystem.vat, // VAT already included in UK advertised price
   defaultRate: 6.9,
   durations: [24, 36, 48, 60, 72, 84],
 );

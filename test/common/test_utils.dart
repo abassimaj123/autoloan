@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class TestUtils {
   static Widget wrapWithApp(Widget child) {
-    return MaterialApp(
-      home: Scaffold(body: child),
-    );
+    return MaterialApp(home: Scaffold(body: child));
   }
 
   static Future<void> pumpWidget(WidgetTester tester, Widget widget) async {

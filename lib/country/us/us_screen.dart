@@ -1,18 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:calcwise_core/calcwise_core.dart';
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
-import '../../widgets/ad_banner.dart';
 import '../../widgets/premium_gate.dart';
-import '../../services/ad_service.dart';
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession;
-import '../../widgets/paywall_soft.dart';
 import '../../widgets/paywall_hard.dart';
+import '../../widgets/paywall_soft.dart';
+import 'dart:math';
 import '../../features/amortization/amortization_screen.dart';
+import '../../features/cashback_vs_lowapr/cashback_vs_lowapr_screen.dart';
 import '../../features/history/history_screen.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../features/pdf/pdf_export_service.dart';
@@ -20,98 +22,140 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
 import '../../services/analytics_service.dart';
-import '../../services/review_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
 import 'us_provider.dart';
 import 'us_logic.dart';
 
-const _kPremiumPrice = r'$2.99';
-
-class USScreen extends StatelessWidget {
+class USScreen extends StatefulWidget {
   const USScreen({super.key});
 
   @override
+  State<USScreen> createState() => _USScreenState();
+}
+
+class _USScreenState extends State<USScreen> {
+  Timer? _debounce;
+  Timer? _saveDebounce;
+  bool _validated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _debouncedCalculate());
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _saveDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _debouncedCalculate() {
+    if (!_validated) setState(() => _validated = true);
+    _debounce?.cancel();
+    _debounce = Timer(AppDuration.page, () {
+      if (mounted) context.read<USProvider>().calculate();
+    });
+    // Save after 2 s of inactivity — one entry per session, not per keystroke
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(const Duration(milliseconds: 2000), () {
+      if (mounted) context.read<USProvider>().saveSnapshot();
+    });
+  }
+
+  Future<void> _onNavTap(int i) async {
+    if (i == 1) {
+      AnalyticsService.instance.logTabChanged('compare');
+      AnalyticsService.instance.logCompareUsed('us');
+      final trigger = await paywallSession.recordAction();
+      if (!mounted) return;
+      if (trigger == PaywallTrigger.hard) {
+        PaywallHard.show(context);
+      } else if (trigger == PaywallTrigger.soft) {
+        PaywallSoft.show(context);
+      }
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'us'),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: AppDuration.base,
+        ),
+      );
+    } else if (i == 2) {
+      AnalyticsService.instance.logTabChanged('history');
+      final trigger = await paywallSession.recordAction();
+      if (!mounted) return;
+      if (trigger == PaywallTrigger.hard) {
+        PaywallHard.show(context);
+      } else if (trigger == PaywallTrigger.soft) {
+        PaywallSoft.show(context);
+      }
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HistoryScreen(country: 'us'),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: AppDuration.base,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final l10n      = AppLocalizations.of(context)!;
-    final adService = context.read<AdService>();
+    final l10n = AppLocalizations.of(context)!;
+    final adService = context.read<CalcwiseAdService>();
 
     return Scaffold(
       appBar: AppBar(
         title: Text('🇺🇸 ${l10n.appNameUS}'),
         actions: [
-          ValueListenableBuilder<bool>(
-            valueListenable: freemiumService.isPremiumNotifier,
-            builder: (_, isPremium, _) => isPremium
-              ? const Padding(
-                  padding: EdgeInsets.only(right: 4),
-                  child: Tooltip(
-                    message: 'Premium active',
-                    child: Icon(Icons.verified_rounded, color: AppTheme.premiumGold, size: 22),
-                  ),
-                )
-              : TextButton.icon(
-                  onPressed: () => PaywallSoft.show(context, priceLabel: _kPremiumPrice),
-                  icon: const Icon(Icons.workspace_premium, size: 16),
-                  label: const Text('Premium',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.premiumGold,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-          ),
-          if (paywallSession.sessionCount >= 2 && !freemiumService.isPremium)
-            IconButton(
-              icon: const Icon(Icons.shield_outlined),
-              tooltip: 'Watch ad — 60 min free',
-              onPressed: () => PaywallHard.show(context, priceLabel: _kPremiumPrice, savingsLabel: r'save $100+'),
-            ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: l10n.history,
-            onPressed: () {
-              AnalyticsService.instance.logTabChanged('history');
-              paywallSession.recordAction();
-              Navigator.push(context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const HistoryScreen(country: 'us'),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                    transitionDuration: const Duration(milliseconds: 250),
-                  ));
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.compare_arrows),
-            tooltip: l10n.compareLoans,
-            onPressed: () {
-              AnalyticsService.instance.logTabChanged('compare');
-              AnalyticsService.instance.logCompareUsed('us');
-              paywallSession.recordAction();
-              Navigator.push(context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'us'),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                    transitionDuration: const Duration(milliseconds: 250),
-                  ));
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n.settings,
-            onPressed: () {
+          CalcwiseAppBarActions(
+            freemium: freemiumService,
+            session: paywallSession,
+            onSettings: () {
               AnalyticsService.instance.logTabChanged('settings');
-              Navigator.push(context,
-                  PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const SettingsScreen(flavor: 'us'),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                    transitionDuration: const Duration(milliseconds: 250),
-                  ));
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) =>
+                      const SettingsScreen(flavor: 'us'),
+                  transitionsBuilder: (_, anim, __, child) =>
+                      FadeTransition(opacity: anim, child: child),
+                  transitionDuration: AppDuration.base,
+                ),
+              );
             },
+            onRewardAd: () => CalcwiseRewardAdSheet.show(context),
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        onDestinationSelected: (i) => _onNavTap(i),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.calculate_rounded),
+            selectedIcon: const Icon(Icons.calculate),
+            label: l10n.calculate,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.compare_arrows_rounded),
+            selectedIcon: const Icon(Icons.compare_arrows),
+            label: l10n.compareLoans,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.history_rounded),
+            selectedIcon: const Icon(Icons.history),
+            label: l10n.history,
           ),
         ],
       ),
@@ -126,168 +170,334 @@ class USScreen extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                    child: CalcwisePageEntrance(child: Column(
-                      children: [
-            // ── Vehicle ───────────────────────────────────────────────
-            SectionCard(
-              title: l10n.vehicle,
-              children: [
-                CurrencySliderInput(
-                  label: l10n.vehiclePrice,
-                  value: p.vehiclePrice,
-                  min: 5000, max: 200000, step: 500,
-                  onChanged: p.setVehiclePrice,
-                ),
-                const SizedBox(height: 12),
-                CurrencySliderInput(
-                  label: l10n.tradeInValue,
-                  value: p.tradeInValue,
-                  min: 0, max: p.vehiclePrice, step: 500,
-                  onChanged: p.setTradeInValue,
-                ),
-                const SizedBox(height: 12),
-                CurrencySliderInput(
-                  label: l10n.downPayment,
-                  value: p.downPayment,
-                  min: 0, max: p.vehiclePrice, step: 500,
-                  onChanged: p.setDownPayment,
-                ),
-                const SizedBox(height: 12),
-                CurrencySliderInput(
-                  label: l10n.dealerFees,
-                  value: p.dealerFees,
-                  min: 0, max: 5000, step: 50,
-                  onChanged: p.setDealerFees,
-                ),
-              ],
-            ),
+                    child: CalcwisePageEntrance(
+                      child: Column(
+                        children: [
+                          // ── Hero result (moved to top so users see the answer first) ──
+                          AnimatedSwitcher(
+                            duration: AppDuration.base,
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.04),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                            child: p.result != null
+                                ? KeyedSubtree(
+                                    key: const ValueKey('results'),
+                                    child: _USResults(
+                                      p: p,
+                                      adService: adService,
+                                    ),
+                                  )
+                                : Padding(
+                                    key: const ValueKey('empty'),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 32,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.directions_car_rounded,
+                                          size: 48,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.3),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Enter vehicle price to see your monthly payment',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: AppTextSize.body,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.5),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                          ),
 
-            // ── Tax & Rate ────────────────────────────────────────────
-            SectionCard(
-              title: '${l10n.salesTax} & ${l10n.annualRate}',
-              children: [
-                PercentSliderInput(
-                  label: l10n.salesTax,
-                  value: p.salesTaxPercent,
-                  min: 0, max: 15, step: 0.1,
-                  onChanged: p.setSalesTax,
-                ),
-                const SizedBox(height: 16),
-                RateInputField(
-                  label: l10n.annualRate,
-                  value: p.annualRate,
-                  onChanged: p.setAnnualRate,
-                ),
-              ],
-            ),
-
-            // ── Credit Score ──────────────────────────────────────────
-            SectionCard(
-              title: l10n.creditScore,
-              children: [
-                // ignore: deprecated_member_use
-                ...CreditScore.values.map((cs) => RadioListTile<CreditScore>(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(cs.label),
-                      subtitle: Text(_rateAdjLabel(cs, l10n)),
-                      value: cs,
-                      // ignore: deprecated_member_use
-                      groupValue: p.creditScore,
-                      // ignore: deprecated_member_use
-                      onChanged: (v) { if (v != null) p.setCreditScore(v); },
-                    )),
-                if (p.result != null)
-                  ResultTile(
-                    label: l10n.effectiveRate,
-                    value: '${p.result!.effectiveRate.toStringAsFixed(2)}%',
-                  ),
-              ],
-            ),
-
-            // ── Term ──────────────────────────────────────────────────
-            SectionCard(
-              title: l10n.loanTerms,
-              children: [
-                DurationChips(
-                  label: l10n.termMonths,
-                  options: const [24, 36, 48, 60, 72, 84],
-                  selected: p.termMonths,
-                  onSelected: p.setTermMonths,
-                ),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Switch(value: p.isBiWeekly, onChanged: p.setIsBiWeekly),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.biWeeklyToggle),
-                        Text(
-                          l10n.biWeeklySubtitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          // ── Vehicle ───────────────────────────────────────────────
+                          SectionCard(
+                            title: l10n.vehicle,
+                            children: [
+                              CurrencyTextInput(
+                                label: l10n.vehiclePrice,
+                                value: p.vehiclePrice,
+                                onChanged: (v) {
+                                  p.setVehiclePrice(v);
+                                  _debouncedCalculate();
+                                },
+                                helperText: 'e.g. 35 000',
+                                errorText: _validated && p.vehiclePrice <= 0
+                                    ? 'Required'
+                                    : null,
                               ),
-                        ),
-                      ],
+                              const SizedBox(height: 12),
+                              CurrencySliderInput(
+                                label: l10n.tradeInValue,
+                                value: p.tradeInValue,
+                                min: 0,
+                                max: p.vehiclePrice,
+                                step: 500,
+                                onChanged: (v) {
+                                  p.setTradeInValue(v);
+                                  _debouncedCalculate();
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              CurrencySliderInput(
+                                label: l10n.downPayment,
+                                value: p.downPayment,
+                                min: 0,
+                                max: p.vehiclePrice,
+                                step: 500,
+                                onChanged: (v) {
+                                  p.setDownPayment(v);
+                                  _debouncedCalculate();
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              CurrencySliderInput(
+                                label: l10n.dealerFees,
+                                value: p.dealerFees,
+                                min: 0,
+                                max: 5000,
+                                step: 50,
+                                onChanged: (v) {
+                                  p.setDealerFees(v);
+                                  _debouncedCalculate();
+                                },
+                              ),
+                            ],
+                          ),
+
+                          // ── Tax & Rate ────────────────────────────────────────────
+                          SectionCard(
+                            title: '${l10n.salesTax} & ${l10n.annualRate}',
+                            children: [
+                              PercentSliderInput(
+                                label: l10n.salesTax,
+                                value: p.salesTaxPercent,
+                                min: 0,
+                                max: 15,
+                                step: 0.1,
+                                onChanged: (v) {
+                                  p.setSalesTax(v);
+                                  _debouncedCalculate();
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              RateInputField(
+                                label: l10n.annualRate,
+                                value: p.annualRate,
+                                helperText:
+                                    'Default rate as of 2026 — update to your actual rate',
+                                onChanged: (v) {
+                                  p.setAnnualRate(v);
+                                  _debouncedCalculate();
+                                },
+                                errorText: _validated && p.annualRate <= 0
+                                    ? 'Required'
+                                    : null,
+                              ),
+                            ],
+                          ),
+
+                          // ── Credit Score ──────────────────────────────────────────
+                          SectionCard(
+                            title: l10n.creditScore,
+                            children: [
+                              // ignore: deprecated_member_use
+                              ...CreditScore.values.map(
+                                (cs) => RadioListTile<CreditScore>(
+                                  dense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(cs.label),
+                                  subtitle: Text(_rateAdjLabel(cs, l10n)),
+                                  value: cs,
+                                  // ignore: deprecated_member_use
+                                  groupValue: p.creditScore,
+                                  // ignore: deprecated_member_use
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      p.setCreditScore(v);
+                                      _debouncedCalculate();
+                                    }
+                                  },
+                                ),
+                              ),
+                              if (p.result != null)
+                                ResultTile(
+                                  label: l10n.effectiveRate,
+                                  value:
+                                      '${p.result!.effectiveRate.toStringAsFixed(2)}%',
+                                ),
+                            ],
+                          ),
+
+                          // ── Term ──────────────────────────────────────────────────
+                          SectionCard(
+                            title: l10n.loanTerms,
+                            children: [
+                              DurationChips(
+                                label: l10n.termMonths,
+                                options: const [24, 36, 48, 60, 72, 84],
+                                selected: p.termMonths,
+                                onSelected: (v) {
+                                  p.setTermMonths(v);
+                                  _debouncedCalculate();
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Switch(
+                                    value: p.isBiWeekly,
+                                    onChanged: (v) {
+                                      p.setIsBiWeekly(v);
+                                      _debouncedCalculate();
+                                    },
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(l10n.biWeeklyToggle),
+                                        Text(
+                                          l10n.biWeeklySubtitle,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          // ── Lease vs Buy ─────────────────────────────────────────
+                          _USLeaseSection(p: p),
+
+                          // ── Refi Calculator ──────────────────────────────────────
+                          if (p.result != null) _USRefiSection(p: p),
+
+                          // ── Total Cost of Ownership ───────────────────────────────
+                          if (p.result != null) _USTcoSection(p: p),
+
+                          // ── Affordability Guide ───────────────────────────────────
+                          _USAffordabilitySection(p: p),
+
+                          // ── Reverse Affordability — "what vehicle can I afford?" ──
+                          const SizedBox(height: 12),
+                          Builder(
+                            builder: (context) {
+                              final isSpanish =
+                                  Localizations.localeOf(
+                                    context,
+                                  ).languageCode ==
+                                  'es';
+                              return ReverseSolveCard(
+                                title: isSpanish
+                                    ? '¿Qué vehículo puedo pagar?'
+                                    : 'What vehicle price can I afford?',
+                                targetLabel: isSpanish
+                                    ? 'Pago mensual objetivo'
+                                    : 'Target monthly payment',
+                                resultLabel: isSpanish
+                                    ? 'Precio máximo del vehículo'
+                                    : 'Max vehicle price',
+                                prefix: '\$',
+                                minBound: 5000,
+                                maxBound: 200000,
+                                targetValue: 0,
+                                ascending: true,
+                                compute: (vehiclePrice) {
+                                  // Mirror current state's downPayment as a proportion of price.
+                                  final dpRatio = p.vehiclePrice > 0
+                                      ? (p.downPayment / p.vehiclePrice).clamp(
+                                          0.0,
+                                          0.95,
+                                        )
+                                      : 0.15;
+                                  final down = vehiclePrice * dpRatio;
+                                  final loan = vehiclePrice - down;
+                                  final r = p.annualRate / 100 / 12;
+                                  final n = p.termMonths;
+                                  if (loan <= 0 || n <= 0) return 0;
+                                  if (r == 0) return loan / n;
+                                  return loan *
+                                      r *
+                                      pow(1 + r, n) /
+                                      (pow(1 + r, n) - 1);
+                                },
+                              );
+                            },
+                          ),
+
+                          // ── Cash-Back vs Low-APR Comparator ───────────────────────
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) =>
+                                      const CashbackVsLowAprScreen(
+                                        flavor: 'us',
+                                      ),
+                                  transitionsBuilder: (_, anim, __, child) =>
+                                      FadeTransition(
+                                        opacity: anim,
+                                        child: child,
+                                      ),
+                                  transitionDuration: AppDuration.base,
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.local_offer_rounded),
+                            label: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'es'
+                                  ? 'Reembolso vs Tasa Baja'
+                                  : 'Cash-Back vs Low-APR',
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(48),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+                          const CalcwiseAdFooter(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
-                ]),
-              ],
-            ),
-
-            // ── Calculate ─────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: FilledButton.icon(
-                onPressed: () async {
-                  if (p.downPayment >= p.vehiclePrice) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Down payment must be less than vehicle price.')),
-                    );
-                    return;
-                  }
-                  p.calculate();
-                  HapticFeedback.mediumImpact();
-                  ReviewService.instance.requestAfterSave();
-                  final trigger = await paywallSession.recordAction();
-                  if (trigger == PaywallTrigger.soft) {
-                    PaywallSoft.show(context, priceLabel: _kPremiumPrice);
-                  } else if (trigger == PaywallTrigger.hard) {
-                    PaywallHard.show(context, priceLabel: _kPremiumPrice);
-                  }
-                },
-                icon: const Icon(Icons.calculate),
-                label: Text(l10n.calculate),
-                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-              ),
-            ),
-
-            if (p.result != null)
-              _USResults(p: p, adService: adService),
-
-            // ── Lease vs Buy ─────────────────────────────────────────
-            _USLeaseSection(p: p),
-
-            // ── Refi Calculator ──────────────────────────────────────
-            if (p.result != null)
-              _USRefiSection(p: p),
-
-            // ── Total Cost of Ownership ───────────────────────────────
-            if (p.result != null)
-              _USTcoSection(p: p),
-
-            const SizedBox(height: 16),
-            AdBannerWidget(adService: adService),
-                      const SizedBox(height: 24),
-                    ],
-                  )),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -303,14 +513,14 @@ class USScreen extends StatelessWidget {
 
 class _USResults extends StatelessWidget {
   final USProvider p;
-  final AdService adService;
+  final CalcwiseAdService adService;
   const _USResults({required this.p, required this.adService});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final r    = p.result!;
-    final fmt  = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final r = p.result!;
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -318,64 +528,130 @@ class _USResults extends StatelessWidget {
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
-        final hasFull = freemiumService.isPremium || freemiumService.isRewarded;
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
         return _buildCard(context, l10n, r, fmt, hasFull);
       },
     );
   }
 
-  Widget _buildCard(BuildContext context, AppLocalizations l10n,
-      USCalculation r, NumberFormat fmt, bool hasFull) {
+  Widget _buildCard(
+    BuildContext context,
+    AppLocalizations l10n,
+    USCalculation r,
+    NumberFormat fmt,
+    bool hasFull,
+  ) {
     return SectionCard(
-      title: l10n.results,
       children: [
-        ResultTile(
-          label: p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
-          value: fmt.format(r.displayPayment),
-          isHighlight: true,
+        // ── Hero monthly payment ──────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
+                style: TextStyle(
+                  fontSize: AppTextSize.sm,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                fmt.format(r.displayPayment),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: AppTextSize.hero,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.5,
+                ),
+              ),
+            ],
+          ),
         ),
         if (p.isBiWeekly)
-          ResultTile(label: '${l10n.monthlyPayment} (equiv.)', value: fmt.format(r.monthlyPayment)),
+          ResultTile(
+            label: '${l10n.monthlyPayment} (equiv.)',
+            value: fmt.format(r.monthlyPayment),
+          ),
         ResultTile(label: l10n.loanAmount, value: fmt.format(r.financedAmount)),
         ResultTile(label: l10n.taxAmount, value: fmt.format(r.taxAmount)),
         if (r.tradeInValue > 0)
-          ResultTile(label: l10n.tradeInValue, value: fmt.format(r.tradeInValue)),
+          ResultTile(
+            label: l10n.tradeInValue,
+            value: fmt.format(r.tradeInValue),
+          ),
         const Divider(),
-        ResultTile(label: l10n.financedAmount, value: fmt.format(r.financedAmount)),
-        ResultTile(label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
+        ResultTile(
+          label: l10n.financedAmount,
+          value: fmt.format(r.financedAmount),
+        ),
+        ResultTile(
+          label: l10n.totalInterest,
+          value: fmt.format(r.totalInterest),
+        ),
         ResultTile(label: l10n.downPayment, value: fmt.format(r.downPayment)),
         const Divider(height: 8),
-        ResultTile(label: l10n.totalCost, value: fmt.format(r.totalCost), isHighlight: true),
-        ResultTile(label: l10n.effectiveRate, value: '${r.effectiveRate.toStringAsFixed(2)}%'),
+        ResultTile(
+          label: l10n.totalCost,
+          value: fmt.format(r.totalCost),
+          isHighlight: true,
+        ),
+        ResultTile(
+          label: l10n.effectiveRate,
+          value: '${r.effectiveRate.toStringAsFixed(2)}%',
+        ),
         const SizedBox(height: 8),
         // ── Smart Insights ────────────────────────────────────────────
         InsightCard(
           insights: InsightEngine.generate(
-            vehiclePrice:   r.vehiclePrice,
-            loanAmount:     r.financedAmount,
-            annualRatePct:  r.effectiveRate,
-            termMonths:     r.termMonths,
+            vehiclePrice: r.vehiclePrice,
+            loanAmount: r.financedAmount,
+            annualRatePct: r.effectiveRate,
+            termMonths: r.termMonths,
             monthlyPayment: r.monthlyPayment,
-            totalInterest:  r.totalInterest,
-            downPayment:    r.downPayment,
+            totalInterest: r.totalInterest,
+            downPayment: r.downPayment,
           ),
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
-          onPressed: () {
+          onPressed: () async {
+            HapticFeedback.lightImpact();
             final payment = p.isBiWeekly
                 ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
                 : 'Monthly: ${fmt.format(r.monthlyPayment)}';
-            Share.share(
-              '🇺🇸 Auto Loan USA\n'
-              'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
-              'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
-              '$payment\n'
-              'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
-              '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}',
-            );
+            try {
+              await Share.share(
+                '🇺🇸 Auto Loan USA\n'
+                'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
+                'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
+                '$payment\n'
+                'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
+                '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}',
+              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Shared successfully'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            } catch (_) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Share failed'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }
           },
-          icon: const Icon(Icons.share),
+          icon: const Icon(Icons.share_rounded),
           label: const Text('Share'),
         ),
         const SizedBox(height: 8),
@@ -385,17 +661,21 @@ class _USResults extends StatelessWidget {
               AnalyticsService.instance.logAmortizationViewed('us');
               adService.showInterstitialThen(() {
                 if (context.mounted) {
-                  Navigator.push(context, PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => AmortizationScreen(
-                            loanAmount: r.financedAmount,
-                            annualRate: r.effectiveRate,
-                            termMonths: r.termMonths,
-                            downPayment: r.downPayment,
-                            isBiWeekly: p.isBiWeekly,),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                    transitionDuration: const Duration(milliseconds: 250),
-                  ));
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => AmortizationScreen(
+                        loanAmount: r.financedAmount,
+                        annualRate: r.effectiveRate,
+                        termMonths: r.termMonths,
+                        downPayment: r.downPayment,
+                        isBiWeekly: p.isBiWeekly,
+                      ),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration: AppDuration.base,
+                    ),
+                  );
                 }
               });
             },
@@ -404,34 +684,82 @@ class _USResults extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            onPressed: () {
-              PdfExportService.exportLoanPdf(
-                title: l10n.appNameUS,
-                currencySymbol: '\$',
-                loanAmount: r.financedAmount,
-                annualRate: r.effectiveRate,
-                termMonths: r.termMonths,
-                downPayment: r.downPayment,
-                summary: [
-                  MapEntry(l10n.vehiclePrice,   '\$${r.vehiclePrice.toStringAsFixed(2)}'),
-                  if (r.tradeInValue > 0)
-                    MapEntry(l10n.tradeInValue, '-\$${r.tradeInValue.toStringAsFixed(2)}'),
-                  MapEntry(l10n.downPayment,    '\$${r.downPayment.toStringAsFixed(2)}'),
-                  if (r.dealerFees > 0)
-                    MapEntry(l10n.dealerFees,   '\$${r.dealerFees.toStringAsFixed(2)}'),
-                  MapEntry(l10n.taxAmount,      '\$${r.taxAmount.toStringAsFixed(2)}'),
-                  MapEntry(l10n.financedAmount, '\$${r.financedAmount.toStringAsFixed(2)}'),
-                  MapEntry(l10n.annualRate,     '${r.annualRate.toStringAsFixed(2)}%'),
-                  MapEntry(l10n.effectiveRate,  '${r.effectiveRate.toStringAsFixed(2)}%'),
-                  MapEntry(l10n.termMonths,     '${r.termMonths} mo'),
-                  MapEntry(p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
-                      '\$${r.displayPayment.toStringAsFixed(2)}'),
-                  if (p.isBiWeekly)
-                    MapEntry('${l10n.monthlyPayment} (equiv.)',
-                        '\$${r.monthlyPayment.toStringAsFixed(2)}'),
-                ],
-              );
-              AnalyticsService.instance.logPdfExported('us');
+            onPressed: () async {
+              try {
+                await PdfExportService.exportLoanPdf(
+                  title: l10n.appNameUS,
+                  currencySymbol: '\$',
+                  loanAmount: r.financedAmount,
+                  annualRate: r.effectiveRate,
+                  termMonths: r.termMonths,
+                  downPayment: r.downPayment,
+                  summary: [
+                    MapEntry(
+                      l10n.vehiclePrice,
+                      '\$${r.vehiclePrice.toStringAsFixed(2)}',
+                    ),
+                    if (r.tradeInValue > 0)
+                      MapEntry(
+                        l10n.tradeInValue,
+                        '-\$${r.tradeInValue.toStringAsFixed(2)}',
+                      ),
+                    MapEntry(
+                      l10n.downPayment,
+                      '\$${r.downPayment.toStringAsFixed(2)}',
+                    ),
+                    if (r.dealerFees > 0)
+                      MapEntry(
+                        l10n.dealerFees,
+                        '\$${r.dealerFees.toStringAsFixed(2)}',
+                      ),
+                    MapEntry(
+                      l10n.taxAmount,
+                      '\$${r.taxAmount.toStringAsFixed(2)}',
+                    ),
+                    MapEntry(
+                      l10n.financedAmount,
+                      '\$${r.financedAmount.toStringAsFixed(2)}',
+                    ),
+                    MapEntry(
+                      l10n.annualRate,
+                      '${r.annualRate.toStringAsFixed(2)}%',
+                    ),
+                    MapEntry(
+                      l10n.effectiveRate,
+                      '${r.effectiveRate.toStringAsFixed(2)}%',
+                    ),
+                    MapEntry(l10n.termMonths, '${r.termMonths} mo'),
+                    MapEntry(
+                      p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
+                      '\$${r.displayPayment.toStringAsFixed(2)}',
+                    ),
+                    if (p.isBiWeekly)
+                      MapEntry(
+                        '${l10n.monthlyPayment} (equiv.)',
+                        '\$${r.monthlyPayment.toStringAsFixed(2)}',
+                      ),
+                  ],
+                );
+                AnalyticsService.instance.logPdfExported('us');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PDF exported successfully'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Export failed'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
             },
             icon: const Icon(Icons.picture_as_pdf),
             label: const Text('Export PDF'),
@@ -439,23 +767,38 @@ class _USResults extends StatelessWidget {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () {
-              Navigator.push(context, PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => EarlyPayoffScreen(
-                        loanAmount: r.financedAmount,
-                        annualRate: r.effectiveRate,
-                        termMonths: r.termMonths,
-                        flavor: 'us',),
-                    transitionsBuilder: (_, anim, __, child) =>
-                        FadeTransition(opacity: anim, child: child),
-                    transitionDuration: const Duration(milliseconds: 250),
-                  ));
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => EarlyPayoffScreen(
+                    loanAmount: r.financedAmount,
+                    annualRate: r.effectiveRate,
+                    termMonths: r.termMonths,
+                    flavor: 'us',
+                  ),
+                  transitionsBuilder: (_, anim, __, child) =>
+                      FadeTransition(opacity: anim, child: child),
+                  transitionDuration: AppDuration.base,
+                ),
+              );
             },
-            icon: const Icon(Icons.rocket_launch_outlined),
+            icon: const Icon(Icons.rocket_launch_rounded),
             label: const Text('Early Payoff'),
           ),
         ] else ...[
           PremiumGate(adService: adService, flavor: 'us'),
         ],
+        const SizedBox(height: 8),
+        Text(
+          'For informational purposes only. Not financial advice.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.55),
+          ),
+        ),
       ],
     );
   }
@@ -474,24 +817,24 @@ class _USLeaseSection extends StatefulWidget {
 class _USLeaseSectionState extends State<_USLeaseSection> {
   bool _expanded = false;
 
-  double _residualPercent  = 50.0;
-  double _moneyFactor      = 0.00175; // ~4.2% ÷ 2400
+  double _residualPercent = 50.0;
+  double _moneyFactor = 0.00175; // ~4.2% ÷ 2400
   double _capCostReduction = 0;
-  double _acquisitionFee   = 795;
-  int    _leaseTerm        = 36;
+  double _acquisitionFee = 795;
+  int _leaseTerm = 36;
 
   USLeaseCalculation? _lease;
 
   void _calculate() {
     setState(() {
       _lease = USLeaseCalculation.calculate(
-        vehiclePrice:    widget.p.vehiclePrice,
-        downPayment:     widget.p.downPayment,
+        vehiclePrice: widget.p.vehiclePrice,
+        downPayment: widget.p.downPayment,
         capCostReduction: _capCostReduction,
-        acquisitionFee:  _acquisitionFee,
+        acquisitionFee: _acquisitionFee,
         residualPercent: _residualPercent,
-        moneyFactor:     _moneyFactor,
-        leaseTerm:       _leaseTerm,
+        moneyFactor: _moneyFactor,
+        leaseTerm: _leaseTerm,
       );
     });
   }
@@ -499,31 +842,47 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
   @override
   Widget build(BuildContext context) {
     final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    final r   = widget.p.result;
+    final r = widget.p.result;
 
     return SectionCard(
       title: 'Lease vs Buy Comparison',
       children: [
-        Row(children: [
-          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
-          const Expanded(child: Text('Show Lease vs Buy')),
-        ]),
+        Row(
+          children: [
+            Switch(
+              value: _expanded,
+              onChanged: (v) => setState(() => _expanded = v),
+            ),
+            const Expanded(child: Text('Show Lease vs Buy')),
+          ],
+        ),
         if (_expanded) ...[
           const SizedBox(height: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Residual Value %'),
-              Text('${_residualPercent.toStringAsFixed(0)}%',
-                  style: TextStyle(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Residual Value %'),
+                  Text(
+                    '${_residualPercent.toStringAsFixed(0)}%',
+                    style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold)),
-            ]),
-            Slider(
-              value: _residualPercent,
-              min: 30, max: 70, divisions: 40,
-              onChanged: (v) => setState(() => _residualPercent = v),
-            ),
-          ]),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _residualPercent,
+                min: 30,
+                max: 70,
+                divisions: 40,
+                onChanged: (v) => setState(() => _residualPercent = v),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           TextFormField(
             initialValue: (_moneyFactor * 2400).toStringAsFixed(2),
@@ -536,7 +895,8 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             ),
             onChanged: (v) {
               final rate = double.tryParse(v);
-              if (rate != null && rate > 0) setState(() => _moneyFactor = rate / 2400);
+              if (rate != null && rate > 0)
+                setState(() => _moneyFactor = rate / 2400);
             },
           ),
           const SizedBox(height: 8),
@@ -551,7 +911,8 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             ),
             onChanged: (v) {
               final val = double.tryParse(v);
-              if (val != null && val >= 0) setState(() => _capCostReduction = val);
+              if (val != null && val >= 0)
+                setState(() => _capCostReduction = val);
             },
           ),
           const SizedBox(height: 8),
@@ -566,7 +927,8 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             ),
             onChanged: (v) {
               final val = double.tryParse(v);
-              if (val != null && val >= 0) setState(() => _acquisitionFee = val);
+              if (val != null && val >= 0)
+                setState(() => _acquisitionFee = val);
             },
           ),
           const SizedBox(height: 12),
@@ -580,7 +942,9 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
                 backgroundColor: Colors.transparent,
                 selectedColor: Theme.of(context).colorScheme.primary,
                 labelStyle: TextStyle(
-                  color: selected ? Colors.white : Theme.of(context).colorScheme.primary,
+                  color: selected
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.primary,
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
                 side: selected
@@ -592,10 +956,15 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: _calculate,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _calculate();
+            },
             icon: const Icon(Icons.compare),
             label: const Text('Compare'),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+            ),
           ),
           if (_lease != null && r != null) ...[
             const SizedBox(height: 16),
@@ -632,58 +1001,63 @@ class _USComparisonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final buyTotalOverLeaseTerm = buyMonthly * leaseTermMonths;
-    final diff      = lease.totalLeaseCost - buyTotalOverLeaseTerm;
+    final diff = lease.totalLeaseCost - buyTotalOverLeaseTerm;
     final leaseWins = diff < 0;
-    final absDiff   = diff.abs();
+    final absDiff = diff.abs();
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
-        Expanded(
-          child: _USColumn(
-            label: 'Lease ($leaseTermMonths mo)',
-            monthly: fmt.format(lease.monthlyLease),
-            total: fmt.format(lease.totalLeaseCost),
-            highlight: leaseWins,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _USColumn(
+                label: 'Lease ($leaseTermMonths mo)',
+                monthly: fmt.format(lease.monthlyLease),
+                total: fmt.format(lease.totalLeaseCost),
+                highlight: leaseWins,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _USColumn(
+                label: 'Buy ($buyTermMonths mo)',
+                monthly: fmt.format(buyMonthly),
+                total: fmt.format(buyTotalOverLeaseTerm),
+                highlight: !leaseWins,
+                footnote: 'over $leaseTermMonths mo',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: Text(
+            leaseWins
+                ? 'Lease saves ${fmt.format(absDiff)} over $leaseTermMonths months'
+                : 'Buy saves ${fmt.format(absDiff)} over $leaseTermMonths months',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _USColumn(
-            label: 'Buy ($buyTermMonths mo)',
-            monthly: fmt.format(buyMonthly),
-            total: fmt.format(buyTotalOverLeaseTerm),
-            highlight: !leaseWins,
-            footnote: 'over $leaseTermMonths mo',
+        const SizedBox(height: 6),
+        Text(
+          'Adj cap cost: ${fmt.format(lease.adjCapCost)}  ·  '
+          'Residual: ${fmt.format(lease.residualValue)}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-        ),
-      ]),
-      const SizedBox(height: 10),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          leaseWins
-              ? 'Lease saves ${fmt.format(absDiff)} over $leaseTermMonths months'
-              : 'Buy saves ${fmt.format(absDiff)} over $leaseTermMonths months',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
-      ),
-      const SizedBox(height: 6),
-      Text(
-        'Adj cap cost: ${fmt.format(lease.adjCapCost)}  ·  '
-        'Residual: ${fmt.format(lease.residualValue)}',
-        style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        textAlign: TextAlign.center,
-      ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -708,7 +1082,7 @@ class _USColumn extends StatelessWidget {
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(AppSpacing.smPlus),
       decoration: BoxDecoration(
         border: Border.all(
           color: highlight
@@ -716,22 +1090,47 @@ class _USColumn extends StatelessWidget {
               : Theme.of(context).colorScheme.outline,
           width: highlight ? 2 : 1,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: Column(children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: color, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(monthly, style: Theme.of(context).textTheme.titleMedium
-            ?.copyWith(color: color, fontWeight: FontWeight.bold)),
-        Text('/month', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
-        const SizedBox(height: 4),
-        Text('Total: $total',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
-        if (footnote != null)
-          Text(footnote!, style: Theme.of(context).textTheme.bodySmall
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      ]),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            monthly,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            '/month',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: color),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Total: $total',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: color),
+          ),
+          if (footnote != null)
+            Text(
+              footnote!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -761,11 +1160,17 @@ class _USRefiSectionState extends State<_USRefiSection> {
   void initState() {
     super.initState();
     final r = widget.p.result!;
-    _balanceCtrl     = TextEditingController(text: r.financedAmount.toStringAsFixed(0));
-    _currentRateCtrl = TextEditingController(text: r.effectiveRate.toStringAsFixed(2));
+    _balanceCtrl = TextEditingController(
+      text: r.financedAmount.toStringAsFixed(0),
+    );
+    _currentRateCtrl = TextEditingController(
+      text: r.effectiveRate.toStringAsFixed(2),
+    );
     _moRemainingCtrl = TextEditingController(text: r.termMonths.toString());
-    _newRateCtrl     = TextEditingController(text: (r.effectiveRate - 1).clamp(0, 30).toStringAsFixed(2));
-    _newTermCtrl     = TextEditingController(text: r.termMonths.toString());
+    _newRateCtrl = TextEditingController(
+      text: (r.effectiveRate - 1).clamp(0, 30).toStringAsFixed(2),
+    );
+    _newTermCtrl = TextEditingController(text: r.termMonths.toString());
   }
 
   @override
@@ -779,21 +1184,21 @@ class _USRefiSectionState extends State<_USRefiSection> {
   }
 
   void _calculate() {
-    final balance     = double.tryParse(_balanceCtrl.text) ?? 0;
+    final balance = double.tryParse(_balanceCtrl.text) ?? 0;
     final currentRate = double.tryParse(_currentRateCtrl.text) ?? 0;
     final moRemaining = int.tryParse(_moRemainingCtrl.text) ?? 0;
-    final newRate     = double.tryParse(_newRateCtrl.text) ?? 0;
-    final newTerm     = int.tryParse(_newTermCtrl.text) ?? 0;
+    final newRate = double.tryParse(_newRateCtrl.text) ?? 0;
+    final newTerm = int.tryParse(_newTermCtrl.text) ?? 0;
 
     if (balance <= 0 || moRemaining <= 0 || newTerm <= 0) return;
 
     setState(() {
       _refi = USRefiCalculation.calculate(
-        currentBalance:          balance,
-        currentRate:             currentRate,
-        currentMonthsRemaining:  moRemaining,
-        newRate:                 newRate,
-        newTermMonths:           newTerm,
+        currentBalance: balance,
+        currentRate: currentRate,
+        currentMonthsRemaining: moRemaining,
+        newRate: newRate,
+        newTermMonths: newTerm,
       );
     });
   }
@@ -805,27 +1210,56 @@ class _USRefiSectionState extends State<_USRefiSection> {
     return SectionCard(
       title: 'Refi Calculator',
       children: [
-        Row(children: [
-          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
-          const Expanded(child: Text('Show Refinancing Calculator')),
-        ]),
+        Row(
+          children: [
+            Switch(
+              value: _expanded,
+              onChanged: (v) => setState(() => _expanded = v),
+            ),
+            const Expanded(child: Text('Show Refinancing Calculator')),
+          ],
+        ),
         if (_expanded) ...[
           const SizedBox(height: 12),
-          _RefiField(controller: _balanceCtrl, label: 'Current remaining balance (\$)'),
+          _RefiField(
+            controller: _balanceCtrl,
+            label: 'Current remaining balance (\$)',
+          ),
           const SizedBox(height: 8),
-          _RefiField(controller: _currentRateCtrl, label: 'Current rate (%)', suffix: '%'),
+          _RefiField(
+            controller: _currentRateCtrl,
+            label: 'Current rate (%)',
+            suffix: '%',
+          ),
           const SizedBox(height: 8),
-          _RefiField(controller: _moRemainingCtrl, label: 'Months remaining', suffix: 'mo'),
+          _RefiField(
+            controller: _moRemainingCtrl,
+            label: 'Months remaining',
+            suffix: 'mo',
+          ),
           const SizedBox(height: 8),
-          _RefiField(controller: _newRateCtrl, label: 'New rate (%)', suffix: '%'),
+          _RefiField(
+            controller: _newRateCtrl,
+            label: 'New rate (%)',
+            suffix: '%',
+          ),
           const SizedBox(height: 8),
-          _RefiField(controller: _newTermCtrl, label: 'New term (months)', suffix: 'mo'),
+          _RefiField(
+            controller: _newTermCtrl,
+            label: 'New term (months)',
+            suffix: 'mo',
+          ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: _calculate,
-            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _calculate();
+            },
+            icon: const Icon(Icons.refresh_rounded),
             label: const Text('Calculate Refi'),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+            ),
           ),
           if (_refi != null) ...[
             const SizedBox(height: 16),
@@ -859,21 +1293,30 @@ class _USRefiSectionState extends State<_USRefiSection> {
                 color: _refi!.isWorthIt
                     ? Theme.of(context).colorScheme.primaryContainer
                     : Theme.of(context).colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(
-                  _refi!.isWorthIt ? Icons.thumb_up_outlined : Icons.thumb_down_outlined,
-                  color: _refi!.isWorthIt
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _refi!.isWorthIt ? 'Worth it — saves money overall' : 'Not worth it — costs more overall',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ]),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _refi!.isWorthIt
+                        ? Icons.thumb_up_rounded
+                        : Icons.thumb_down_rounded,
+                    color: _refi!.isWorthIt
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _refi!.isWorthIt
+                        ? 'Worth it — saves money overall'
+                        : 'Not worth it — costs more overall',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -887,7 +1330,11 @@ class _RefiField extends StatelessWidget {
   final String label;
   final String? suffix;
 
-  const _RefiField({required this.controller, required this.label, this.suffix});
+  const _RefiField({
+    required this.controller,
+    required this.label,
+    this.suffix,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -917,11 +1364,11 @@ class _USTcoSection extends StatefulWidget {
 class _USTcoSectionState extends State<_USTcoSection> {
   bool _expanded = false;
 
-  double _annualMiles  = 15000;
-  double _mpg          = 28;
-  double _gasPrice     = 3.50;
-  double _annualIns    = 1400;
-  double _annualMaint  = 800;
+  double _annualMiles = 15000;
+  double _mpg = 28;
+  double _gasPrice = 3.50;
+  double _annualIns = 1400;
+  double _annualMaint = 800;
 
   USTcoCalculation? _tco;
 
@@ -929,40 +1376,47 @@ class _USTcoSectionState extends State<_USTcoSection> {
     final r = widget.p.result!;
     setState(() {
       _tco = USTcoCalculation.calculate(
-        annualMiles:       _annualMiles,
-        mpg:               _mpg,
+        annualMiles: _annualMiles,
+        mpg: _mpg,
         gasPricePerGallon: _gasPrice,
-        annualInsurance:   _annualIns,
+        annualInsurance: _annualIns,
         annualMaintenance: _annualMaint,
-        termMonths:        r.termMonths,
-        totalInterest:     r.totalInterest,
-        vehiclePrice:      r.vehiclePrice,
-        tradeInValue:      r.tradeInValue,
-        downPayment:       r.downPayment,
+        termMonths: r.termMonths,
+        totalInterest: r.totalInterest,
+        vehiclePrice: r.vehiclePrice,
+        tradeInValue: r.tradeInValue,
+        downPayment: r.downPayment,
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final fmt  = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    final r    = widget.p.result!;
+    final r = widget.p.result!;
     final termYears = r.termMonths ~/ 12;
 
     return SectionCard(
       title: 'Total Cost of Ownership',
       children: [
-        Row(children: [
-          Switch(value: _expanded, onChanged: (v) => setState(() => _expanded = v)),
-          const Expanded(child: Text('Calculate true ownership cost')),
-        ]),
+        Row(
+          children: [
+            Switch(
+              value: _expanded,
+              onChanged: (v) => setState(() => _expanded = v),
+            ),
+            const Expanded(child: Text('Calculate true ownership cost')),
+          ],
+        ),
         if (_expanded) ...[
           const SizedBox(height: 12),
           _USTcoRow(
             label: 'Annual miles driven',
             value: _annualMiles,
-            min: 3000, max: 40000, step: 1000,
+            min: 3000,
+            max: 40000,
+            step: 1000,
             display: '${_annualMiles.toStringAsFixed(0)} mi',
             onChanged: (v) => setState(() => _annualMiles = v),
           ),
@@ -970,7 +1424,9 @@ class _USTcoSectionState extends State<_USTcoSection> {
           _USTcoRow(
             label: 'MPG',
             value: _mpg,
-            min: 10, max: 60, step: 1,
+            min: 10,
+            max: 60,
+            step: 1,
             display: '${_mpg.toStringAsFixed(0)} mpg',
             onChanged: (v) => setState(() => _mpg = v),
           ),
@@ -978,7 +1434,9 @@ class _USTcoSectionState extends State<_USTcoSection> {
           _USTcoRow(
             label: 'Gas price (\$/gal)',
             value: _gasPrice,
-            min: 1.50, max: 6.00, step: 0.10,
+            min: 1.50,
+            max: 6.00,
+            step: 0.10,
             display: fmt2.format(_gasPrice),
             onChanged: (v) => setState(() => _gasPrice = v),
           ),
@@ -986,7 +1444,9 @@ class _USTcoSectionState extends State<_USTcoSection> {
           _USTcoRow(
             label: 'Annual insurance (\$)',
             value: _annualIns,
-            min: 400, max: 5000, step: 100,
+            min: 400,
+            max: 5000,
+            step: 100,
             display: fmt.format(_annualIns),
             onChanged: (v) => setState(() => _annualIns = v),
           ),
@@ -994,25 +1454,44 @@ class _USTcoSectionState extends State<_USTcoSection> {
           _USTcoRow(
             label: 'Annual maintenance (\$)',
             value: _annualMaint,
-            min: 200, max: 3000, step: 100,
+            min: 200,
+            max: 3000,
+            step: 100,
             display: fmt.format(_annualMaint),
             onChanged: (v) => setState(() => _annualMaint = v),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: _calculate,
-            icon: const Icon(Icons.calculate_outlined),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _calculate();
+            },
+            icon: const Icon(Icons.calculate_rounded),
             label: const Text('Calculate TCO'),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+            ),
           ),
           if (_tco != null) ...[
             const SizedBox(height: 16),
             const Divider(),
-            ResultTile(label: 'Net vehicle cost', value: fmt.format(_tco!.netVehicleCost)),
-            ResultTile(label: 'Total interest', value: fmt.format(_tco!.totalInterest)),
+            ResultTile(
+              label: 'Net vehicle cost',
+              value: fmt.format(_tco!.netVehicleCost),
+            ),
+            ResultTile(
+              label: 'Total interest',
+              value: fmt.format(_tco!.totalInterest),
+            ),
             ResultTile(label: 'Total gas', value: fmt.format(_tco!.totalGas)),
-            ResultTile(label: 'Total insurance', value: fmt.format(_tco!.totalInsurance)),
-            ResultTile(label: 'Total maintenance', value: fmt.format(_tco!.totalMaintenance)),
+            ResultTile(
+              label: 'Total insurance',
+              value: fmt.format(_tco!.totalInsurance),
+            ),
+            ResultTile(
+              label: 'Total maintenance',
+              value: fmt.format(_tco!.totalMaintenance),
+            ),
             const Divider(height: 8),
             ResultTile(
               label: 'True cost of owning over $termYears years',
@@ -1047,28 +1526,178 @@ class _USTcoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
-      Text(display, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        Text(
+          display,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.primary,
             fontWeight: FontWeight.bold,
-          )),
-      Flexible(
-        child: SizedBox(
-          width: 120,
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              overlayShape: SliderComponentShape.noOverlay,
-            ),
-            child: Slider(
-              value: value.clamp(min, max),
-              min: min, max: max,
-              divisions: ((max - min) / step).round().clamp(1, 500),
-              onChanged: (v) => onChanged((v / step).round() * step),
+          ),
+        ),
+        Flexible(
+          child: SizedBox(
+            width: 120,
+            child: SliderTheme(
+              data: SliderTheme.of(
+                context,
+              ).copyWith(overlayShape: SliderComponentShape.noOverlay),
+              child: Slider(
+                value: value.clamp(min, max),
+                min: min,
+                max: max,
+                divisions: ((max - min) / step).round().clamp(1, 500),
+                onChanged: (v) => onChanged((v / step).round() * step),
+              ),
             ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
+  }
+}
+
+// ── US Affordability Guide ─────────────────────────────────────────────────────
+
+class _USAffordabilitySection extends StatefulWidget {
+  final USProvider p;
+  const _USAffordabilitySection({required this.p});
+
+  @override
+  State<_USAffordabilitySection> createState() =>
+      _USAffordabilitySectionState();
+}
+
+class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
+  bool _expanded = false;
+  double _monthlyIncome = 5000;
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+    final r = widget.p.result;
+
+    // Traffic-light: US thresholds — 15% / 20%
+    Color? _trafficColor;
+    String _trafficLabel = '';
+    if (r != null) {
+      final ratio = r.monthlyPayment / _monthlyIncome;
+      if (ratio < 0.15) {
+        _trafficColor = CalcwiseTheme.of(context).successGreen;
+        _trafficLabel = 'Comfortable (< 15% of income)';
+      } else if (ratio <= 0.20) {
+        _trafficColor = CalcwiseTheme.of(context).warningOrange;
+        _trafficLabel = 'Moderate (15–20% of income)';
+      } else {
+        _trafficColor = CalcwiseTheme.of(context).errorRed;
+        _trafficLabel = 'Over budget (> 20% of income)';
+      }
+    }
+
+    return SectionCard(
+      title: 'Affordability Guide',
+      children: [
+        Row(
+          children: [
+            Switch(
+              value: _expanded,
+              onChanged: (v) => setState(() => _expanded = v),
+            ),
+            const Expanded(child: Text('Show Affordability Guide')),
+          ],
+        ),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Gross monthly income'),
+                  Text(
+                    fmt.format(_monthlyIncome),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _monthlyIncome.clamp(2000, 25000),
+                min: 2000,
+                max: 25000,
+                divisions: ((25000 - 2000) / 500).round(),
+                onChanged: (v) =>
+                    setState(() => _monthlyIncome = (v / 500).round() * 500),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    fmt.format(2000),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    fmt.format(25000),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 8),
+          ResultTile(
+            label: 'Recommended max payment (15% of income)',
+            value: '${fmt2.format(_monthlyIncome * 0.15)}/mo',
+          ),
+          if (r != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: _trafficColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Your payment ${fmt2.format(r.monthlyPayment)}/mo — $_trafficLabel',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: _trafficColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              'Calculate a loan above to see your payment rating.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
   }
 }

@@ -19,7 +19,9 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: TextFormField(
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
           ),
         ),
@@ -39,7 +41,10 @@ void main() {
                 items: const [
                   DropdownMenuItem(value: 'ON', child: Text('Ontario')),
                   DropdownMenuItem(value: 'QC', child: Text('Québec')),
-                  DropdownMenuItem(value: 'BC', child: Text('British Columbia')),
+                  DropdownMenuItem(
+                    value: 'BC',
+                    child: Text('British Columbia'),
+                  ),
                 ],
                 onChanged: (v) => setState(() => selected = v!),
               ),

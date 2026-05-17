@@ -1,7 +1,7 @@
 /// IAP service — re-exports CalcwiseIAP from library with app-specific configuration.
 /// This file maintains backward compatibility while using the shared library implementation.
 import 'package:flutter/foundation.dart' show ValueNotifier;
-import 'package:calcwise_core/calcwise_core.dart';
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import 'freemium_service.dart';
 
 // Re-export the iapErrorNotifier from library for backward compatibility
@@ -26,6 +26,7 @@ class IAPService {
       analytics: CalcwiseAnalytics(appName: 'auto_loan'),
     );
     await _iap.initialize();
+    PaywallHard.registerPrice(_iap.localizedPrice);
   }
 
   Future<void> buy() => _iap.buy();

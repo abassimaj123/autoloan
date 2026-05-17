@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../services/ad_service.dart';
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdService
+    hide SectionCard, ResultTile;
 import '../core/freemium/freemium_service.dart';
 
 /// Rewarded ad button that unlocks history access for 60 minutes.
@@ -10,7 +12,7 @@ import '../core/freemium/freemium_service.dart';
 ///   - Daily limit reached       → "Come back tomorrow" chip
 ///   - Ready to watch            → "Watch ad" FilledButton
 class RewardedButton extends StatefulWidget {
-  final AdService adService;
+  final CalcwiseAdService adService;
   final VoidCallback onUnlocked;
 
   const RewardedButton({
@@ -31,7 +33,9 @@ class _RewardedButtonState extends State<RewardedButton> {
     if (!freemiumService.canWatchRewarded()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Daily limit reached. Come back tomorrow for another hour of free access.'),
+          content: Text(
+            'Daily limit reached. Come back tomorrow for another hour of free access.',
+          ),
         ),
       );
       return;
@@ -45,7 +49,9 @@ class _RewardedButtonState extends State<RewardedButton> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.adNotAvailable)),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.adNotAvailable),
+            ),
           );
         }
       }
@@ -61,7 +67,7 @@ class _RewardedButtonState extends State<RewardedButton> {
     return ValueListenableBuilder<bool>(
       valueListenable: freemiumService.isRewardedNotifier,
       builder: (context, isRewarded, _) {
-        if (freemiumService.isPremium || isRewarded) {
+        if (freemiumService.hasFullAccess || isRewarded) {
           return Chip(
             avatar: const Icon(Icons.check_circle, size: 16),
             label: Text(l10n.fullAccessActive),
@@ -83,7 +89,8 @@ class _RewardedButtonState extends State<RewardedButton> {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     color: Colors.white,
-                  ))
+                  ),
+                )
               : const Icon(Icons.play_circle_outline),
           label: Text(adReady ? l10n.watchAd : l10n.adNotAvailable),
           style: FilledButton.styleFrom(

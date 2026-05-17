@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../services/ad_service.dart';
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdService
+    hide SectionCard, ResultTile;
 import '../services/analytics_service.dart';
 import '../core/freemium/freemium_service.dart';
 
 class AdBannerWidget extends StatefulWidget {
-  final AdService adService;
+  final CalcwiseAdService adService;
   const AdBannerWidget({super.key, required this.adService});
 
   @override
@@ -25,11 +27,13 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   Future<void> _loadBanner() async {
     final width = MediaQuery.of(context).size.width.truncate();
-    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
+    final size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+      width,
+    );
     if (size == null || !mounted) return;
 
     final banner = BannerAd(
-      adUnitId: widget.adService.bannerId,
+      adUnitId: widget.adService.bannerAdUnitId,
       size: size,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -39,7 +43,10 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
         onAdFailedToLoad: (ad, _) {
           ad.dispose();
           if (!mounted) return;
-          setState(() { _banner = null; _loaded = false; });
+          setState(() {
+            _banner = null;
+            _loaded = false;
+          });
           AnalyticsService.instance.logBannerFailed();
           if (!_retried) {
             _retried = true;
