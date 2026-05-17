@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../core/freemium/freemium_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdService
-    hide SectionCard, ResultTile;
+    show CalcwiseAdService;
 import 'unlock_sheet.dart';
 
 /// Single "🔒 Unlock" button. Tapping opens the UnlockSheet bottom sheet.

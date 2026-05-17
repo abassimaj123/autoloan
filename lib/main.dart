@@ -24,8 +24,7 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdConfig,
         requestCalcwiseConsent,
         CalcwiseAdFooter,
-        CalcwiseRewardAdSheet
-    hide SectionCard, ResultTile;
+        CalcwiseRewardAdSheet;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';

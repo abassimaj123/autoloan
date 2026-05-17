@@ -1,6 +1,5 @@
 import 'package:calcwise_core/calcwise_core.dart'
-    show Insight, InsightSeverity
-    hide SectionCard, ResultTile;
+    show Insight, InsightSeverity;
 
 // ── Engine ────────────────────────────────────────────────────────────────────
 

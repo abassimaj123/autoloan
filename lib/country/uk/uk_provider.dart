@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'uk_logic.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdService
-    hide SectionCard, ResultTile;
+    show CalcwiseAdService;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 
