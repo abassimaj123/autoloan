@@ -7,12 +7,15 @@ environment:
   sdk: ^3.11.4
 
 dependencies:
+  calcwise_core:
+    git:
+      url: https://github.com/abassimaj123/calcwise_core.git
+      ref: main
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  calcwise_core:
-    path: ../packages/calcwise_core
+
 
   # ── Core ──────────────────────────────────────────────────────────────────
   intl: ^0.20.0
@@ -72,3 +75,6 @@ flutter_launcher_icons:
     generate: false
   windows:
     generate: false
+
+
+
