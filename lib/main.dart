@@ -26,6 +26,7 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdFooter,
         CalcwiseRewardAdSheet
     hide SectionCard, ResultTile;
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
 import 'services/analytics_service.dart';
@@ -161,6 +162,9 @@ class AutoLoanApp extends StatelessWidget {
             darkTheme: _darkTheme,
             themeMode: themeMode,
             locale: localeNotifier.locale,
+            navigatorObservers: [
+              FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+            ],
             debugShowCheckedModeBanner: false,
             localizationsDelegates: const [
               AppLocalizations.delegate,

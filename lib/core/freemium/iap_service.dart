@@ -24,6 +24,8 @@ class IAPService {
       productId: productId,
       freemium: freemiumService,
       analytics: CalcwiseAnalytics(appName: 'auto_loan'),
+      onPurchaseCompleted: () =>
+          CalcwiseReviewService.instance.requestAfterPurchase(),
     );
     await _iap.initialize();
     PaywallHard.registerPrice(_iap.localizedPrice);
