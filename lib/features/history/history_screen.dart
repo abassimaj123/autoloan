@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'history_detail_screen.dart';
 import '../../services/history_service.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
+import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService, CalcwiseAdFooter;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../core/freemium/freemium_service.dart';
 import '../../widgets/premium_gate.dart';
@@ -71,6 +71,7 @@ class HistoryScreen extends StatelessWidget {
     bool hasFull,
   ) {
     return Scaffold(
+      bottomNavigationBar: const CalcwiseAdFooter(),
       appBar: AppBar(
         title: Text('$_flag ${l10n.history}'),
         actions: [
