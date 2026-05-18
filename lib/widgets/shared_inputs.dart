@@ -291,7 +291,7 @@ class _DurationChipsState extends State<DurationChips> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(widget.label, style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: 8,
           runSpacing: 4,
@@ -341,7 +341,7 @@ class _DurationChipsState extends State<DurationChips> {
           ],
         ),
         if (_showCustom) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.smPlus),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 160),
             child: TextField(
@@ -468,7 +468,7 @@ class SectionCard extends StatelessWidget {
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
             ],
             ...children,
           ],
@@ -496,7 +496,7 @@ class ResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -511,7 +511,7 @@ class ResultTile extends StatelessWidget {
                   : Theme.of(context).textTheme.bodyMedium,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             value,
             style: isHighlight

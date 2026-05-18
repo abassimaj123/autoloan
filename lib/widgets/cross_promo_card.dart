@@ -77,7 +77,7 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
             ),
             child: Icon(Icons.calculate_rounded, color: _accentColor, size: 22),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.smPlus),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Column(
             children: [
               GestureDetector(
@@ -139,7 +139,7 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
                   color: Color(0xFF94A3B8),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               GestureDetector(
                 onTap: _open,
                 child: Container(
