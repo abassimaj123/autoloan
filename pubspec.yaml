@@ -46,7 +46,7 @@ dependencies:
   # cupertino_icons: used for cross-platform icon widgets (safe on Android)
   # TODO: iOS — verify icon appearance on iOS devices
   cupertino_icons: ^1.0.8
-  fl_chart: ^0.69.0
+  fl_chart: ^1.2.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.1
