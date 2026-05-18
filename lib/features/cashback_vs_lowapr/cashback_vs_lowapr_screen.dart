@@ -2,9 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:calcwise_core/calcwise_core.dart'
-    show ComparisonView, ComparisonScenario, CalcwiseAdFooter;
-
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
 

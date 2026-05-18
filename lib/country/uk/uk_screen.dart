@@ -7,7 +7,6 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/premium_gate.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession;
 import '../../widgets/paywall_hard.dart';
@@ -684,32 +683,16 @@ class _UKResults extends StatelessWidget {
       title: l10n.results,
       children: [
         // ── Hero monthly payment ──────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                p.isBiWeekly
-                    ? (r.isPcp ? l10n.pcpPayment : l10n.biWeeklyPayment)
-                    : (r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment),
-                style: TextStyle(
-                  fontSize: AppTextSize.sm,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                fmt.format(r.displayPayment),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontSize: AppTextSize.hero,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.5,
-                ),
-              ),
-            ],
-          ),
+        CalcwiseHeroCard(
+          label: p.isBiWeekly
+              ? (r.isPcp ? l10n.pcpPayment : l10n.biWeeklyPayment)
+              : (r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment),
+          value: fmt.format(r.displayPayment),
+          secondary: 'Principal & Interest',
+          stats: [
+            (label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
+            (label: l10n.totalCost, value: fmt.format(r.totalCost)),
+          ],
         ),
         if (p.isBiWeekly)
           ResultTile(
