@@ -96,7 +96,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxl),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),

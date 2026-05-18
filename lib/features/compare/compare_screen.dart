@@ -98,7 +98,7 @@ class _CompareScreenState extends State<CompareScreen> {
               top: false,
               bottom: false,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxl),
                 children: [
                   // ── Shared ──────────────────────────────────────────────────────
                   SectionCard(

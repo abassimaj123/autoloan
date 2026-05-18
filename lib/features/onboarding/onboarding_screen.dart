@@ -106,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // ── Navigation buttons ───────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, 0, AppSpacing.xxl, AppSpacing.xxxl),
               child: Row(
                 children: [
                   // Back button — visible on pages 2 and 3
@@ -532,7 +532,7 @@ class _FeaturePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.full),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Text(

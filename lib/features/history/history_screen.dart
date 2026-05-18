@@ -134,7 +134,7 @@ class HistoryScreen extends StatelessWidget {
                     locked == 0 &&
                     shown.length >= freemiumService.historyLimit)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -174,7 +174,7 @@ class HistoryScreen extends StatelessWidget {
                 // ── Locked banner ─────────────────────────────────────
                 if (!hasFull && locked > 0)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
                     child: PremiumGate(
                       adService: adService,
                       flavor: country,
@@ -308,7 +308,7 @@ class _HistoryCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: cs.primaryContainer,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     child: Text(
                       '${fmtDec.format(biWeekly ?? payment)}/mo',

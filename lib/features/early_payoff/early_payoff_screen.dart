@@ -109,7 +109,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
         children: [
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl),
               children: [
                 // ── Loan summary ────────────────────────────────────────────
                 SectionCard(

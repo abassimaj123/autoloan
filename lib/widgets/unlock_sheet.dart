@@ -32,7 +32,7 @@ class UnlockSheet extends StatefulWidget {
     isScrollControlled: true,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
     ),
     builder: (_) => UnlockSheet(
       adService: adService,
@@ -132,7 +132,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
 
           // ── Icon ──────────────────────────────────────────────────
           Container(
@@ -164,7 +164,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               context,
             ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
 
           // ── Active session chip ───────────────────────────────────
           if (isRewarded) ...[
@@ -173,7 +173,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               decoration: BoxDecoration(
                 color: AppTheme.rewardedGreenBg,
                 border: Border.all(color: AppTheme.rewardedGreenBorder),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppRadius.full),
               ),
               child: Text(
                 '${l10n.fullAccessActive} · ${minsLeft}min',

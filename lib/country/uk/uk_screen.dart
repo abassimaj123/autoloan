@@ -168,7 +168,7 @@ class _UKScreenState extends State<UKScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     child: CalcwisePageEntrance(
                       child: Column(
                         children: [
