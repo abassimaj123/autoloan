@@ -147,7 +147,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               color: cs.primary,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.mdPlus),
 
           Text(
             l10n.unlockFull,
@@ -169,7 +169,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
           // ── Active session chip ───────────────────────────────────
           if (isRewarded) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppTheme.rewardedGreenBg,
                 border: Border.all(color: AppTheme.rewardedGreenBorder),
@@ -184,7 +184,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
 
           // ── Watch Ad tile ─────────────────────────────────────────
@@ -199,7 +199,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
               cs: cs,
             ),
 
-          if (!isRewarded) const SizedBox(height: 10),
+          if (!isRewarded) const SizedBox(height: AppSpacing.smPlus),
 
           // ── Get Premium tile ──────────────────────────────────────
           _OptionTile(
@@ -215,7 +215,7 @@ class _UnlockSheetState extends State<UnlockSheet> {
             cs: cs,
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           TextButton(
             onPressed: () => IAPService.instance.restore(),
             child: Text(
@@ -270,7 +270,7 @@ class _OptionTile extends StatelessWidget {
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(AppRadius.xl),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: AppSpacing.mdPlus),
             decoration: BoxDecoration(
               border: Border.all(
                 color: enabled
@@ -290,7 +290,7 @@ class _OptionTile extends StatelessWidget {
                   ),
                   child: Icon(icon, color: cs.primary, size: 22),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: AppSpacing.mdPlus),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
