@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'history_detail_screen.dart';
 import '../../services/history_service.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService, CalcwiseAdFooter;
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdService, CalcwiseAdFooter;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../core/freemium/freemium_service.dart';
 import '../../widgets/premium_gate.dart';
@@ -135,7 +136,12 @@ class HistoryScreen extends StatelessWidget {
                     locked == 0 &&
                     shown.length >= freemiumService.historyLimit)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      AppSpacing.sm,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
@@ -175,7 +181,12 @@ class HistoryScreen extends StatelessWidget {
                 // ── Locked banner ─────────────────────────────────────
                 if (!hasFull && locked > 0)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      AppSpacing.sm,
+                    ),
                     child: PremiumGate(
                       adService: adService,
                       flavor: country,
