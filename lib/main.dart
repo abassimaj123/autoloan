@@ -10,6 +10,7 @@ import 'dart:async' show Completer, unawaited;
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'core/firebase/firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -54,7 +55,7 @@ const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'CA');
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await CrashlyticsService.init();
 
   // 1. GDPR / PIPEDA consent (UK + CA require it; UMP handles region detection)
