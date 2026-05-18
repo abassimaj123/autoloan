@@ -22,7 +22,7 @@ dependencies:
   provider: ^6.1.2
   shared_preferences: ^2.3.2
   in_app_purchase: ^3.2.0
-  in_app_review: ^2.0.9
+  in_app_review: ^2.0.12
 
   # ── Ads & Firebase ────────────────────────────────────────────────────────
   # Android: configured via productFlavors + google-services.json per flavor
