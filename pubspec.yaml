@@ -49,6 +49,9 @@ dependencies:
   fl_chart: ^0.69.0
 
 dev_dependencies:
+  calcwise_lint:
+    path: ../packages/calcwise_lint
+  custom_lint: ">=0.6.0 <0.8.0"
   flutter_launcher_icons: ^0.14.1
   flutter_native_splash: ^2.4.1
   flutter_test:
