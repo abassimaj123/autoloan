@@ -106,7 +106,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // ── Navigation buttons ───────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, 0, AppSpacing.xxl, AppSpacing.xxxl),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxl,
+                0,
+                AppSpacing.xxl,
+                AppSpacing.xxxl,
+              ),
               child: Row(
                 children: [
                   // Back button — visible on pages 2 and 3

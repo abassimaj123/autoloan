@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../l10n/app_localizations.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdFooter, AppSpacing, AppRadius;
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdFooter, AppSpacing, AppRadius;
 
 class AmortizationRow {
   final int period;
@@ -432,7 +433,12 @@ class _PayoffChart extends StatelessWidget {
     final periodLabel = isBiWeekly ? 'Bi-wk' : 'Mo';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xxl,
+        AppSpacing.xxl,
+        AppSpacing.lg,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

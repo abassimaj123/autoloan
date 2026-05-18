@@ -169,7 +169,10 @@ class _UnlockSheetState extends State<UnlockSheet> {
           // ── Active session chip ───────────────────────────────────
           if (isRewarded) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: AppSpacing.sm,
+              ),
               decoration: BoxDecoration(
                 color: AppTheme.rewardedGreenBg,
                 border: Border.all(color: AppTheme.rewardedGreenBorder),
@@ -270,7 +273,10 @@ class _OptionTile extends StatelessWidget {
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(AppRadius.xl),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: AppSpacing.mdPlus),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: AppSpacing.mdPlus,
+            ),
             decoration: BoxDecoration(
               border: Border.all(
                 color: enabled
