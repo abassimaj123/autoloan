@@ -20,6 +20,7 @@ import '../../features/pdf/pdf_export_service.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
+import '../../features/lease_vs_buy/lease_vs_buy_screen.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
@@ -93,6 +94,25 @@ class _CAScreenState extends State<CAScreen> {
           transitionDuration: AppDuration.base,
         ),
       );
+    } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('lease_vs_buy');
+      final trigger = await paywallSession.recordAction();
+      if (!mounted) return;
+      if (trigger == PaywallTrigger.hard) {
+        PaywallHard.show(context);
+      } else if (trigger == PaywallTrigger.soft) {
+        PaywallSoft.show(context);
+      }
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const LeaseVsBuyScreen(flavor: 'ca'),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: AppDuration.base,
+        ),
+      );
     }
   }
 
@@ -155,6 +175,11 @@ class _CAScreenState extends State<CAScreen> {
             icon: const Icon(Icons.history_rounded),
             selectedIcon: const Icon(Icons.history),
             label: l10n.history,
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.balance_rounded),
+            selectedIcon: Icon(Icons.balance),
+            label: 'Lease vs Buy',
           ),
         ],
       ),
