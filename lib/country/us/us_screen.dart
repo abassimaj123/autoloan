@@ -42,6 +42,7 @@ class _USScreenState extends State<USScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('calculator');
     WidgetsBinding.instance.addPostFrameCallback((_) => _debouncedCalculate());
   }
 

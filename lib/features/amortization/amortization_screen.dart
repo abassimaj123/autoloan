@@ -194,10 +194,14 @@ class AmortizationScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(title ?? l10n.amortization),
           actions: [
-            IconButton(
+            Semantics(
+              label: 'Share schedule',
+              button: true,
+              child: IconButton(
               icon: const Icon(Icons.share_rounded),
               tooltip: 'Share Schedule',
               onPressed: () => _shareSchedule(rows, fmt2, currencySymbol, l10n),
+            ),
             ),
           ],
           bottom: const TabBar(
@@ -214,7 +218,11 @@ class AmortizationScreen extends StatelessWidget {
             Column(
               children: [
                 // Summary header
-                Container(
+                Semantics(
+                  label: '${isBiWeekly ? "Bi-weekly payment" : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
+                      '${l10n.totalInterest}: ${fmt.format(rows.fold(0.0, (s, r) => s + r.interest))}. '
+                      '${l10n.totalCostShort}: ${fmt.format(totalCost)}',
+                  child: Container(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -266,7 +274,7 @@ class AmortizationScreen extends StatelessWidget {
                       ],
                     ],
                   ),
-                ),
+                )), // Semantics (summary header)
                 // Column headers
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -290,7 +298,13 @@ class AmortizationScreen extends StatelessWidget {
                     itemBuilder: (context, i) {
                       final row = rows[i];
                       final isOdd = i.isOdd;
-                      return Container(
+                      final periodStr = isBiWeekly ? 'Bi-week' : l10n.month;
+                      return Semantics(
+                        label: '$periodStr ${row.period}: payment ${fmt2.format(row.payment)}, '
+                            'principal ${fmt2.format(row.principal)}, '
+                            'interest ${fmt2.format(row.interest)}, '
+                            'balance ${fmt2.format(row.balance)}',
+                        child: Container(
                         color: isOdd
                             ? Theme.of(context).colorScheme.surface
                             : Theme.of(context)
@@ -314,6 +328,7 @@ class AmortizationScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+                      ),
                       );
                     },
                   ),
@@ -450,7 +465,12 @@ class _PayoffChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: LineChart(
+            child: Semantics(
+              label: 'Line chart showing remaining loan balance over ${rows.length} ${isBiWeekly ? "bi-weekly periods" : "months"}. '
+                  'Starting balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(maxBalance)}. '
+                  'Final balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(rows.last.balance)}.',
+              excludeSemantics: true,
+              child: LineChart(
               LineChartData(
                 minY: 0,
                 maxY: maxBalance * 1.05,
@@ -520,6 +540,7 @@ class _PayoffChart extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
             ),
           ),
         ],

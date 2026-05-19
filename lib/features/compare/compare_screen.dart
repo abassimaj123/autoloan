@@ -161,7 +161,10 @@ class _CompareScreenState extends State<CompareScreen> {
                       ],
                       if (_showBiWeekly) ...[
                         const SizedBox(height: 8),
-                        Row(
+                        Semantics(
+                          label: l10n.biWeeklyToggle,
+                          toggled: isBiWeekly,
+                          child: Row(
                           children: [
                             Switch(
                               value: isBiWeekly,
@@ -172,7 +175,7 @@ class _CompareScreenState extends State<CompareScreen> {
                             ),
                             Text(l10n.biWeeklyToggle),
                           ],
-                        ),
+                        )),
                       ],
                     ],
                   ),
@@ -349,7 +352,10 @@ class _ScenarioCard extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             // Rate input
-            TextFormField(
+            Semantics(
+              label: 'Interest rate for $label',
+              textField: true,
+              child: TextFormField(
               key: ValueKey('rate_$label'),
               initialValue: rate.toStringAsFixed(1),
               keyboardType: const TextInputType.numberWithOptions(
@@ -366,6 +372,7 @@ class _ScenarioCard extends StatelessWidget {
                 if (val != null && val >= 0 && val <= 30) onRateChanged(val);
               },
             ),
+            ),
             const SizedBox(height: 8),
             // Term chips (compact)
             Builder(
@@ -376,7 +383,9 @@ class _ScenarioCard extends StatelessWidget {
                   runSpacing: 4,
                   children: [24, 36, 48, 60, 72, 84]
                       .map(
-                        (t) => ChoiceChip(
+                        (t) => Semantics(
+                          label: '${t ~/ 12} $yr loan term${term == t ? ", selected" : ""}',
+                          child: ChoiceChip(
                           label: Text(
                             '${t ~/ 12}$yr',
                             style: const TextStyle(fontSize: AppTextSize.xs),
@@ -386,6 +395,7 @@ class _ScenarioCard extends StatelessWidget {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           padding: const EdgeInsets.symmetric(horizontal: 4),
+                        ),
                         ),
                       )
                       .toList(),
@@ -542,7 +552,9 @@ class _CompareResults extends StatelessWidget {
               bold: true,
             ),
             const Divider(height: 16),
-            Row(
+            Semantics(
+              label: '${l10n.totalSavings}: ${fmt.format(savings)} — ${aBetter ? "Scenario A" : "Scenario B"} is the better deal',
+              child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
@@ -559,6 +571,7 @@ class _CompareResults extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
             ),
           ],
         ),
@@ -589,7 +602,9 @@ class _ResultRow extends StatelessWidget {
       fontWeight: FontWeight.bold,
     );
 
-    return Row(
+    return Semantics(
+      label: '$label: Scenario A $valA${aHighlight ? " (better)" : ""}, Scenario B $valB${bHighlight ? " (better)" : ""}',
+      child: Row(
       children: [
         Expanded(
           flex: 2,
@@ -610,6 +625,7 @@ class _ResultRow extends StatelessWidget {
           ),
         ),
       ],
+    ),
     );
   }
 }
