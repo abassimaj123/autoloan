@@ -122,5 +122,58 @@
   "onboardingFeaturePDF": "Export PDF",
   "onboardingPremiumBullet1": "Tableau d'amortissement complet",
   "onboardingPremiumBullet2": "Export PDF et partage",
-  "onboardingPremiumBullet3": "Historique de calculs illimité"
+  "onboardingPremiumBullet3": "Historique de calculs illimité",
+  "earlyPayoff": "Remboursement anticipé",
+  "loanSummary": "Résumé du prêt",
+  "extraMonthlyPayment": "Paiement mensuel supplémentaire",
+  "extraAmountPerMonth": "Montant supplémentaire par mois",
+  "withExtraPayment": "Avec paiement supplémentaire",
+  "newMonthlyPayment": "Nouveau paiement mensuel",
+  "paidOffIn": "Remboursé en",
+  "youSave": "Vous économisez",
+  "interestSaved": "Intérêts économisés",
+  "monthsSaved": "Mois économisés",
+  "leaseVsBuy": "Location vs Achat",
+  "buyLoanDetails": "Achat — Détails du prêt",
+  "vehiclePriceMsrp": "Prix du véhicule (PDSF)",
+  "interestRateApr": "Taux d'intérêt (APR)",
+  "residualValuePct": "Valeur résiduelle (%)",
+  "annualInsuranceCost": "Coût annuel d'assurance",
+  "leaseDetails": "Détails de la location",
+  "monthlyLeasePayment": "Paiement mensuel de location",
+  "lvbLeaseTerm": "Durée de location (mois)",
+  "downPaymentCap": "Mise de fonds / réduction cap",
+  "acquisitionFee": "Frais d'acquisition",
+  "dispositionFee": "Frais de disposition",
+  "mileageLimitPerYear": "Limite de kilométrage par an",
+  "overageCostPer": "Coût de dépassement par",
+  "estimatedAnnualDriven": "Kilométrage annuel estimé",
+  "compareLeaseBuy": "Comparer Location vs Achat",
+  "comparisonResults": "Résultats de comparaison",
+  "betterBadge": "MIEUX",
+  "totalLabel": "Total",
+  "buyBreakdown": "Détail Achat",
+  "totalInterestPaid": "Total des intérêts payés",
+  "insuranceOverTerm": "Assurance sur la durée",
+  "totalBuyCost": "Coût total d'achat",
+  "leaseBreakdown": "Détail Location",
+  "estimatedMileageOverage": "Dépassement kilométrique estimé",
+  "totalLeaseCost": "Coût total de location",
+  "mileageExceedsBreakEven": "Kilométrage dépasse le seuil — l'achat peut être plus économique",
+  "mileageBelowBreakEven": "Kilométrage sous le seuil — la location peut être plus économique",
+  "informationalOnly": "À titre informatif seulement. Les résultats dépendent des taux d'assurance réels, de la dépréciation et d'autres facteurs.",
+  "leasingSaves": "La location économise {amount} sur {months} mois",
+  "@leasingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  },
+  "buyingSaves": "L'achat économise {amount} sur {months} mois",
+  "@buyingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  }
 }

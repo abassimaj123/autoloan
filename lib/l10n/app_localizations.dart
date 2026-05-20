@@ -322,12 +322,6 @@ abstract class AppLocalizations {
   /// **'No calculations yet.'**
   String get noHistory;
 
-  /// Hint shown in empty state before first vehicle price entry.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter vehicle price to see your monthly payment'**
-  String get enterVehicleHint;
-
   /// No description provided for @amortization.
   ///
   /// In en, this message translates to:
@@ -778,52 +772,251 @@ abstract class AppLocalizations {
   /// **'Unlimited calculation history'**
   String get onboardingPremiumBullet3;
 
-  // ── Lease vs Buy screen ───────────────────────────────────────────────────
-
-  String get vehiclePriceMsrp;
-  String get mileageLimitPerYear;
-  String get overageCostPer;
-  String get estimatedAnnualDriven;
-  String get leaseVsBuy;
-  String get buyLoanDetails;
-  String get leaseDetails;
-  String get compareLeaseBuy;
-  String get comparisonResults;
-  String get buyBreakdown;
-  String get leaseBreakdown;
-  String get betterBadge;
-  String get totalLabel;
-  String get interestRateApr;
-  String get residualValuePct;
-  String get annualInsuranceCost;
-  String get monthlyLeasePayment;
-  String get lvbLeaseTerm;
-  String get downPaymentCap;
-  String get acquisitionFee;
-  String get dispositionFee;
-  String get totalInterestPaid;
-  String get insuranceOverTerm;
-  String get totalBuyCost;
-  String get estimatedMileageOverage;
-  String get totalLeaseCost;
-  String get mileageExceedsBreakEven;
-  String get mileageBelowBreakEven;
-  String get informationalOnly;
-  String leasingSaves(String amount, int months);
-  String buyingSaves(String amount, int months);
-
-  // ── Early Payoff screen ───────────────────────────────────────────────────
-
+  /// No description provided for @earlyPayoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Payoff'**
   String get earlyPayoff;
+
+  /// No description provided for @loanSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan Summary'**
   String get loanSummary;
+
+  /// No description provided for @extraMonthlyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Monthly Payment'**
   String get extraMonthlyPayment;
+
+  /// No description provided for @extraAmountPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra amount per month'**
   String get extraAmountPerMonth;
+
+  /// No description provided for @withExtraPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'With Extra Payment'**
   String get withExtraPayment;
+
+  /// No description provided for @newMonthlyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'New Monthly Payment'**
   String get newMonthlyPayment;
+
+  /// No description provided for @paidOffIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid off in'**
   String get paidOffIn;
+
+  /// No description provided for @youSave.
+  ///
+  /// In en, this message translates to:
+  /// **'You save'**
   String get youSave;
+
+  /// No description provided for @interestSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest saved'**
   String get interestSaved;
+
+  /// No description provided for @monthsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Months saved'**
   String get monthsSaved;
+
+  /// No description provided for @leaseVsBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Lease vs Buy'**
+  String get leaseVsBuy;
+
+  /// No description provided for @buyLoanDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy — Loan Details'**
+  String get buyLoanDetails;
+
+  /// No description provided for @vehiclePriceMsrp.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle price (MSRP)'**
+  String get vehiclePriceMsrp;
+
+  /// No description provided for @interestRateApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest rate (APR)'**
+  String get interestRateApr;
+
+  /// No description provided for @residualValuePct.
+  ///
+  /// In en, this message translates to:
+  /// **'Residual value (%)'**
+  String get residualValuePct;
+
+  /// No description provided for @annualInsuranceCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual insurance cost'**
+  String get annualInsuranceCost;
+
+  /// No description provided for @leaseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Lease Details'**
+  String get leaseDetails;
+
+  /// No description provided for @monthlyLeasePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly lease payment'**
+  String get monthlyLeasePayment;
+
+  /// No description provided for @lvbLeaseTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Lease term (months)'**
+  String get lvbLeaseTerm;
+
+  /// No description provided for @downPaymentCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Down payment / cap reduction'**
+  String get downPaymentCap;
+
+  /// No description provided for @acquisitionFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Acquisition fee'**
+  String get acquisitionFee;
+
+  /// No description provided for @dispositionFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Disposition fee'**
+  String get dispositionFee;
+
+  /// No description provided for @mileageLimitPerYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage limit per year'**
+  String get mileageLimitPerYear;
+
+  /// No description provided for @overageCostPer.
+  ///
+  /// In en, this message translates to:
+  /// **'Overage cost per'**
+  String get overageCostPer;
+
+  /// No description provided for @estimatedAnnualDriven.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated annual miles driven'**
+  String get estimatedAnnualDriven;
+
+  /// No description provided for @compareLeaseBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare Lease vs Buy'**
+  String get compareLeaseBuy;
+
+  /// No description provided for @comparisonResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison Results'**
+  String get comparisonResults;
+
+  /// No description provided for @betterBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'BETTER'**
+  String get betterBadge;
+
+  /// No description provided for @totalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalLabel;
+
+  /// No description provided for @buyBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy Breakdown'**
+  String get buyBreakdown;
+
+  /// No description provided for @totalInterestPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Total interest paid'**
+  String get totalInterestPaid;
+
+  /// No description provided for @insuranceOverTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance over term'**
+  String get insuranceOverTerm;
+
+  /// No description provided for @totalBuyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total buy cost'**
+  String get totalBuyCost;
+
+  /// No description provided for @leaseBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Lease Breakdown'**
+  String get leaseBreakdown;
+
+  /// No description provided for @estimatedMileageOverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated mileage overage'**
+  String get estimatedMileageOverage;
+
+  /// No description provided for @totalLeaseCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total lease cost'**
+  String get totalLeaseCost;
+
+  /// No description provided for @mileageExceedsBreakEven.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage exceeds break-even — buying may be cheaper'**
+  String get mileageExceedsBreakEven;
+
+  /// No description provided for @mileageBelowBreakEven.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage below break-even — leasing may be cheaper'**
+  String get mileageBelowBreakEven;
+
+  /// No description provided for @informationalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'For informational purposes only. Results depend on actual insurance rates, depreciation, and other factors.'**
+  String get informationalOnly;
+
+  /// No description provided for @leasingSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Leasing saves {amount} over {months} months'**
+  String leasingSaves(String amount, int months);
+
+  /// No description provided for @buyingSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Buying saves {amount} over {months} months'**
+  String buyingSaves(String amount, int months);
 }
 
 class _AppLocalizationsDelegate

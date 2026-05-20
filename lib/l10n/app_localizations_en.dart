@@ -120,9 +120,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noHistory => 'No calculations yet.';
 
   @override
-  String get enterVehicleHint => 'Enter vehicle price to see your monthly payment';
-
-  @override
   String get amortization => 'Amortization Schedule';
 
   @override
@@ -364,19 +361,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingPremiumBullet3 => 'Unlimited calculation history';
 
-  // ── Lease vs Buy ──────────────────────────────────────────────────────────
+  @override
+  String get earlyPayoff => 'Early Payoff';
 
   @override
-  String get vehiclePriceMsrp => 'Vehicle Price (MSRP)';
+  String get loanSummary => 'Loan Summary';
 
   @override
-  String get mileageLimitPerYear => 'Mileage Limit per Year';
+  String get extraMonthlyPayment => 'Extra Monthly Payment';
 
   @override
-  String get overageCostPer => 'Overage Cost per';
+  String get extraAmountPerMonth => 'Extra amount per month';
 
   @override
-  String get estimatedAnnualDriven => 'Estimated Annual Miles Driven';
+  String get withExtraPayment => 'With Extra Payment';
+
+  @override
+  String get newMonthlyPayment => 'New Monthly Payment';
+
+  @override
+  String get paidOffIn => 'Paid off in';
+
+  @override
+  String get youSave => 'You save';
+
+  @override
+  String get interestSaved => 'Interest saved';
+
+  @override
+  String get monthsSaved => 'Months saved';
 
   @override
   String get leaseVsBuy => 'Lease vs Buy';
@@ -385,7 +398,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buyLoanDetails => 'Buy — Loan Details';
 
   @override
+  String get vehiclePriceMsrp => 'Vehicle price (MSRP)';
+
+  @override
+  String get interestRateApr => 'Interest rate (APR)';
+
+  @override
+  String get residualValuePct => 'Residual value (%)';
+
+  @override
+  String get annualInsuranceCost => 'Annual insurance cost';
+
+  @override
   String get leaseDetails => 'Lease Details';
+
+  @override
+  String get monthlyLeasePayment => 'Monthly lease payment';
+
+  @override
+  String get lvbLeaseTerm => 'Lease term (months)';
+
+  @override
+  String get downPaymentCap => 'Down payment / cap reduction';
+
+  @override
+  String get acquisitionFee => 'Acquisition fee';
+
+  @override
+  String get dispositionFee => 'Disposition fee';
+
+  @override
+  String get mileageLimitPerYear => 'Mileage limit per year';
+
+  @override
+  String get overageCostPer => 'Overage cost per';
+
+  @override
+  String get estimatedAnnualDriven => 'Estimated annual miles driven';
 
   @override
   String get compareLeaseBuy => 'Compare Lease vs Buy';
@@ -394,40 +443,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get comparisonResults => 'Comparison Results';
 
   @override
-  String get buyBreakdown => 'Buy Breakdown';
-
-  @override
-  String get leaseBreakdown => 'Lease Breakdown';
-
-  @override
   String get betterBadge => 'BETTER';
 
   @override
   String get totalLabel => 'Total';
 
   @override
-  String get interestRateApr => 'Interest Rate (APR %)';
-
-  @override
-  String get residualValuePct => 'Residual Value after term (% of MSRP)';
-
-  @override
-  String get annualInsuranceCost => 'Annual Insurance Cost';
-
-  @override
-  String get monthlyLeasePayment => 'Monthly Lease Payment';
-
-  @override
-  String get lvbLeaseTerm => 'Lease Term';
-
-  @override
-  String get downPaymentCap => 'Down Payment / Cap Cost Reduction';
-
-  @override
-  String get acquisitionFee => 'Acquisition Fee';
-
-  @override
-  String get dispositionFee => 'Disposition Fee (at end)';
+  String get buyBreakdown => 'Buy Breakdown';
 
   @override
   String get totalInterestPaid => 'Total interest paid';
@@ -439,6 +461,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalBuyCost => 'Total buy cost';
 
   @override
+  String get leaseBreakdown => 'Lease Breakdown';
+
+  @override
   String get estimatedMileageOverage => 'Estimated mileage overage';
 
   @override
@@ -446,53 +471,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mileageExceedsBreakEven =>
-      'Your mileage exceeds break-even — buying may be cheaper long-term.';
+      'Mileage exceeds break-even — buying may be cheaper';
 
   @override
   String get mileageBelowBreakEven =>
-      'Your mileage is under break-even — leasing competes well.';
+      'Mileage below break-even — leasing may be cheaper';
 
   @override
   String get informationalOnly =>
-      'For informational purposes only. Not financial advice.';
+      'For informational purposes only. Results depend on actual insurance rates, depreciation, and other factors.';
 
   @override
-  String leasingSaves(String amount, int months) =>
-      'Leasing saves $amount over $months months';
+  String leasingSaves(String amount, int months) {
+    return 'Leasing saves $amount over $months months';
+  }
 
   @override
-  String buyingSaves(String amount, int months) =>
-      'Buying saves $amount over $months months';
-
-  // ── Early Payoff ──────────────────────────────────────────────────────────
-
-  @override
-  String get earlyPayoff => 'Early Payoff';
-
-  @override
-  String get loanSummary => 'Loan Summary';
-
-  @override
-  String get extraMonthlyPayment => 'Extra Monthly Payment';
-
-  @override
-  String get extraAmountPerMonth => 'Extra amount / month';
-
-  @override
-  String get withExtraPayment => 'With Extra Payment';
-
-  @override
-  String get newMonthlyPayment => 'New Monthly Payment';
-
-  @override
-  String get paidOffIn => 'Paid Off In';
-
-  @override
-  String get youSave => 'You Save';
-
-  @override
-  String get interestSaved => 'Interest Saved';
-
-  @override
-  String get monthsSaved => 'Months Saved';
+  String buyingSaves(String amount, int months) {
+    return 'Buying saves $amount over $months months';
+  }
 }
