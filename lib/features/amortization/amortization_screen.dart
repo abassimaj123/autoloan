@@ -309,8 +309,8 @@ class AmortizationScreen extends StatelessWidget {
                             ? Theme.of(context).colorScheme.surface
                             : Theme.of(context)
                                   .colorScheme
-                                  .surfaceContainerHighest
-                                  .withValues(alpha: 0.3),
+                                  .surfaceContainerLow
+                                  .withValues(alpha: 0.6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 6,

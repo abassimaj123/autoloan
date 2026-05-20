@@ -239,7 +239,7 @@ class HistoryDetailScreen extends StatelessWidget {
                   child: Text(
                     dateFmt.format(ts),
                     style: TextStyle(
-                      color: Color(0xFF64748B),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: AppTextSize.md,
                     ),
                   ),
@@ -263,7 +263,7 @@ class HistoryDetailScreen extends StatelessWidget {
                                 Text(
                                   r.label,
                                   style: TextStyle(
-                                    color: Color(0xFF475569),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                     fontSize: AppTextSize.body,
                                   ),
                                 ),
@@ -317,18 +317,8 @@ class HistoryDetailScreen extends StatelessWidget {
                   adService: adService,
                   flavor: _flavor,
                   onUnlocked: () {
-                    if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) =>
-                              HistoryDetailScreen(entry: entry),
-                          transitionsBuilder: (_, anim, __, child) =>
-                              FadeTransition(opacity: anim, child: child),
-                          transitionDuration: AppDuration.base,
-                        ),
-                      );
-                    }
+                    // ListenableBuilder already rebuilds when isPremiumNotifier fires;
+                    // no navigation needed — just let the listenable re-render.
                   },
                 ),
             ],

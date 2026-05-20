@@ -89,12 +89,13 @@ void main() async {
 
   final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
 
+  // Initial system UI style — brightness-aware update happens in MaterialApp builder
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0D0B1E),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFFF8FAFC),
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -177,10 +178,14 @@ class AutoLoanApp extends StatelessWidget {
               final isDark = Theme.of(context).brightness == Brightness.dark;
               SystemChrome.setSystemUIOverlayStyle(
                 SystemUiOverlayStyle(
-                  systemNavigationBarColor: Theme.of(
-                    context,
-                  ).scaffoldBackgroundColor,
+                  systemNavigationBarColor: isDark
+                      ? const Color(0xFF121212)
+                      : const Color(0xFFF8FAFC),
                   systemNavigationBarIconBrightness: isDark
+                      ? Brightness.light
+                      : Brightness.dark,
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: isDark
                       ? Brightness.light
                       : Brightness.dark,
                 ),

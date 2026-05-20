@@ -197,8 +197,10 @@ class _Page1 extends StatelessWidget {
               color: colorScheme.primary,
               borderRadius: BorderRadius.circular(32),
             ),
-            child: const Center(
-              child: Text('\u{1F697}', style: TextStyle(fontSize: 56)),
+            child: Icon(
+              Icons.directions_car_rounded,
+              size: 60,
+              color: colorScheme.onPrimary,
             ),
           ),
 
@@ -272,8 +274,10 @@ class _Page2 extends StatelessWidget {
               color: colorScheme.secondary,
               borderRadius: BorderRadius.circular(32),
             ),
-            child: const Center(
-              child: Text('\u{1F4CA}', style: TextStyle(fontSize: 56)),
+            child: Icon(
+              Icons.compare_arrows_rounded,
+              size: 60,
+              color: colorScheme.onSecondary,
             ),
           ),
 
@@ -428,9 +432,18 @@ class _Page3 extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            '\u{2B50}',
-            style: TextStyle(fontSize: AppTextSize.heroXl),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: colorScheme.tertiary,
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Icon(
+              Icons.star_rounded,
+              size: 60,
+              color: colorScheme.onTertiary,
+            ),
           ),
 
           const SizedBox(height: 24),

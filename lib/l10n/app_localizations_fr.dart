@@ -120,6 +120,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noHistory => 'Aucun calcul pour l\'instant.';
 
   @override
+  String get enterVehicleHint => 'Saisissez le prix du véhicule pour voir votre paiement mensuel';
+
+  @override
   String get amortization => 'Tableau d\'amortissement';
 
   @override
@@ -367,4 +370,136 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingPremiumBullet3 => 'Historique de calculs illimité';
+
+  // ── Crédit-bail vs Achat ──────────────────────────────────────────────────
+
+  @override
+  String get vehiclePriceMsrp => 'Prix du véhicule (PVPC)';
+
+  @override
+  String get mileageLimitPerYear => 'Limite kilométrique par an';
+
+  @override
+  String get overageCostPer => 'Coût de dépassement par';
+
+  @override
+  String get estimatedAnnualDriven => 'Kilométrage annuel estimé';
+
+  @override
+  String get leaseVsBuy => 'Crédit-bail vs Achat';
+
+  @override
+  String get buyLoanDetails => 'Achat — Détails du prêt';
+
+  @override
+  String get leaseDetails => 'Détails du crédit-bail';
+
+  @override
+  String get compareLeaseBuy => 'Comparer crédit-bail vs achat';
+
+  @override
+  String get comparisonResults => 'Résultats de comparaison';
+
+  @override
+  String get buyBreakdown => 'Détail achat';
+
+  @override
+  String get leaseBreakdown => 'Détail crédit-bail';
+
+  @override
+  String get betterBadge => 'MEILLEUR';
+
+  @override
+  String get totalLabel => 'Total';
+
+  @override
+  String get interestRateApr => 'Taux d\'intérêt (APR %)';
+
+  @override
+  String get residualValuePct => 'Valeur résiduelle après terme (% du PVPC)';
+
+  @override
+  String get annualInsuranceCost => 'Coût annuel d\'assurance';
+
+  @override
+  String get monthlyLeasePayment => 'Paiement mensuel de location';
+
+  @override
+  String get lvbLeaseTerm => 'Durée du crédit-bail';
+
+  @override
+  String get downPaymentCap => 'Mise de fonds / Réduction du coût capitalisé';
+
+  @override
+  String get acquisitionFee => 'Frais d\'acquisition';
+
+  @override
+  String get dispositionFee => 'Frais de disposition (à la fin)';
+
+  @override
+  String get totalInterestPaid => 'Total des intérêts payés';
+
+  @override
+  String get insuranceOverTerm => 'Assurance sur la durée';
+
+  @override
+  String get totalBuyCost => 'Coût total d\'achat';
+
+  @override
+  String get estimatedMileageOverage => 'Dépassement kilométrique estimé';
+
+  @override
+  String get totalLeaseCost => 'Coût total de location';
+
+  @override
+  String get mileageExceedsBreakEven =>
+      'Votre kilométrage dépasse le seuil — acheter peut être moins cher à long terme.';
+
+  @override
+  String get mileageBelowBreakEven =>
+      'Votre kilométrage est sous le seuil — la location reste compétitive.';
+
+  @override
+  String get informationalOnly =>
+      'À titre informatif uniquement. Pas un conseil financier.';
+
+  @override
+  String leasingSaves(String amount, int months) =>
+      'Louer économise $amount sur $months mois';
+
+  @override
+  String buyingSaves(String amount, int months) =>
+      'Acheter économise $amount sur $months mois';
+
+  // ── Remboursement anticipé ────────────────────────────────────────────────
+
+  @override
+  String get earlyPayoff => 'Remboursement anticipé';
+
+  @override
+  String get loanSummary => 'Résumé du prêt';
+
+  @override
+  String get extraMonthlyPayment => 'Paiement mensuel supplémentaire';
+
+  @override
+  String get extraAmountPerMonth => 'Montant extra / mois';
+
+  @override
+  String get withExtraPayment => 'Avec paiement supplémentaire';
+
+  @override
+  String get newMonthlyPayment => 'Nouveau paiement mensuel';
+
+  @override
+  String get paidOffIn => 'Remboursé en';
+
+  @override
+  String get youSave => 'Vous économisez';
+
+  @override
+  String get interestSaved => 'Intérêts économisés';
+
+  @override
+  String get monthsSaved => 'Mois économisés';
 }

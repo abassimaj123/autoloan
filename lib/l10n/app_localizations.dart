@@ -322,6 +322,12 @@ abstract class AppLocalizations {
   /// **'No calculations yet.'**
   String get noHistory;
 
+  /// Hint shown in empty state before first vehicle price entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter vehicle price to see your monthly payment'**
+  String get enterVehicleHint;
+
   /// No description provided for @amortization.
   ///
   /// In en, this message translates to:
@@ -771,6 +777,53 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlimited calculation history'**
   String get onboardingPremiumBullet3;
+
+  // ── Lease vs Buy screen ───────────────────────────────────────────────────
+
+  String get vehiclePriceMsrp;
+  String get mileageLimitPerYear;
+  String get overageCostPer;
+  String get estimatedAnnualDriven;
+  String get leaseVsBuy;
+  String get buyLoanDetails;
+  String get leaseDetails;
+  String get compareLeaseBuy;
+  String get comparisonResults;
+  String get buyBreakdown;
+  String get leaseBreakdown;
+  String get betterBadge;
+  String get totalLabel;
+  String get interestRateApr;
+  String get residualValuePct;
+  String get annualInsuranceCost;
+  String get monthlyLeasePayment;
+  String get lvbLeaseTerm;
+  String get downPaymentCap;
+  String get acquisitionFee;
+  String get dispositionFee;
+  String get totalInterestPaid;
+  String get insuranceOverTerm;
+  String get totalBuyCost;
+  String get estimatedMileageOverage;
+  String get totalLeaseCost;
+  String get mileageExceedsBreakEven;
+  String get mileageBelowBreakEven;
+  String get informationalOnly;
+  String leasingSaves(String amount, int months);
+  String buyingSaves(String amount, int months);
+
+  // ── Early Payoff screen ───────────────────────────────────────────────────
+
+  String get earlyPayoff;
+  String get loanSummary;
+  String get extraMonthlyPayment;
+  String get extraAmountPerMonth;
+  String get withExtraPayment;
+  String get newMonthlyPayment;
+  String get paidOffIn;
+  String get youSave;
+  String get interestSaved;
+  String get monthsSaved;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
@@ -81,12 +82,13 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final fmt = NumberFormat.currency(symbol: _sym, decimalDigits: 2);
     final fmt0 = NumberFormat.currency(symbol: _sym, decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lease vs Buy'),
+        title: Text(l10n.leaseVsBuy),
         leading: BackButton(
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -113,16 +115,17 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           leaseTerm: _leaseTerm,
                           buyTerm: _buyTerm,
                           distLabel: _distLabel,
+                          l10n: l10n,
                         ),
                         const SizedBox(height: 8),
                       ],
 
                       // ── Buy section ───────────────────────────────────────
                       SectionCard(
-                        title: 'Buy — Loan Details',
+                        title: l10n.buyLoanDetails,
                         children: [
                           CurrencyTextInput(
-                            label: 'Vehicle Price (MSRP)',
+                            label: l10n.vehiclePriceMsrp,
                             value: _msrp,
                             symbol: _sym,
                             helperText: 'e.g. 35 000',
@@ -130,7 +133,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           CurrencySliderInput(
-                            label: 'Down Payment',
+                            label: l10n.downPayment,
                             value: _buyDown,
                             min: 0,
                             max: _msrp * 0.5,
@@ -140,20 +143,20 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           DurationChips(
-                            label: 'Loan Term',
+                            label: l10n.termMonths,
                             options: const [24, 36, 48, 60, 72, 84],
                             selected: _buyTerm,
                             onSelected: (v) => setState(() => _buyTerm = v),
                           ),
                           const SizedBox(height: 12),
                           RateInputField(
-                            label: 'Interest Rate (APR %)',
+                            label: l10n.interestRateApr,
                             value: _buyApr,
                             onChanged: (v) => setState(() => _buyApr = v),
                           ),
                           const SizedBox(height: 12),
                           PercentSliderInput(
-                            label: 'Residual Value after term (% of MSRP)',
+                            label: l10n.residualValuePct,
                             value: _residualPercent,
                             min: 20,
                             max: 70,
@@ -164,7 +167,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           CurrencySliderInput(
-                            label: 'Annual Insurance Cost',
+                            label: l10n.annualInsuranceCost,
                             value: _annualInsurance,
                             min: 400,
                             max: 6000,
@@ -178,24 +181,25 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
 
                       // ── Lease section ─────────────────────────────────────
                       SectionCard(
-                        title: 'Lease Details',
+                        title: l10n.leaseDetails,
                         children: [
-                          _NumericField(
-                            label: 'Monthly Lease Payment',
+                          CurrencyTextInput(
+                            label: l10n.monthlyLeasePayment,
                             value: _leaseMonthly,
-                            prefix: '$_sym ',
+                            symbol: _sym,
+                            helperText: 'e.g. 399',
                             onChanged: (v) => setState(() => _leaseMonthly = v),
                           ),
                           const SizedBox(height: 12),
                           DurationChips(
-                            label: 'Lease Term',
+                            label: l10n.lvbLeaseTerm,
                             options: const [24, 36, 48],
                             selected: _leaseTerm,
                             onSelected: (v) => setState(() => _leaseTerm = v),
                           ),
                           const SizedBox(height: 12),
                           CurrencySliderInput(
-                            label: 'Down Payment / Cap Cost Reduction',
+                            label: l10n.downPaymentCap,
                             value: _leaseDown,
                             min: 0,
                             max: 10000,
@@ -205,7 +209,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           CurrencySliderInput(
-                            label: 'Acquisition Fee',
+                            label: l10n.acquisitionFee,
                             value: _acquisitionFee,
                             min: 0,
                             max: 2000,
@@ -216,7 +220,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           CurrencySliderInput(
-                            label: 'Disposition Fee (at end)',
+                            label: l10n.dispositionFee,
                             value: _dispositionFee,
                             min: 0,
                             max: 1000,
@@ -227,7 +231,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           _NumericField(
-                            label: 'Mileage Limit per Year ($_distLabel)',
+                            label: '${l10n.mileageLimitPerYear} ($_distLabel)',
                             value: _mileageLimit,
                             suffix: _distLabel,
                             onChanged: (v) =>
@@ -235,7 +239,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           _NumericField(
-                            label: 'Overage Cost per $_distLabel',
+                            label: '${l10n.overageCostPer} $_distLabel',
                             value: _overageCostPerMile,
                             prefix: '$_sym ',
                             decimals: 3,
@@ -244,7 +248,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           ),
                           const SizedBox(height: 12),
                           _NumericField(
-                            label: 'Estimated Annual $_distLabel Driven',
+                            label: '${l10n.estimatedAnnualDriven} ($_distLabel)',
                             value: _estimatedMiles,
                             suffix: _distLabel,
                             onChanged: (v) =>
@@ -263,7 +267,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           _calculate();
                         },
                         icon: const Icon(Icons.compare_arrows_rounded),
-                        label: const Text('Compare Lease vs Buy'),
+                        label: Text(l10n.compareLeaseBuy),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                         ),
@@ -412,6 +416,7 @@ class _ResultsCard extends StatelessWidget {
   final int leaseTerm;
   final int buyTerm;
   final String distLabel;
+  final AppLocalizations l10n;
 
   const _ResultsCard({
     required this.r,
@@ -421,6 +426,7 @@ class _ResultsCard extends StatelessWidget {
     required this.leaseTerm,
     required this.buyTerm,
     required this.distLabel,
+    required this.l10n,
   });
 
   @override
@@ -430,7 +436,7 @@ class _ResultsCard extends StatelessWidget {
     final outline = Theme.of(context).colorScheme.outline;
 
     return SectionCard(
-      title: 'Comparison Results',
+      title: l10n.comparisonResults,
       children: [
         // ── Side-by-side columns ───────────────────────────────────────────
         Row(
@@ -438,9 +444,11 @@ class _ResultsCard extends StatelessWidget {
           children: [
             Expanded(
               child: _CompCol(
-                label: 'Buy ($buyTerm mo)',
+                label: 'Buy ($buyTerm ${l10n.month})',
                 total: fmt0.format(r.buyTotalCost),
                 highlight: !leaseWins,
+                betterLabel: l10n.betterBadge,
+                totalLabel: l10n.totalLabel,
                 primary: primary,
                 outline: outline,
               ),
@@ -448,9 +456,11 @@ class _ResultsCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _CompCol(
-                label: 'Lease ($leaseTerm mo)',
+                label: 'Lease ($leaseTerm ${l10n.month})',
                 total: fmt0.format(r.leaseTotalCost),
                 highlight: leaseWins,
+                betterLabel: l10n.betterBadge,
+                totalLabel: l10n.totalLabel,
                 primary: primary,
                 outline: outline,
               ),
@@ -479,8 +489,8 @@ class _ResultsCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   leaseWins
-                      ? 'Leasing saves ${fmt0.format(r.saving)} over $leaseTerm months'
-                      : 'Buying saves ${fmt0.format(r.saving)} over $leaseTerm months',
+                      ? l10n.leasingSaves(fmt0.format(r.saving), leaseTerm)
+                      : l10n.buyingSaves(fmt0.format(r.saving), leaseTerm),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -497,7 +507,7 @@ class _ResultsCard extends StatelessWidget {
 
         // ── Buy breakdown ──────────────────────────────────────────────────
         Text(
-          'Buy Breakdown',
+          l10n.buyBreakdown,
           style: Theme.of(context)
               .textTheme
               .labelLarge
@@ -505,19 +515,19 @@ class _ResultsCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         ResultTile(
-          label: 'Monthly payment',
+          label: l10n.monthlyPayment,
           value: fmt.format(r.buyMonthly),
         ),
         ResultTile(
-          label: 'Total interest paid',
+          label: l10n.totalInterestPaid,
           value: fmt.format(r.buyTotalInterest),
         ),
         ResultTile(
-          label: 'Insurance over term',
+          label: l10n.insuranceOverTerm,
           value: fmt.format(r.buyInsuranceCost),
         ),
         ResultTile(
-          label: 'Total buy cost',
+          label: l10n.totalBuyCost,
           value: fmt0.format(r.buyTotalCost),
           isHighlight: true,
         ),
@@ -525,7 +535,7 @@ class _ResultsCard extends StatelessWidget {
 
         // ── Lease breakdown ────────────────────────────────────────────────
         Text(
-          'Lease Breakdown',
+          l10n.leaseBreakdown,
           style: Theme.of(context)
               .textTheme
               .labelLarge
@@ -534,11 +544,11 @@ class _ResultsCard extends StatelessWidget {
         const SizedBox(height: 6),
         if (r.leaseOverageCost > 0)
           ResultTile(
-            label: 'Estimated mileage overage',
+            label: l10n.estimatedMileageOverage,
             value: fmt.format(r.leaseOverageCost),
           ),
         ResultTile(
-          label: 'Total lease cost',
+          label: l10n.totalLeaseCost,
           value: fmt0.format(r.leaseTotalCost),
           isHighlight: true,
         ),
@@ -549,13 +559,13 @@ class _ResultsCard extends StatelessWidget {
           const Divider(),
           const SizedBox(height: 6),
           ResultTile(
-            label: 'Break-even annual $distLabel\n(lease = buy cost)',
-            value: '${r.breakEvenMiles.toStringAsFixed(0)} $distLabel/yr',
+            label: '${l10n.mileageLimitPerYear} ($distLabel)\n(lease = buy cost)',
+            value: '${r.breakEvenMiles.toStringAsFixed(0)} $distLabel/${l10n.year}',
           ),
           Text(
             r.isAboveBreakEven
-                ? 'Your mileage exceeds break-even — buying may be cheaper long-term.'
-                : 'Your mileage is under break-even — leasing competes well.',
+                ? l10n.mileageExceedsBreakEven
+                : l10n.mileageBelowBreakEven,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -564,13 +574,11 @@ class _ResultsCard extends StatelessWidget {
 
         const SizedBox(height: 8),
         Text(
-          'For informational purposes only. Not financial advice.',
+          l10n.informationalOnly,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.5),
+            fontSize: AppTextSize.xs,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -584,6 +592,8 @@ class _CompCol extends StatelessWidget {
   final String label;
   final String total;
   final bool highlight;
+  final String betterLabel;
+  final String totalLabel;
   final Color primary;
   final Color outline;
 
@@ -591,6 +601,8 @@ class _CompCol extends StatelessWidget {
     required this.label,
     required this.total,
     required this.highlight,
+    required this.betterLabel,
+    required this.totalLabel,
     required this.primary,
     required this.outline,
   });
@@ -618,7 +630,7 @@ class _CompCol extends StatelessWidget {
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Text(
-                'BETTER',
+                betterLabel,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -635,7 +647,7 @@ class _CompCol extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Total',
+            totalLabel,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall

@@ -216,14 +216,14 @@ class HistoryScreen extends StatelessWidget {
                 if (!hasFull && locked > 0)
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
                     ),
                     child: Row(
                       children: [
                         const Expanded(child: Divider()),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                           child: Text(
                             '$locked older record${locked > 1 ? 's' : ''} locked',
                             style: Theme.of(context).textTheme.bodySmall

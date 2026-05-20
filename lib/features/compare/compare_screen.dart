@@ -379,8 +379,8 @@ class _ScenarioCard extends StatelessWidget {
               builder: (context) {
                 final yr = AppLocalizations.of(context)!.year;
                 return Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
                   children: [24, 36, 48, 60, 72, 84]
                       .map(
                         (t) => Semantics(

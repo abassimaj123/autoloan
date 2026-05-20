@@ -134,7 +134,7 @@ class _UKScreenState extends State<UKScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('🇬🇧 ${l10n.appNameUK}'),
+        title: Text(l10n.appNameUK),
         actions: [
           CalcwiseAppBarActions(
             freemium: freemiumService,
@@ -161,23 +161,23 @@ class _UKScreenState extends State<UKScreen> {
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.calculate_rounded),
-            selectedIcon: const Icon(Icons.calculate),
+            icon: const Icon(Icons.calculate_outlined),
+            selectedIcon: const Icon(Icons.calculate_rounded),
             label: l10n.calculate,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.compare_arrows_rounded),
-            selectedIcon: const Icon(Icons.compare_arrows),
+            icon: const Icon(Icons.compare_arrows_outlined),
+            selectedIcon: const Icon(Icons.compare_arrows_rounded),
             label: l10n.compareLoans,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.history_rounded),
-            selectedIcon: const Icon(Icons.history),
+            icon: const Icon(Icons.history_outlined),
+            selectedIcon: const Icon(Icons.history_rounded),
             label: l10n.history,
           ),
           const NavigationDestination(
-            icon: Icon(Icons.balance_rounded),
-            selectedIcon: Icon(Icons.balance),
+            icon: Icon(Icons.balance_outlined),
+            selectedIcon: Icon(Icons.balance_rounded),
             label: 'Lease vs Buy',
           ),
         ],
@@ -197,58 +197,26 @@ class _UKScreenState extends State<UKScreen> {
                       child: Column(
                         children: [
                           // ── Hero result (moved to top so users see the answer first) ──
-                          AnimatedSwitcher(
-                            duration: AppDuration.base,
-                            transitionBuilder: (child, animation) =>
-                                FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.04),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                ),
-                            child: p.result != null
-                                ? KeyedSubtree(
-                                    key: const ValueKey('results'),
+                          if (p.result != null)
+                            CalcwisePageEntrance(
+                              child: Column(
+                                children: [
+                                  CalcwiseStaggerItem(
+                                    index: 0,
                                     child: _UKResults(
                                       p: p,
                                       adService: adService,
                                     ),
-                                  )
-                                : Padding(
-                                    key: const ValueKey('empty'),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 32,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.directions_car_rounded,
-                                          size: 48,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.3),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'Enter vehicle price to see your monthly payment',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: AppTextSize.body,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withValues(alpha: 0.5),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ),
-                          ),
+                                ],
+                              ),
+                            )
+                          else
+                            const CalcwiseEmptyState(
+                              icon: Icons.directions_car_outlined,
+                              title: 'No results yet',
+                              body: 'Enter the vehicle price to see your analysis.',
+                            ),
 
                           // ── Vehicle ───────────────────────────────────────────────
                           SectionCard(
@@ -267,7 +235,7 @@ class _UKScreenState extends State<UKScreen> {
                                     ? 'Required'
                                     : null,
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: AppSpacing.md),
                               CurrencySliderInput(
                                 label: l10n.downPayment,
                                 value: p.downPayment,
@@ -281,7 +249,7 @@ class _UKScreenState extends State<UKScreen> {
                                 },
                               ),
                               if (p.result != null) ...[
-                                const SizedBox(height: 8),
+                                const SizedBox(height: AppSpacing.sm),
                                 ResultTile(
                                   label: l10n.loanAmount,
                                   value: NumberFormat.currency(
@@ -322,7 +290,7 @@ class _UKScreenState extends State<UKScreen> {
                                       ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: AppSpacing.lg),
                               DurationChips(
                                 label: l10n.termMonths,
                                 options: const [24, 36, 48, 60, 72, 84],
@@ -332,7 +300,7 @@ class _UKScreenState extends State<UKScreen> {
                                   _debouncedCalculate();
                                 },
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: AppSpacing.md),
                               Row(
                                 children: [
                                   Switch(
@@ -409,7 +377,7 @@ class _UKScreenState extends State<UKScreen> {
                                 ],
                               ),
                               if (p.isPcp) ...[
-                                const SizedBox(height: 12),
+                                const SizedBox(height: AppSpacing.md),
                                 PercentSliderInput(
                                   label: l10n.gmfvPercent,
                                   value: p.gmfvPercent,
@@ -421,7 +389,7 @@ class _UKScreenState extends State<UKScreen> {
                                     _debouncedCalculate();
                                   },
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
                                   '${l10n.gmfv}: £${(p.vehiclePrice * p.gmfvPercent / 100).toStringAsFixed(0)}',
                                   style: Theme.of(context).textTheme.bodySmall
@@ -431,7 +399,7 @@ class _UKScreenState extends State<UKScreen> {
                                         ).colorScheme.primary,
                                       ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
                                   l10n.pcpNote,
                                   style: Theme.of(context).textTheme.bodySmall
@@ -469,7 +437,7 @@ class _UKScreenState extends State<UKScreen> {
                                 ],
                               ),
                               if (p.includeRoadTax) ...[
-                                const SizedBox(height: 12),
+                                const SizedBox(height: AppSpacing.md),
                                 DropdownButtonFormField<VehicleType>(
                                   // ignore: deprecated_member_use
                                   value: p.vehicleType,
@@ -495,7 +463,7 @@ class _UKScreenState extends State<UKScreen> {
                                   },
                                 ),
                                 if (p.vehicleType == VehicleType.custom) ...[
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: AppSpacing.md),
                                   TextFormField(
                                     initialValue: p.customVedAnnual
                                         .toStringAsFixed(0),
@@ -515,7 +483,7 @@ class _UKScreenState extends State<UKScreen> {
                                     },
                                   ),
                                 ],
-                                const SizedBox(height: 8),
+                                const SizedBox(height: AppSpacing.sm),
                                 Text(
                                   () {
                                     final annual =
@@ -598,7 +566,7 @@ class _UKScreenState extends State<UKScreen> {
                           _UKAffordabilitySection(p: p),
 
                           // ── Reverse Affordability — "what vehicle can I afford?" ──
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           ReverseSolveCard(
                             title: 'What vehicle price can I afford?',
                             targetLabel: 'Target monthly payment',
@@ -629,7 +597,7 @@ class _UKScreenState extends State<UKScreen> {
                           ),
 
                           // ── Cash-Back vs Low-APR Comparator ───────────────────────
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                           OutlinedButton.icon(
                             onPressed: () {
                               HapticFeedback.lightImpact();
@@ -656,9 +624,9 @@ class _UKScreenState extends State<UKScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.lg),
                           const CalcwiseAdFooter(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppSpacing.xl),
                         ],
                       ),
                     ),
@@ -763,7 +731,7 @@ class _UKResults extends StatelessWidget {
             label: 'Total if buying at end',
             value: fmt.format(r.pcpTotalIfBuy),
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         // ── Smart Insights ────────────────────────────────────────────
         InsightCard(
           insights: InsightEngine.generate(
@@ -777,7 +745,7 @@ class _UKResults extends StatelessWidget {
             currencySymbol: '£',
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () async {
             HapticFeedback.lightImpact();
@@ -786,7 +754,7 @@ class _UKResults extends StatelessWidget {
                 : '${r.isPcp ? "PCP payment" : "Monthly"}: ${fmt.format(r.monthlyPayment)}';
             try {
               await Share.share(
-                '🇬🇧 Auto Loan UK\n'
+                'Auto Loan UK\n'
                 'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
                 'Loan: ${fmt.format(r.loanAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
                 '$payment\n'
@@ -815,7 +783,7 @@ class _UKResults extends StatelessWidget {
           icon: const Icon(Icons.share_rounded),
           label: const Text('Share'),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         if (hasFull) ...[
           OutlinedButton.icon(
             onPressed: () {
@@ -847,7 +815,7 @@ class _UKResults extends StatelessWidget {
             icon: const Icon(Icons.table_chart),
             label: const Text('Amortisation Schedule'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () async {
               try {
@@ -940,7 +908,7 @@ class _UKResults extends StatelessWidget {
             icon: const Icon(Icons.picture_as_pdf),
             label: const Text('Export PDF'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () {
               Navigator.push(
@@ -965,12 +933,12 @@ class _UKResults extends StatelessWidget {
         ] else ...[
           PremiumGate(adService: adService, flavor: 'uk'),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           'For informational purposes only. Not financial advice.',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: AppTextSize.xs,
             color: Theme.of(
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.55),
@@ -1116,7 +1084,7 @@ class _UKCompareCol extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             monthly,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1130,7 +1098,7 @@ class _UKCompareCol extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Total: $total',
             style: Theme.of(
@@ -1198,7 +1166,7 @@ class _UKCostOfCreditSection extends StatelessWidget {
           ),
         ],
         if (looksLikeFlat) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -1226,11 +1194,27 @@ class _UKCostOfCreditSection extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 4),
-        Text(
-          'FCA CONC 3.5.4 — Representative APR must be disclosed.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border(
+              left: BorderSide(
+                color: AppTheme.accent.withValues(alpha: 0.7),
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            'FCA CONC 3.5.4 — Representative APR must be disclosed. '
+            'For informational purposes only — not financial advice.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
           ),
         ),
       ],
@@ -1352,7 +1336,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _UKTcoSlider(
             label: 'Annual miles driven',
             value: _annualMiles,
@@ -1362,7 +1346,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_annualMiles.toStringAsFixed(0)} mi',
             onChanged: (v) => setState(() => _annualMiles = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Fuel efficiency (MPG)',
             value: _mpg,
@@ -1372,7 +1356,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_mpg.toStringAsFixed(0)} mpg',
             onChanged: (v) => setState(() => _mpg = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Fuel price (p/litre)',
             value: _fuelPricePence,
@@ -1382,7 +1366,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_fuelPricePence.toStringAsFixed(0)}p/L',
             onChanged: (v) => setState(() => _fuelPricePence = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Annual insurance (£)',
             value: _annualInsurance,
@@ -1392,7 +1376,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: fmt.format(_annualInsurance),
             onChanged: (v) => setState(() => _annualInsurance = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Annual MOT & service (£)',
             value: _annualMot,
@@ -1402,20 +1386,20 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: fmt.format(_annualMot),
             onChanged: (v) => setState(() => _annualMot = v),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
               HapticFeedback.lightImpact();
               _calculate();
             },
-            icon: const Icon(Icons.calculate_rounded),
+            icon: const Icon(Icons.calculate_outlined),
             label: const Text('Calculate TCO'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
           ),
           if (_tco != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const Divider(),
             ResultTile(
               label: 'Total fuel',
@@ -1522,7 +1506,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // GMFV slider
           _UKTcoSlider(
             label: 'GMFV balloon (%)',
@@ -1534,7 +1518,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
                 '${_gmfvPercent.toStringAsFixed(0)}%  (£${gmfvBalloon.toStringAsFixed(0)})',
             onChanged: (v) => setState(() => _gmfvPercent = v),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // Side-by-side cards
           Row(
             children: [
@@ -1595,7 +1579,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
                   ),
                 ],
                 if (hpSavesOverall > 0) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     'HP saves £${hpSavesOverall.toStringAsFixed(0)} overall vs PCP if buying at end',
                     style: Theme.of(context).textTheme.bodySmall,
@@ -1605,7 +1589,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'PCP total excludes GMFV balloon. HP total = vehicle price + all interest.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1660,7 +1644,7 @@ class _UKFinanceCol extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             monthly,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1674,7 +1658,7 @@ class _UKFinanceCol extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '$totalLabel: $total',
             style: Theme.of(
@@ -1762,7 +1746,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1788,7 +1772,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -1801,7 +1785,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
             ),
           ),
           if (_settlement != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const Divider(),
             ResultTile(
               label: 'Settlement figure (Rule of 78)',
@@ -1816,7 +1800,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
               label: 'Months remaining',
               value: '${r.termMonths - _monthsPaid} months',
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Settlement is calculated using the Rule of 78 (sum of digits). '
               'Your lender may quote a slightly different figure.',
@@ -1883,7 +1867,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1927,15 +1911,15 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           const Divider(),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: 'Recommended max payment (15% of income)',
             value: '${fmt2.format(_monthlyIncome * 0.15)}/mo',
           ),
           if (r != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 Container(
@@ -1959,7 +1943,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
               ],
             ),
           ] else ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Calculate a loan above to see your payment rating.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
