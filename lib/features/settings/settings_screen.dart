@@ -26,6 +26,43 @@ class SettingsScreen extends StatelessWidget {
       title: l10n.settings,
       bottomNavigationBar: const CalcwiseAdFooter(),
       children: [
+        // ── Premium ────────────────────────────────────────────────
+        ValueListenableBuilder<bool>(
+          valueListenable: freemiumService.isPremiumNotifier,
+          builder: (context, isPremium, _) => CalcwiseSettingsSection(
+            title: 'Premium',
+            children: isPremium
+                ? [
+                    ListTile(
+                      leading: Icon(
+                        Icons.verified,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        l10n.settingsPremiumActive,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(l10n.settingsPremiumSubtitle),
+                    ),
+                  ]
+                : [
+                    CalcwiseSettingsTile(
+                      icon: Icons.star_rounded,
+                      label: _premiumLabel(flavor, l10n),
+                      subtitle: l10n.settingsPremiumSubtitle,
+                      trailing: _premiumPrice(flavor),
+                      onTap: () => IAPService.instance.buy(),
+                    ),
+                    CalcwiseSettingsTile(
+                      icon: Icons.restore,
+                      label: l10n.restorePurchase,
+                      onTap: () => IAPService.instance.restore(),
+                    ),
+                  ],
+          ),
+        ),
+        const Divider(),
+
         // ── Language (CA only) ─────────────────────────────────────
         if (flavor == 'ca') ...[
           CalcwiseSettingsSection(
@@ -115,43 +152,6 @@ class SettingsScreen extends StatelessWidget {
             );
           },
         ),
-
-        // ── Premium ────────────────────────────────────────────────
-        ValueListenableBuilder<bool>(
-          valueListenable: freemiumService.isPremiumNotifier,
-          builder: (context, isPremium, _) => CalcwiseSettingsSection(
-            title: 'Premium',
-            children: isPremium
-                ? [
-                    ListTile(
-                      leading: Icon(
-                        Icons.verified,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      title: Text(
-                        l10n.settingsPremiumActive,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(l10n.settingsPremiumSubtitle),
-                    ),
-                  ]
-                : [
-                    CalcwiseSettingsTile(
-                      icon: Icons.star_rounded,
-                      label: _premiumLabel(flavor, l10n),
-                      subtitle: l10n.settingsPremiumSubtitle,
-                      trailing: _premiumPrice(flavor),
-                      onTap: () => IAPService.instance.buy(),
-                    ),
-                    CalcwiseSettingsTile(
-                      icon: Icons.restore,
-                      label: l10n.restorePurchase,
-                      onTap: () => IAPService.instance.restore(),
-                    ),
-                  ],
-          ),
-        ),
-        const Divider(),
 
         // ── Support ────────────────────────────────────────────────
         CalcwiseSettingsSection(

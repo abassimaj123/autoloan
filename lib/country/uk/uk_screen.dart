@@ -445,7 +445,7 @@ class _UKScreenState extends State<UKScreen> {
                                   decoration: InputDecoration(
                                     labelText: l10n.vehicleType,
                                     border: const OutlineInputBorder(),
-                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                   ),
                                   items: VehicleType.values
                                       .map(
@@ -471,7 +471,7 @@ class _UKScreenState extends State<UKScreen> {
                                     decoration: const InputDecoration(
                                       labelText: 'Custom annual VED (£)',
                                       border: OutlineInputBorder(),
-                                      isDense: true,
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                       prefixText: '£ ',
                                     ),
                                     onChanged: (v) {

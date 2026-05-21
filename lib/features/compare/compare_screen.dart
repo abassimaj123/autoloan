@@ -364,7 +364,7 @@ class _ScenarioCard extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: '% Rate',
                 border: const OutlineInputBorder(),
-                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 suffixText: '%',
               ),
               onChanged: (v) {

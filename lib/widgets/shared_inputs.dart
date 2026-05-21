@@ -147,7 +147,7 @@ class _CurrencyTextInputState extends State<CurrencyTextInput> {
           fontWeight: FontWeight.bold,
         ),
         border: const OutlineInputBorder(),
-        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         helperText: widget.errorText == null ? widget.helperText : null,
         helperStyle: const TextStyle(fontSize: 10),
         errorText: widget.errorText,
@@ -351,7 +351,7 @@ class _DurationChipsState extends State<DurationChips> {
                 labelText: 'Months (1–120)',
                 suffixText: 'mo',
                 border: const OutlineInputBorder(),
-                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 errorText: () {
                   final v = int.tryParse(_ctrl.text);
                   if (_ctrl.text.isEmpty) return null;
@@ -425,7 +425,7 @@ class _RateInputFieldState extends State<RateInputField> {
         labelText: widget.label,
         suffixText: '%',
         border: const OutlineInputBorder(),
-        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         helperText: widget.errorText == null ? widget.helperText : null,
         helperStyle: const TextStyle(fontSize: 10),
         errorText: widget.errorText,

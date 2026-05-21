@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' show FontFeature;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -404,6 +405,7 @@ class _DataCell extends StatelessWidget {
         text,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+          fontFeatures: const [FontFeature.tabularFigures()],
         ),
         textAlign: TextAlign.right,
       ),

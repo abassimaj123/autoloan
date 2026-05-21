@@ -871,7 +871,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
               border: OutlineInputBorder(),
-              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               suffixText: '%',
             ),
             onChanged: (v) {
@@ -887,7 +887,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Cap Cost Reduction (\$)',
               border: OutlineInputBorder(),
-              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -903,7 +903,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Acquisition Fee (\$)',
               border: OutlineInputBorder(),
-              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -1326,7 +1326,7 @@ class _RefiField extends StatelessWidget {
         labelText: label,
         suffixText: suffix,
         border: const OutlineInputBorder(),
-        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       ),
     );
   }

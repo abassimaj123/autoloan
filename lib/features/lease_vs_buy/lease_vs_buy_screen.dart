@@ -728,7 +728,7 @@ class _NumericFieldState extends State<_NumericField> {
         prefixText: widget.prefix,
         suffixText: widget.suffix,
         border: const OutlineInputBorder(),
-        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       ),
       onChanged: (s) {
         final cleaned = s.replaceAll(',', '.');

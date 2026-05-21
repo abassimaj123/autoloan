@@ -293,7 +293,7 @@ class _CAScreenState extends State<CAScreen> {
                                 decoration: InputDecoration(
                                   labelText: l10n.province,
                                   border: const OutlineInputBorder(),
-                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                 ),
                                 // Compact display when closed: "ON · 13%"
                                 selectedItemBuilder: (ctx) => kCAProvinces
@@ -922,7 +922,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
               border: OutlineInputBorder(),
-              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               suffixText: '%',
             ),
             onChanged: (v) {
