@@ -190,7 +190,18 @@ class AutoLoanApp extends StatelessWidget {
                       : Brightness.dark,
                 ),
               );
-              return child!;
+              if (!MediaQuery.of(context).disableAnimations) return child!;
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  pageTransitionsTheme: const PageTransitionsTheme(
+                    builders: {
+                      TargetPlatform.android: _NoAnimPageTransitionsBuilder(),
+                      TargetPlatform.iOS: _NoAnimPageTransitionsBuilder(),
+                    },
+                  ),
+                ),
+                child: child!,
+              );
             },
             home: const SplashScreen(),
             routes: {
@@ -282,4 +293,18 @@ class _IapErrorWrapperState extends State<_IapErrorWrapper> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+
+class _NoAnimPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoAnimPageTransitionsBuilder();
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) =>
+      child;
 }
