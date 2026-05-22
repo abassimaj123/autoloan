@@ -169,365 +169,10 @@ class _CAScreenState extends State<CAScreen> {
               index: _selectedTab,
               children: [
                 // Tab 0: Calculator
-                Consumer<CAProvider>(
-                  builder: (context, p, _) => SafeArea(
-                    top: false,
-                    child: GestureDetector(
-                      onTap: () => FocusScope.of(context).unfocus(),
-                      child: SingleChildScrollView(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 600),
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSpacing.md),
-                              child: CalcwisePageEntrance(
-                                child: Column(
-                                  children: [
-                          // ── Hero result (moved to top so users see the answer first) ──
-                          if (p.result != null)
-                            CalcwisePageEntrance(
-                              child: Column(
-                                children: [
-                                  CalcwiseStaggerItem(
-                                    index: 0,
-                                    child: _CAResults(
-                                      p: p,
-                                      adService: adService,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            CalcwiseEmptyState(
-                              icon: Icons.directions_car_outlined,
-                              title: Localizations.localeOf(context).languageCode == 'fr'
-                                  ? 'Pas encore de résultats'
-                                  : 'No results yet',
-                              body: Localizations.localeOf(context).languageCode == 'fr'
-                                  ? 'Entrez le prix du véhicule pour voir votre analyse.'
-                                  : 'Enter the vehicle price to see your analysis.',
-                            ),
-
-                          // ── Vehicle ──────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.vehicle,
-                            children: [
-                              CurrencyTextInput(
-                                label: l10n.vehiclePrice,
-                                value: p.vehiclePrice,
-                                symbol: 'C\$',
-                                helperText: 'e.g. 35 000',
-                                errorText: _validated && p.vehiclePrice <= 0
-                                    ? 'Required'
-                                    : null,
-                                onChanged: (v) {
-                                  p.setVehiclePrice(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              CurrencySliderInput(
-                                label: l10n.downPayment,
-                                value: p.dpAmount,
-                                min: 0,
-                                max: p.vehiclePrice * 0.5,
-                                step: 500,
-                                symbol: 'C\$',
-                                onChanged: (v) {
-                                  p.setDpIsPercent(false);
-                                  p.setDownPayment(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.dpIsPercent,
-                                    onChanged: (v) {
-                                      p.setDpIsPercent(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Text(' ${l10n.usePercentage}'),
-                                  if (p.dpIsPercent) ...[
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '${p.downPayment.toStringAsFixed(1)}%',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          // ── Province & Tax ────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.province,
-                            children: [
-                              DropdownButtonFormField<String>(
-                                // ignore: deprecated_member_use
-                                value: p.provinceCode,
-                                isExpanded: true,
-                                decoration: InputDecoration(
-                                  labelText: l10n.province,
-                                  border: const OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                ),
-                                // Compact display when closed: "ON · 13%"
-                                selectedItemBuilder: (ctx) => kCAProvinces
-                                    .map(
-                                      (prov) => Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          '${prov.code} · '
-                                          '${(prov.totalRate * 100).toStringAsFixed(prov.totalRate == 0.14975 ? 3 : 0)}%',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                // Full name in dropdown list
-                                items: kCAProvinces
-                                    .map(
-                                      (prov) => DropdownMenuItem(
-                                        value: prov.code,
-                                        child: Text(
-                                          '${prov.code}  ${prov.nameEn}  '
-                                          '${(prov.totalRate * 100).toStringAsFixed(prov.totalRate == 0.14975 ? 3 : 0)}%',
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (v) {
-                                  if (v != null) {
-                                    p.setProvinceCode(v);
-                                    _debouncedCalculate();
-                                  }
-                                },
-                              ),
-                              if (p.result != null) ...[
-                                const SizedBox(height: AppSpacing.sm),
-                                ResultTile(
-                                  label: l10n.taxAmount,
-                                  value: NumberFormat.currency(
-                                    symbol: '\$',
-                                    decimalDigits: 2,
-                                  ).format(p.result!.taxAmount),
-                                ),
-                              ],
-                            ],
-                          ),
-
-                          // ── Loan Terms ────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.loanTerms,
-                            children: [
-                              RateInputField(
-                                label: l10n.annualRate,
-                                value: p.annualRate,
-                                helperText:
-                                    'Default rate as of 2026 — update to your actual rate',
-                                onChanged: (v) {
-                                  p.setAnnualRate(v);
-                                  _debouncedCalculate();
-                                },
-                                errorText: _validated && p.annualRate <= 0
-                                    ? 'Required'
-                                    : null,
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              DurationChips(
-                                label: l10n.termMonths,
-                                options: const [24, 36, 48, 60, 72, 84],
-                                selected: p.termMonths,
-                                onSelected: (v) {
-                                  p.setTermMonths(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.isBiWeekly,
-                                    onChanged: (v) {
-                                      p.setIsBiWeekly(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(l10n.biWeeklyToggle),
-                                        Text(
-                                          l10n.biWeeklySubtitle,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          // ── Insurance ─────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.insurance,
-                            children: [
-                              _InsuranceRow(
-                                label:
-                                    '${l10n.lifeDisability} '
-                                    '(\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
-                                value: p.insurance.lifeDisability,
-                                onChanged: (v) {
-                                  p.setLifeDisability(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              _InsuranceRow(
-                                label: l10n.extendedWarranty,
-                                value: p.insurance.extendedWarranty,
-                                onChanged: (v) {
-                                  p.setExtendedWarranty(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              if (p.insurance.extendedWarranty)
-                                CurrencySliderInput(
-                                  label: '${l10n.extendedWarranty} Total',
-                                  value: p.insurance.warrantyAmount,
-                                  min: 0,
-                                  max: 5000,
-                                  step: 100,
-                                  symbol: 'C\$',
-                                  onChanged: (v) {
-                                    p.setWarrantyAmount(v);
-                                    _debouncedCalculate();
-                                  },
-                                ),
-                              _InsuranceRow(
-                                label: l10n.gap,
-                                value: p.insurance.gap,
-                                onChanged: (v) {
-                                  p.setGap(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              if (p.insurance.gap)
-                                CurrencySliderInput(
-                                  label: '${l10n.gap} Total',
-                                  value: p.insurance.gapAmount,
-                                  min: 0,
-                                  max: 2000,
-                                  step: 50,
-                                  symbol: 'C\$',
-                                  onChanged: (v) {
-                                    p.setGapAmount(v);
-                                    _debouncedCalculate();
-                                  },
-                                ),
-                            ],
-                          ),
-
-                          // ── TCO (only when result available) ─────────────────────
-                          if (p.result != null) _CATcoSection(p: p),
-
-                          // ── Lease vs Buy ─────────────────────────────────────────
-                          _CALeaseSection(p: p),
-
-                          // ── Trade-In Value Calculator ─────────────────────────────
-                          _CATradeInSection(p: p),
-
-                          // ── Affordability Guide ───────────────────────────────────
-                          _CAAffordabilitySection(p: p),
-
-                          // ── Reverse Affordability — "what vehicle can I afford?" ──
-                          const SizedBox(height: AppSpacing.md),
-                          ReverseSolveCard(
-                            title: 'What vehicle price can I afford?',
-                            targetLabel: 'Target monthly payment',
-                            resultLabel: 'Max vehicle price',
-                            prefix: '\$',
-                            minBound: 5000,
-                            maxBound: 200000,
-                            targetValue: 0,
-                            ascending: true,
-                            compute: (vehiclePrice) {
-                              final dpRatio = p.vehiclePrice > 0
-                                  ? (p.dpAmount / p.vehiclePrice).clamp(
-                                      0.0,
-                                      0.95,
-                                    )
-                                  : 0.15;
-                              final down = vehiclePrice * dpRatio;
-                              final loan = vehiclePrice - down;
-                              final r = p.annualRate / 100 / 12;
-                              final n = p.termMonths;
-                              if (loan <= 0 || n <= 0) return 0;
-                              if (r == 0) return loan / n;
-                              return loan *
-                                  r *
-                                  pow(1 + r, n) /
-                                  (pow(1 + r, n) - 1);
-                            },
-                          ),
-
-                          // ── Cash-Back vs Low-APR Comparator ───────────────────────
-                          const SizedBox(height: AppSpacing.md),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (_, __, ___) =>
-                                      const CashbackVsLowAprScreen(
-                                        flavor: 'ca',
-                                      ),
-                                  transitionsBuilder: (_, anim, __, child) =>
-                                      FadeTransition(
-                                        opacity: anim,
-                                        child: child,
-                                      ),
-                                  transitionDuration: AppDuration.base,
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.local_offer_rounded),
-                            label: const Text('Cash-Back vs Low-APR'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(48),
-                            ),
-                          ),
-
-                                    const SizedBox(height: AppSpacing.listBottomInset),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                _CACalculatorTab(
+                  validated: _validated,
+                  onCalculate: _debouncedCalculate,
+                  adService: adService,
                 ),
                 // Tab 1: Compare
                 CompareScreen(flavor: 'ca', showAppBar: false),
@@ -546,6 +191,413 @@ class _CAScreenState extends State<CAScreen> {
           const CalcwiseAdFooter(),
         ],
       ),
+    );
+  }
+}
+
+// ── CA Calculator Tab ──────────────────────────────────────────────────────────
+
+class _CACalculatorTab extends StatelessWidget {
+  final bool validated;
+  final VoidCallback onCalculate;
+  final CalcwiseAdService adService;
+
+  const _CACalculatorTab({
+    required this.validated,
+    required this.onCalculate,
+    required this.adService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CAProvider>(
+      builder: (context, p, _) => SafeArea(
+        top: false,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: CalcwisePageEntrance(
+                    child: Column(
+                      children: [
+                        // ── Hero result ───────────────────────────────────
+                        if (p.result != null)
+                          CalcwisePageEntrance(
+                            child: Column(
+                              children: [
+                                CalcwiseStaggerItem(
+                                  index: 0,
+                                  child: _CAResults(p: p, adService: adService),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          CalcwiseEmptyState(
+                            icon: Icons.directions_car_outlined,
+                            title: Localizations.localeOf(context).languageCode == 'fr'
+                                ? 'Pas encore de résultats'
+                                : 'No results yet',
+                            body: Localizations.localeOf(context).languageCode == 'fr'
+                                ? 'Entrez le prix du véhicule pour voir votre analyse.'
+                                : 'Enter the vehicle price to see your analysis.',
+                          ),
+                        // ── Input sections ────────────────────────────────
+                        _CAVehicleSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _CAProvinceSection(p: p, onCalculate: onCalculate),
+                        _CALoanTermsSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _CAInsuranceSection(p: p, onCalculate: onCalculate),
+                        // ── Extra tools ───────────────────────────────────
+                        if (p.result != null) _CATcoSection(p: p),
+                        _CALeaseSection(p: p),
+                        _CATradeInSection(p: p),
+                        _CAAffordabilitySection(p: p),
+                        _CAQuickToolsSection(p: p),
+                        const SizedBox(height: AppSpacing.listBottomInset),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── CA Vehicle Section ─────────────────────────────────────────────────────────
+
+class _CAVehicleSection extends StatelessWidget {
+  final CAProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _CAVehicleSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.vehicle,
+      children: [
+        CurrencyTextInput(
+          label: l10n.vehiclePrice,
+          value: p.vehiclePrice,
+          symbol: 'C\$',
+          helperText: 'e.g. 35 000',
+          errorText: validated && p.vehiclePrice <= 0 ? 'Required' : null,
+          onChanged: (v) {
+            p.setVehiclePrice(v);
+            onCalculate();
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        CurrencySliderInput(
+          label: l10n.downPayment,
+          value: p.dpAmount,
+          min: 0,
+          max: p.vehiclePrice * 0.5,
+          step: 500,
+          symbol: 'C\$',
+          onChanged: (v) {
+            p.setDpIsPercent(false);
+            p.setDownPayment(v);
+            onCalculate();
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Switch(
+              value: p.dpIsPercent,
+              onChanged: (v) {
+                p.setDpIsPercent(v);
+                onCalculate();
+              },
+            ),
+            Text(' ${l10n.usePercentage}'),
+            if (p.dpIsPercent) ...[
+              const SizedBox(width: 8),
+              Text(
+                '${p.downPayment.toStringAsFixed(1)}%',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ── CA Province Section ────────────────────────────────────────────────────────
+
+class _CAProvinceSection extends StatelessWidget {
+  final CAProvider p;
+  final VoidCallback onCalculate;
+
+  const _CAProvinceSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.province,
+      children: [
+        DropdownButtonFormField<String>(
+          // ignore: deprecated_member_use
+          value: p.provinceCode,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: l10n.province,
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          ),
+          selectedItemBuilder: (ctx) => kCAProvinces
+              .map(
+                (prov) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${prov.code} · '
+                    '${(prov.totalRate * 100).toStringAsFixed(prov.totalRate == 0.14975 ? 3 : 0)}%',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          items: kCAProvinces
+              .map(
+                (prov) => DropdownMenuItem(
+                  value: prov.code,
+                  child: Text(
+                    '${prov.code}  ${prov.nameEn}  '
+                    '${(prov.totalRate * 100).toStringAsFixed(prov.totalRate == 0.14975 ? 3 : 0)}%',
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: (v) {
+            if (v != null) {
+              p.setProvinceCode(v);
+              onCalculate();
+            }
+          },
+        ),
+        if (p.result != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ResultTile(
+            label: l10n.taxAmount,
+            value: NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(p.result!.taxAmount),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── CA Loan Terms Section ──────────────────────────────────────────────────────
+
+class _CALoanTermsSection extends StatelessWidget {
+  final CAProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _CALoanTermsSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.loanTerms,
+      children: [
+        RateInputField(
+          label: l10n.annualRate,
+          value: p.annualRate,
+          helperText: 'Default rate as of 2026 — update to your actual rate',
+          onChanged: (v) {
+            p.setAnnualRate(v);
+            onCalculate();
+          },
+          errorText: validated && p.annualRate <= 0 ? 'Required' : null,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        DurationChips(
+          label: l10n.termMonths,
+          options: const [24, 36, 48, 60, 72, 84],
+          selected: p.termMonths,
+          onSelected: (v) {
+            p.setTermMonths(v);
+            onCalculate();
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Switch(
+              value: p.isBiWeekly,
+              onChanged: (v) {
+                p.setIsBiWeekly(v);
+                onCalculate();
+              },
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.biWeeklyToggle),
+                  Text(
+                    l10n.biWeeklySubtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ── CA Insurance Section ───────────────────────────────────────────────────────
+
+class _CAInsuranceSection extends StatelessWidget {
+  final CAProvider p;
+  final VoidCallback onCalculate;
+
+  const _CAInsuranceSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.insurance,
+      children: [
+        _InsuranceRow(
+          label: '${l10n.lifeDisability} (\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
+          value: p.insurance.lifeDisability,
+          onChanged: (v) {
+            p.setLifeDisability(v);
+            onCalculate();
+          },
+        ),
+        _InsuranceRow(
+          label: l10n.extendedWarranty,
+          value: p.insurance.extendedWarranty,
+          onChanged: (v) {
+            p.setExtendedWarranty(v);
+            onCalculate();
+          },
+        ),
+        if (p.insurance.extendedWarranty)
+          CurrencySliderInput(
+            label: '${l10n.extendedWarranty} Total',
+            value: p.insurance.warrantyAmount,
+            min: 0,
+            max: 5000,
+            step: 100,
+            symbol: 'C\$',
+            onChanged: (v) {
+              p.setWarrantyAmount(v);
+              onCalculate();
+            },
+          ),
+        _InsuranceRow(
+          label: l10n.gap,
+          value: p.insurance.gap,
+          onChanged: (v) {
+            p.setGap(v);
+            onCalculate();
+          },
+        ),
+        if (p.insurance.gap)
+          CurrencySliderInput(
+            label: '${l10n.gap} Total',
+            value: p.insurance.gapAmount,
+            min: 0,
+            max: 2000,
+            step: 50,
+            symbol: 'C\$',
+            onChanged: (v) {
+              p.setGapAmount(v);
+              onCalculate();
+            },
+          ),
+      ],
+    );
+  }
+}
+
+// ── CA Quick Tools Section (Reverse Solve + Cash-Back) ────────────────────────
+
+class _CAQuickToolsSection extends StatelessWidget {
+  final CAProvider p;
+
+  const _CAQuickToolsSection({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // ── Reverse Affordability ──────────────────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        ReverseSolveCard(
+          title: 'What vehicle price can I afford?',
+          targetLabel: 'Target monthly payment',
+          resultLabel: 'Max vehicle price',
+          prefix: '\$',
+          minBound: 5000,
+          maxBound: 200000,
+          targetValue: 0,
+          ascending: true,
+          compute: (vehiclePrice) {
+            final dpRatio = p.vehiclePrice > 0
+                ? (p.dpAmount / p.vehiclePrice).clamp(0.0, 0.95)
+                : 0.15;
+            final down = vehiclePrice * dpRatio;
+            final loan = vehiclePrice - down;
+            final r = p.annualRate / 100 / 12;
+            final n = p.termMonths;
+            if (loan <= 0 || n <= 0) return 0;
+            if (r == 0) return loan / n;
+            return loan * r * pow(1 + r, n) / (pow(1 + r, n) - 1);
+          },
+        ),
+        // ── Cash-Back vs Low-APR Comparator ───────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton.icon(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const CashbackVsLowAprScreen(flavor: 'ca'),
+                transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+                transitionDuration: AppDuration.base,
+              ),
+            );
+          },
+          icon: const Icon(Icons.local_offer_rounded),
+          label: const Text('Cash-Back vs Low-APR'),
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+        ),
+      ],
     );
   }
 }

@@ -168,458 +168,10 @@ class _UKScreenState extends State<UKScreen> {
               index: _selectedTab,
               children: [
                 // Tab 0: Calculator
-                Consumer<UKProvider>(
-                  builder: (context, p, _) => SafeArea(
-                    top: false,
-                    child: GestureDetector(
-                      onTap: () => FocusScope.of(context).unfocus(),
-                      child: SingleChildScrollView(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 600),
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSpacing.md),
-                              child: CalcwisePageEntrance(
-                                child: Column(
-                                  children: [
-                          // ── Hero result (moved to top so users see the answer first) ──
-                          if (p.result != null)
-                            CalcwisePageEntrance(
-                              child: Column(
-                                children: [
-                                  CalcwiseStaggerItem(
-                                    index: 0,
-                                    child: _UKResults(
-                                      p: p,
-                                      adService: adService,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            const CalcwiseEmptyState(
-                              icon: Icons.directions_car_outlined,
-                              title: 'No results yet',
-                              body: 'Enter the vehicle price to see your analysis.',
-                            ),
-
-                          // ── Vehicle ───────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.vehicle,
-                            children: [
-                              CurrencyTextInput(
-                                label: '${l10n.vehiclePrice} (VAT incl.)',
-                                value: p.vehiclePrice,
-                                symbol: '£',
-                                onChanged: (v) {
-                                  p.setVehiclePrice(v);
-                                  _debouncedCalculate();
-                                },
-                                helperText: 'e.g. 25 000',
-                                errorText: _validated && p.vehiclePrice <= 0
-                                    ? 'Required'
-                                    : null,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              CurrencySliderInput(
-                                label: l10n.downPayment,
-                                value: p.downPayment,
-                                min: 0,
-                                max: p.vehiclePrice * 0.9,
-                                step: 500,
-                                symbol: '£',
-                                onChanged: (v) {
-                                  p.setDownPayment(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              if (p.result != null) ...[
-                                const SizedBox(height: AppSpacing.sm),
-                                ResultTile(
-                                  label: l10n.loanAmount,
-                                  value: NumberFormat.currency(
-                                    symbol: '£',
-                                    decimalDigits: 2,
-                                  ).format(p.result!.loanAmount),
-                                ),
-                              ],
-                            ],
-                          ),
-
-                          // ── Loan Terms ────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.loanTerms,
-                            children: [
-                              RateInputField(
-                                label: '${l10n.annualRate} (APR)',
-                                value: p.annualRate,
-                                helperText:
-                                    'Default rate as of 2026 — update to your actual rate',
-                                onChanged: (v) {
-                                  p.setAnnualRate(v);
-                                  _debouncedCalculate();
-                                },
-                                errorText: _validated && p.annualRate <= 0
-                                    ? 'Required'
-                                    : null,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'Representative APR. Actual rate depends on your credit status (FCA CONC).',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              DurationChips(
-                                label: l10n.termMonths,
-                                options: const [24, 36, 48, 60, 72, 84],
-                                selected: p.termMonths,
-                                onSelected: (v) {
-                                  p.setTermMonths(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.isBiWeekly,
-                                    onChanged: (v) {
-                                      p.setIsBiWeekly(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(l10n.biWeeklyToggle),
-                                        Text(
-                                          l10n.biWeeklySubtitle,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          // ── Financing Type (Standard / PCP) ──────────────────────
-                          SectionCard(
-                            title: l10n.financingType,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: !p.isPcp
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.primaryContainer
-                                            : null,
-                                      ),
-                                      onPressed: () {
-                                        p.setIsPcp(false);
-                                        _debouncedCalculate();
-                                      },
-                                      child: Text(l10n.standardLoan),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: p.isPcp
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.primaryContainer
-                                            : null,
-                                      ),
-                                      onPressed: () {
-                                        p.setIsPcp(true);
-                                        _debouncedCalculate();
-                                      },
-                                      child: Text(l10n.pcp),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (p.isPcp) ...[
-                                const SizedBox(height: AppSpacing.md),
-                                PercentSliderInput(
-                                  label: l10n.gmfvPercent,
-                                  value: p.gmfvPercent,
-                                  min: 10,
-                                  max: 60,
-                                  step: 1,
-                                  onChanged: (v) {
-                                    p.setGmfvPercent(v);
-                                    _debouncedCalculate();
-                                  },
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  '${l10n.gmfv}: £${(p.vehiclePrice * p.gmfvPercent / 100).toStringAsFixed(0)}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  l10n.pcpNote,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                            ],
-                          ),
-
-                          // ── Road Tax (VED) ────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.roadTax,
-                            children: [
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.includeRoadTax,
-                                    onChanged: (v) {
-                                      p.setIncludeRoadTax(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      l10n.includeRoadTax,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (p.includeRoadTax) ...[
-                                const SizedBox(height: AppSpacing.md),
-                                DropdownButtonFormField<VehicleType>(
-                                  // ignore: deprecated_member_use
-                                  value: p.vehicleType,
-                                  isExpanded: true,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.vehicleType,
-                                    border: const OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                  ),
-                                  items: VehicleType.values
-                                      .map(
-                                        (t) => DropdownMenuItem(
-                                          value: t,
-                                          child: Text(t.label),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (v) {
-                                    if (v != null) {
-                                      p.setVehicleType(v);
-                                      _debouncedCalculate();
-                                    }
-                                  },
-                                ),
-                                if (p.vehicleType == VehicleType.custom) ...[
-                                  const SizedBox(height: AppSpacing.md),
-                                  TextFormField(
-                                    initialValue: p.customVedAnnual
-                                        .toStringAsFixed(0),
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Custom annual VED (£)',
-                                      border: OutlineInputBorder(),
-                                      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                      prefixText: '£ ',
-                                    ),
-                                    onChanged: (v) {
-                                      final val = double.tryParse(v);
-                                      if (val != null && val >= 0) {
-                                        p.setCustomVedAnnual(val);
-                                        _debouncedCalculate();
-                                      }
-                                    },
-                                  ),
-                                ],
-                                const SizedBox(height: AppSpacing.sm),
-                                Text(
-                                  () {
-                                    final annual =
-                                        p.vehicleType == VehicleType.custom
-                                        ? p.customVedAnnual
-                                        : p.vehicleType.vedAnnual;
-                                    return 'Annual VED: £${annual.toStringAsFixed(0)}  ·  '
-                                        'Monthly: £${(annual / 12).toStringAsFixed(2)}';
-                                  }(),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                ),
-                              ],
-                              if (!p.includeRoadTax)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Tooltip(
-                                    triggerMode: TooltipTriggerMode.tap,
-                                    showDuration: const Duration(seconds: 6),
-                                    preferBelow: true,
-                                    message:
-                                        'VED Annual Rates\n'
-                                        'Electric:            £0\n'
-                                        'Petrol <1000cc:  £180\n'
-                                        'Diesel / Hybrid:  £190\n'
-                                        'Petrol >1000cc:  £280\n'
-                                        'Diesel surcharge: £590',
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          size: 16,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'VED annual rates',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-
-                          // ── PCP vs HP Comparison (only when PCP is on) ────────────
-                          if (p.result != null && p.isPcp)
-                            _UKPcpHpSection(p: p),
-
-                          // ── Total Cost of Credit ──────────────────────────────────
-                          if (p.result != null) _UKCostOfCreditSection(p: p),
-
-                          // ── Early Settlement ──────────────────────────────────────
-                          if (p.result != null) _UKEarlySettlementSection(p: p),
-
-                          // ── TCO ───────────────────────────────────────────────────
-                          if (p.result != null) _UKTcoSection(p: p),
-
-                          // ── HP vs PCP Comparison ──────────────────────────────────
-                          if (p.result != null) _UKHpVsPcpSection(p: p),
-
-                          // ── Affordability Guide ───────────────────────────────────
-                          _UKAffordabilitySection(p: p),
-
-                          // ── Reverse Affordability — "what vehicle can I afford?" ──
-                          const SizedBox(height: AppSpacing.md),
-                          ReverseSolveCard(
-                            title: 'What vehicle price can I afford?',
-                            targetLabel: 'Target monthly payment',
-                            resultLabel: 'Max vehicle price',
-                            prefix: '£',
-                            minBound: 5000,
-                            maxBound: 200000,
-                            targetValue: 0,
-                            ascending: true,
-                            compute: (vehiclePrice) {
-                              final dpRatio = p.vehiclePrice > 0
-                                  ? (p.downPayment / p.vehiclePrice).clamp(
-                                      0.0,
-                                      0.95,
-                                    )
-                                  : 0.15;
-                              final down = vehiclePrice * dpRatio;
-                              final loan = vehiclePrice - down;
-                              final r = p.annualRate / 100 / 12;
-                              final n = p.termMonths;
-                              if (loan <= 0 || n <= 0) return 0;
-                              if (r == 0) return loan / n;
-                              return loan *
-                                  r *
-                                  pow(1 + r, n) /
-                                  (pow(1 + r, n) - 1);
-                            },
-                          ),
-
-                          // ── Cash-Back vs Low-APR Comparator ───────────────────────
-                          const SizedBox(height: AppSpacing.md),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (_, __, ___) =>
-                                      const CashbackVsLowAprScreen(
-                                        flavor: 'uk',
-                                      ),
-                                  transitionsBuilder: (_, anim, __, child) =>
-                                      FadeTransition(
-                                        opacity: anim,
-                                        child: child,
-                                      ),
-                                  transitionDuration: AppDuration.base,
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.local_offer_rounded),
-                            label: const Text('Cash-Back vs Low-APR'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(48),
-                            ),
-                          ),
-
-                                    const SizedBox(height: AppSpacing.listBottomInset),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                _UKCalculatorTab(
+                  validated: _validated,
+                  onCalculate: _debouncedCalculate,
+                  adService: adService,
                 ),
                 // Tab 1: Compare
                 CompareScreen(flavor: 'uk', showAppBar: false),
@@ -638,6 +190,466 @@ class _UKScreenState extends State<UKScreen> {
           const CalcwiseAdFooter(),
         ],
       ),
+    );
+  }
+}
+
+// ── UK Calculator Tab ──────────────────────────────────────────────────────────
+
+class _UKCalculatorTab extends StatelessWidget {
+  final bool validated;
+  final VoidCallback onCalculate;
+  final CalcwiseAdService adService;
+
+  const _UKCalculatorTab({
+    required this.validated,
+    required this.onCalculate,
+    required this.adService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<UKProvider>(
+      builder: (context, p, _) => SafeArea(
+        top: false,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: CalcwisePageEntrance(
+                    child: Column(
+                      children: [
+                        // ── Hero result ───────────────────────────────────
+                        if (p.result != null)
+                          CalcwisePageEntrance(
+                            child: Column(
+                              children: [
+                                CalcwiseStaggerItem(
+                                  index: 0,
+                                  child: _UKResults(p: p, adService: adService),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          const CalcwiseEmptyState(
+                            icon: Icons.directions_car_outlined,
+                            title: 'No results yet',
+                            body: 'Enter the vehicle price to see your analysis.',
+                          ),
+                        // ── Input sections ────────────────────────────────
+                        _UKVehicleSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _UKLoanTermsSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _UKFinancingTypeSection(p: p, onCalculate: onCalculate),
+                        _UKRoadTaxSection(p: p, onCalculate: onCalculate),
+                        // ── Extra tools ───────────────────────────────────
+                        if (p.result != null && p.isPcp) _UKPcpHpSection(p: p),
+                        if (p.result != null) _UKCostOfCreditSection(p: p),
+                        if (p.result != null) _UKEarlySettlementSection(p: p),
+                        if (p.result != null) _UKTcoSection(p: p),
+                        if (p.result != null) _UKHpVsPcpSection(p: p),
+                        _UKAffordabilitySection(p: p),
+                        _UKQuickToolsSection(p: p),
+                        const SizedBox(height: AppSpacing.listBottomInset),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── UK Vehicle Section ─────────────────────────────────────────────────────────
+
+class _UKVehicleSection extends StatelessWidget {
+  final UKProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _UKVehicleSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.vehicle,
+      children: [
+        CurrencyTextInput(
+          label: '${l10n.vehiclePrice} (VAT incl.)',
+          value: p.vehiclePrice,
+          symbol: '£',
+          onChanged: (v) {
+            p.setVehiclePrice(v);
+            onCalculate();
+          },
+          helperText: 'e.g. 25 000',
+          errorText: validated && p.vehiclePrice <= 0 ? 'Required' : null,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        CurrencySliderInput(
+          label: l10n.downPayment,
+          value: p.downPayment,
+          min: 0,
+          max: p.vehiclePrice * 0.9,
+          step: 500,
+          symbol: '£',
+          onChanged: (v) {
+            p.setDownPayment(v);
+            onCalculate();
+          },
+        ),
+        if (p.result != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ResultTile(
+            label: l10n.loanAmount,
+            value: NumberFormat.currency(symbol: '£', decimalDigits: 2).format(p.result!.loanAmount),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK Loan Terms Section ──────────────────────────────────────────────────────
+
+class _UKLoanTermsSection extends StatelessWidget {
+  final UKProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _UKLoanTermsSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.loanTerms,
+      children: [
+        RateInputField(
+          label: '${l10n.annualRate} (APR)',
+          value: p.annualRate,
+          helperText: 'Default rate as of 2026 — update to your actual rate',
+          onChanged: (v) {
+            p.setAnnualRate(v);
+            onCalculate();
+          },
+          errorText: validated && p.annualRate <= 0 ? 'Required' : null,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            'Representative APR. Actual rate depends on your credit status (FCA CONC).',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        DurationChips(
+          label: l10n.termMonths,
+          options: const [24, 36, 48, 60, 72, 84],
+          selected: p.termMonths,
+          onSelected: (v) {
+            p.setTermMonths(v);
+            onCalculate();
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Switch(
+              value: p.isBiWeekly,
+              onChanged: (v) {
+                p.setIsBiWeekly(v);
+                onCalculate();
+              },
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.biWeeklyToggle),
+                  Text(
+                    l10n.biWeeklySubtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ── UK Financing Type Section ──────────────────────────────────────────────────
+
+class _UKFinancingTypeSection extends StatelessWidget {
+  final UKProvider p;
+  final VoidCallback onCalculate;
+
+  const _UKFinancingTypeSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.financingType,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: !p.isPcp
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                ),
+                onPressed: () {
+                  p.setIsPcp(false);
+                  onCalculate();
+                },
+                child: Text(l10n.standardLoan),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: p.isPcp
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                ),
+                onPressed: () {
+                  p.setIsPcp(true);
+                  onCalculate();
+                },
+                child: Text(l10n.pcp),
+              ),
+            ),
+          ],
+        ),
+        if (p.isPcp) ...[
+          const SizedBox(height: AppSpacing.md),
+          PercentSliderInput(
+            label: l10n.gmfvPercent,
+            value: p.gmfvPercent,
+            min: 10,
+            max: 60,
+            step: 1,
+            onChanged: (v) {
+              p.setGmfvPercent(v);
+              onCalculate();
+            },
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${l10n.gmfv}: £${(p.vehiclePrice * p.gmfvPercent / 100).toStringAsFixed(0)}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.pcpNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK Road Tax (VED) Section ──────────────────────────────────────────────────
+
+class _UKRoadTaxSection extends StatelessWidget {
+  final UKProvider p;
+  final VoidCallback onCalculate;
+
+  const _UKRoadTaxSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.roadTax,
+      children: [
+        Row(
+          children: [
+            Switch(
+              value: p.includeRoadTax,
+              onChanged: (v) {
+                p.setIncludeRoadTax(v);
+                onCalculate();
+              },
+            ),
+            Expanded(
+              child: Text(l10n.includeRoadTax, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+          ],
+        ),
+        if (p.includeRoadTax) ...[
+          const SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<VehicleType>(
+            // ignore: deprecated_member_use
+            value: p.vehicleType,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10n.vehicleType,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+            items: VehicleType.values
+                .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) {
+                p.setVehicleType(v);
+                onCalculate();
+              }
+            },
+          ),
+          if (p.vehicleType == VehicleType.custom) ...[
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              initialValue: p.customVedAnnual.toStringAsFixed(0),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Custom annual VED (£)',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                prefixText: '£ ',
+              ),
+              onChanged: (v) {
+                final val = double.tryParse(v);
+                if (val != null && val >= 0) {
+                  p.setCustomVedAnnual(val);
+                  onCalculate();
+                }
+              },
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            () {
+              final annual = p.vehicleType == VehicleType.custom
+                  ? p.customVedAnnual
+                  : p.vehicleType.vedAnnual;
+              return 'Annual VED: £${annual.toStringAsFixed(0)}  ·  Monthly: £${(annual / 12).toStringAsFixed(2)}';
+            }(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ],
+        if (!p.includeRoadTax)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: const Duration(seconds: 6),
+              preferBelow: true,
+              message: 'VED Annual Rates\n'
+                  'Electric:            £0\n'
+                  'Petrol <1000cc:  £180\n'
+                  'Diesel / Hybrid:  £190\n'
+                  'Petrol >1000cc:  £280\n'
+                  'Diesel surcharge: £590',
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'VED annual rates',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── UK Quick Tools Section (Reverse Solve + Cash-Back) ────────────────────────
+
+class _UKQuickToolsSection extends StatelessWidget {
+  final UKProvider p;
+
+  const _UKQuickToolsSection({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.md),
+        ReverseSolveCard(
+          title: 'What vehicle price can I afford?',
+          targetLabel: 'Target monthly payment',
+          resultLabel: 'Max vehicle price',
+          prefix: '£',
+          minBound: 5000,
+          maxBound: 200000,
+          targetValue: 0,
+          ascending: true,
+          compute: (vehiclePrice) {
+            final dpRatio = p.vehiclePrice > 0
+                ? (p.downPayment / p.vehiclePrice).clamp(0.0, 0.95)
+                : 0.15;
+            final down = vehiclePrice * dpRatio;
+            final loan = vehiclePrice - down;
+            final r = p.annualRate / 100 / 12;
+            final n = p.termMonths;
+            if (loan <= 0 || n <= 0) return 0;
+            if (r == 0) return loan / n;
+            return loan * r * pow(1 + r, n) / (pow(1 + r, n) - 1);
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton.icon(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const CashbackVsLowAprScreen(flavor: 'uk'),
+                transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+                transitionDuration: AppDuration.base,
+              ),
+            );
+          },
+          icon: const Icon(Icons.local_offer_rounded),
+          label: const Text('Cash-Back vs Low-APR'),
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+        ),
+      ],
     );
   }
 }
