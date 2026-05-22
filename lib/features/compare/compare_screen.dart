@@ -17,7 +17,8 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 
 class CompareScreen extends StatefulWidget {
   final String flavor; // 'ca', 'uk', 'us'
-  const CompareScreen({super.key, required this.flavor});
+  final bool showAppBar;
+  const CompareScreen({super.key, required this.flavor, this.showAppBar = true});
 
   @override
   State<CompareScreen> createState() => _CompareScreenState();
@@ -89,22 +90,17 @@ class _CompareScreenState extends State<CompareScreen> {
         ? (_resA!.totalCost - _resB!.totalCost).abs()
         : 0.0;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.compareLoans)),
-      body: Column(
+    final listView = SafeArea(
+      top: false,
+      bottom: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xxl,
+        ),
         children: [
-          Expanded(
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.xxl,
-                ),
-                children: [
                   // ── Shared ──────────────────────────────────────────────────────
                   SectionCard(
                     title: l10n.vehicle,
@@ -282,9 +278,18 @@ class _CompareScreenState extends State<CompareScreen> {
                       flavor: widget.flavor,
                     ),
                 ],
-              ),
-            ),
-          ),
+      ),
+    );
+
+    if (!widget.showAppBar) {
+      return Column(children: [Expanded(child: listView)]);
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.compareLoans)),
+      body: Column(
+        children: [
+          Expanded(child: listView),
           const CalcwiseAdFooter(),
         ],
       ),

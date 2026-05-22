@@ -13,7 +13,8 @@ import '../../services/analytics_service.dart';
 
 class LeaseVsBuyScreen extends StatefulWidget {
   final String flavor; // 'us' | 'ca' | 'uk'
-  const LeaseVsBuyScreen({super.key, required this.flavor});
+  final bool showAppBar;
+  const LeaseVsBuyScreen({super.key, required this.flavor, this.showAppBar = true});
 
   @override
   State<LeaseVsBuyScreen> createState() => _LeaseVsBuyScreenState();
@@ -86,25 +87,18 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
     final fmt = NumberFormat.currency(symbol: _sym, decimalDigits: 2);
     final fmt0 = NumberFormat.currency(symbol: _sym, decimalDigits: 0);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.leaseVsBuy),
-        leading: BackButton(
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: CalcwisePageEntrance(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+    final scrollContent = GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: CalcwisePageEntrance(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                       // ── Results hero ──────────────────────────────────────
                       if (_result != null) ...[
                         _ResultsCard(
@@ -273,16 +267,31 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
-                      const CalcwiseAdFooter(),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+
+    if (!widget.showAppBar) {
+      return Column(children: [Expanded(child: scrollContent)]);
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.leaseVsBuy),
+        leading: BackButton(
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(child: scrollContent),
+          const CalcwiseAdFooter(),
+        ],
       ),
     );
   }

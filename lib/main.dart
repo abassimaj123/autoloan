@@ -83,7 +83,6 @@ void main() async {
   await freemiumService.initialize();
   await IAPService.instance.initialize();
   await paywallSession.initialize();
-  await paywallSession.recordSession();
   AnalyticsService.instance.setUserPremium(freemiumService.hasFullAccess);
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 

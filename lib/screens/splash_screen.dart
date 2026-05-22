@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (onboardingDone) {
         fadeTo(homeScreen);
       } else {
-        fadeTo(OnboardingScreen(nextScreen: homeScreen));
+        fadeTo(OnboardingScreen(nextScreen: homeScreen, flavor: _flavor.toLowerCase()));
       }
     },
   );

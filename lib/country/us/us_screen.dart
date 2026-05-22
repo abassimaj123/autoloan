@@ -39,19 +39,36 @@ class _USScreenState extends State<USScreen> {
   Timer? _debounce;
   Timer? _saveDebounce;
   bool _validated = false;
+  int _selectedTab = 0;
+  int _historyRefreshKey = 0;
+  bool _wasPremium = false;
 
   @override
   void initState() {
     super.initState();
+    _wasPremium = freemiumService.hasFullAccess;
+    freemiumService.isPremiumNotifier.addListener(_onPremiumChange);
     AnalyticsService.instance.logScreenView('calculator');
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async => await paywallSession.recordSession(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => _debouncedCalculate());
   }
 
   @override
   void dispose() {
+    freemiumService.isPremiumNotifier.removeListener(_onPremiumChange);
     _debounce?.cancel();
     _saveDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onPremiumChange() {
+    final now = freemiumService.hasFullAccess;
+    if (now && !_wasPremium && mounted) {
+      showPremiumWelcomeSnackBar(context);
+    }
+    _wasPremium = now;
   }
 
   void _debouncedCalculate() {
@@ -68,65 +85,26 @@ class _USScreenState extends State<USScreen> {
   }
 
   Future<void> _onNavTap(int i) async {
+    if (i == _selectedTab) return;
     if (i == 1) {
       AnalyticsService.instance.logTabChanged('compare');
       AnalyticsService.instance.logCompareUsed('us');
-      final trigger = await paywallSession.recordAction();
-      if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) {
-        PaywallHard.show(context);
-      } else if (trigger == PaywallTrigger.soft) {
-        PaywallSoft.show(context);
-      }
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'us'),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: AppDuration.base,
-        ),
-      );
     } else if (i == 2) {
       AnalyticsService.instance.logTabChanged('history');
-      final trigger = await paywallSession.recordAction();
-      if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) {
-        PaywallHard.show(context);
-      } else if (trigger == PaywallTrigger.soft) {
-        PaywallSoft.show(context);
-      }
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const HistoryScreen(country: 'us'),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: AppDuration.base,
-        ),
-      );
     } else if (i == 3) {
       AnalyticsService.instance.logTabChanged('lease_vs_buy');
+    }
+    if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) {
-        PaywallHard.show(context);
-      } else if (trigger == PaywallTrigger.soft) {
-        PaywallSoft.show(context);
-      }
+      if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
+      else if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
       if (!mounted) return;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const LeaseVsBuyScreen(flavor: 'us'),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: AppDuration.base,
-        ),
-      );
     }
+    setState(() {
+      _selectedTab = i;
+      if (i == 2) _historyRefreshKey++;
+    });
   }
 
   @override
@@ -155,11 +133,12 @@ class _USScreenState extends State<USScreen> {
               );
             },
             onRewardAd: () => CalcwiseRewardAdSheet.show(context),
+            onPremium: () => PaywallHard.show(context),
           ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
+        selectedIndex: _selectedTab,
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
           NavigationDestination(
@@ -184,20 +163,27 @@ class _USScreenState extends State<USScreen> {
           ),
         ],
       ),
-      body: Consumer<USProvider>(
-        builder: (context, p, _) => SafeArea(
-          top: false,
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: SingleChildScrollView(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: CalcwisePageEntrance(
-                      child: Column(
-                        children: [
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: _selectedTab,
+              children: [
+                // Tab 0: Calculator
+                Consumer<USProvider>(
+                  builder: (context, p, _) => SafeArea(
+                    top: false,
+                    child: GestureDetector(
+                      onTap: () => FocusScope.of(context).unfocus(),
+                      child: SingleChildScrollView(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: Padding(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              child: CalcwisePageEntrance(
+                                child: Column(
+                                  children: [
                           // ── Hero result (moved to top so users see the answer first) ──
                           if (p.result != null)
                             CalcwisePageEntrance(
@@ -483,18 +469,33 @@ class _USScreenState extends State<USScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: AppSpacing.lg),
-                          const CalcwiseAdFooter(),
-                          const SizedBox(height: AppSpacing.xl),
-                        ],
+                                    const SizedBox(height: AppSpacing.listBottomInset),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+                // Tab 1: Compare
+                CompareScreen(flavor: 'us', showAppBar: false),
+                // Tab 2: History
+                HistoryScreen(
+                  key: ValueKey(_historyRefreshKey),
+                  country: 'us',
+                  showAppBar: false,
+                  onClear: () => setState(() => _historyRefreshKey++),
+                ),
+                // Tab 3: Lease vs Buy
+                const LeaseVsBuyScreen(flavor: 'us', showAppBar: false),
+              ],
             ),
           ),
-        ),
+          const CalcwiseAdFooter(),
+        ],
       ),
     );
   }
@@ -871,7 +872,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
               border: OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               suffixText: '%',
             ),
             onChanged: (v) {
@@ -887,7 +888,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Cap Cost Reduction (\$)',
               border: OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -903,7 +904,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Acquisition Fee (\$)',
               border: OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -1326,7 +1327,7 @@ class _RefiField extends StatelessWidget {
         labelText: label,
         suffixText: suffix,
         border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       ),
     );
   }

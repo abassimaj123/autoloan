@@ -10,8 +10,13 @@ class OnboardingScreen extends StatefulWidget {
   /// The screen to navigate to after onboarding completes.
   /// [OnboardingScreen] will do a fade-replacement to this widget.
   final Widget nextScreen;
+  final String flavor; // 'ca', 'uk', 'us'
 
-  const OnboardingScreen({super.key, required this.nextScreen});
+  const OnboardingScreen({
+    super.key,
+    required this.nextScreen,
+    required this.flavor,
+  });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -97,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageCtrl,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
-                  _Page1(l10n: l10n),
+                  _Page1(l10n: l10n, flavor: widget.flavor),
                   _Page2(l10n: l10n),
                   _Page3(l10n: l10n),
                 ],
@@ -178,7 +183,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 class _Page1 extends StatelessWidget {
   final AppLocalizations l10n;
-  const _Page1({required this.l10n});
+  final String flavor;
+  const _Page1({required this.l10n, required this.flavor});
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +246,13 @@ class _Page1 extends StatelessWidget {
               _FeaturePill(label: l10n.onboardingFeaturePayment),
               _FeaturePill(label: l10n.onboardingFeatureInterest),
               _FeaturePill(label: l10n.onboardingFeatureCost),
-              _FeaturePill(label: 'CA · UK · US'),
+              _FeaturePill(
+                label: switch (flavor) {
+                  'uk' => 'UK Market',
+                  'us' => 'US Market',
+                  _ => 'Canadian Market',
+                },
+              ),
             ],
           ),
         ],
@@ -416,7 +428,7 @@ class _ScenarioColumn extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page 3 — Go premium
+// Page 3 — Save & track results
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Page3 extends StatelessWidget {
@@ -440,7 +452,7 @@ class _Page3 extends StatelessWidget {
               borderRadius: BorderRadius.circular(32),
             ),
             child: Icon(
-              Icons.star_rounded,
+              Icons.history_rounded,
               size: 60,
               color: colorScheme.onTertiary,
             ),
@@ -473,15 +485,12 @@ class _Page3 extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Premium features card
           Container(
             padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.4),
-              ),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +533,7 @@ class _BulletRow extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: colorScheme.onPrimaryContainer,
+              color: colorScheme.onSurface,
               fontSize: AppTextSize.body,
               fontWeight: FontWeight.w500,
             ),
