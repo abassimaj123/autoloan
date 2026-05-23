@@ -1,5 +1,55 @@
 import 'dart:math';
 
+/// UK financing type
+enum UKFinancingType {
+  standardLoan, // Standard personal loan / HP (you own at end)
+  hp,           // Hire Purchase — same amortization as standard, but branded HP
+  pcp,          // Personal Contract Purchase — balloon payment at end
+}
+
+extension UKFinancingTypeExt on UKFinancingType {
+  String get label {
+    switch (this) {
+      case UKFinancingType.standardLoan:
+        return 'Standard Loan';
+      case UKFinancingType.hp:
+        return 'HP (Hire Purchase)';
+      case UKFinancingType.pcp:
+        return 'PCP';
+    }
+  }
+
+  bool get isPcpType => this == UKFinancingType.pcp;
+}
+
+// ── 2025/2026 UK VED — CO2 first-year rates ────────────────────────────────────
+
+/// Returns first-year VED amount (£) based on CO2 g/km for post-2017 cars.
+double co2FirstYearVed(double co2GPerKm) {
+  if (co2GPerKm <= 0) return 10.0;       // Electric (0 g/km) — £10 from 2025
+  if (co2GPerKm <= 50) return 110.0;
+  if (co2GPerKm <= 75) return 130.0;
+  if (co2GPerKm <= 90) return 270.0;
+  if (co2GPerKm <= 100) return 350.0;
+  if (co2GPerKm <= 110) return 390.0;
+  if (co2GPerKm <= 130) return 440.0;
+  if (co2GPerKm <= 150) return 540.0;
+  if (co2GPerKm <= 170) return 1360.0;
+  if (co2GPerKm <= 190) return 2190.0;
+  if (co2GPerKm <= 225) return 3300.0;
+  if (co2GPerKm <= 255) return 3945.0;
+  return 5490.0; // Over 255 g/km
+}
+
+/// Standard rate for year 2+ — £10 for EVs, £190 for everyone else
+double co2StandardRateVed(double co2GPerKm) {
+  return co2GPerKm <= 0 ? 10.0 : 190.0;
+}
+
+/// Public alias for use from provider
+double ukCo2FirstYearVed(double co2GPerKm) => co2FirstYearVed(co2GPerKm);
+double ukCo2StandardRateVed(double co2GPerKm) => co2StandardRateVed(co2GPerKm);
+
 /// UK Vehicle Excise Duty (VED / Road Tax) types and annual rates
 enum VehicleType {
   petrolSmall,

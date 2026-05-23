@@ -247,7 +247,7 @@ class _UKCalculatorTab extends StatelessWidget {
                         _UKFinancingTypeSection(p: p, onCalculate: onCalculate),
                         _UKRoadTaxSection(p: p, onCalculate: onCalculate),
                         // ── Extra tools ───────────────────────────────────
-                        if (p.result != null && p.isPcp) _UKPcpHpSection(p: p),
+                        if (p.result != null && p.financingType == UKFinancingType.pcp) _UKPcpHpSection(p: p),
                         if (p.result != null) _UKCostOfCreditSection(p: p),
                         if (p.result != null) _UKEarlySettlementSection(p: p),
                         if (p.result != null) _UKTcoSection(p: p),
@@ -413,43 +413,82 @@ class _UKFinancingTypeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final ft = p.financingType;
     return SectionCard(
       title: l10n.financingType,
       children: [
+        // Three-way toggle: Standard Loan | HP | PCP
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: !p.isPcp
+                  backgroundColor: ft == UKFinancingType.standardLoan
                       ? Theme.of(context).colorScheme.primaryContainer
                       : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
                 onPressed: () {
-                  p.setIsPcp(false);
+                  p.setFinancingType(UKFinancingType.standardLoan);
                   onCalculate();
                 },
-                child: Text(l10n.standardLoan),
+                child: Text(l10n.standardLoan, textAlign: TextAlign.center),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Expanded(
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: p.isPcp
+                  backgroundColor: ft == UKFinancingType.hp
                       ? Theme.of(context).colorScheme.primaryContainer
                       : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
                 onPressed: () {
-                  p.setIsPcp(true);
+                  p.setFinancingType(UKFinancingType.hp);
                   onCalculate();
                 },
-                child: Text(l10n.pcp),
+                child: const Text('HP', textAlign: TextAlign.center),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: ft == UKFinancingType.pcp
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                onPressed: () {
+                  p.setFinancingType(UKFinancingType.pcp);
+                  onCalculate();
+                },
+                child: Text(l10n.pcp, textAlign: TextAlign.center),
               ),
             ),
           ],
         ),
-        if (p.isPcp) ...[
+        // HP description
+        if (ft == UKFinancingType.hp) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Text(
+              'HP (Hire Purchase): Fixed monthly payments — you own the car outright at the end. '
+              'No balloon payment, no mileage restrictions.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ],
+        // PCP — GMFV inputs
+        if (ft == UKFinancingType.pcp) ...[
           const SizedBox(height: AppSpacing.md),
           PercentSliderInput(
             label: l10n.gmfvPercent,
@@ -563,6 +602,68 @@ class _UKRoadTaxSection extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
+          // ── CO2 Advanced Mode ──────────────────────────────────────
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Advanced: CO2-Based VED (post-2017 cars)',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextFormField(
+            initialValue: p.co2GPerKm > 0 ? p.co2GPerKm.toStringAsFixed(0) : '',
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'CO2 emissions (g/km) — optional',
+              hintText: 'Leave blank to use category rate',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              suffixText: 'g/km',
+            ),
+            onChanged: (v) {
+              final val = double.tryParse(v) ?? 0.0;
+              p.setCo2GPerKm(val);
+              onCalculate();
+            },
+          ),
+          if (p.co2GPerKm > 0) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Year 1 VED (CO2-based): £${p.co2FirstYearVed!.toStringAsFixed(0)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  Text(
+                    'Year 2+ VED (standard): £${p.co2StandardVed!.toStringAsFixed(0)}/yr  ·  £${(p.co2StandardVed! / 12).toStringAsFixed(2)}/mo',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  Text(
+                    'First year differs from ongoing rate — check with DVLA.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
         if (!p.includeRoadTax)
           Padding(
@@ -691,10 +792,16 @@ class _UKResults extends StatelessWidget {
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
           label: p.isBiWeekly
-              ? (r.isPcp ? l10n.pcpPayment : l10n.biWeeklyPayment)
-              : (r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment),
+              ? (r.isPcp ? l10n.pcpPayment
+                  : p.financingType == UKFinancingType.hp ? 'HP Bi-Weekly Payment'
+                  : l10n.biWeeklyPayment)
+              : (r.isPcp ? l10n.pcpPayment
+                  : p.financingType == UKFinancingType.hp ? 'HP Monthly Payment'
+                  : l10n.monthlyPayment),
           value: fmt.format(r.displayPayment),
-          secondary: 'Principal & Interest',
+          secondary: p.financingType == UKFinancingType.hp
+              ? 'Hire Purchase — you own the car at end'
+              : 'Principal & Interest',
           stats: [
             (label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
             (label: l10n.totalCost, value: fmt.format(r.totalCost)),

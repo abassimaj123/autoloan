@@ -911,6 +911,12 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
 
   CALeaseCalculation? _lease;
 
+  // ── Km Overage Calculator ──────────────────────────────────────────────
+  bool _overageExpanded = false;
+  double _annualKmAllowance = 20000;
+  double _estimatedAnnualKm = 20000;
+  double _overageFeeCentsPerKm = 15; // $0.15/km
+
   void _calculate() {
     setState(() {
       _lease = CALeaseCalculation.calculate(
@@ -1032,6 +1038,133 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               buyTermMonths: widget.p.termMonths,
               leaseTermMonths: _leaseTerm,
             ),
+          ],
+          // ── Km Overage Calculator ──────────────────────────────────────
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          Row(
+            children: [
+              Switch(
+                value: _overageExpanded,
+                onChanged: (v) => setState(() => _overageExpanded = v),
+              ),
+              const Expanded(
+                child: Text(
+                  'Km Overage Calculator',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          if (_overageExpanded) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _TcoSlider(
+              label: 'Annual km allowance',
+              value: _annualKmAllowance,
+              min: 10000,
+              max: 40000,
+              step: 1000,
+              display: '${_annualKmAllowance.toStringAsFixed(0)} km',
+              onChanged: (v) => setState(() => _annualKmAllowance = v),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _TcoSlider(
+              label: 'Estimated annual km driven',
+              value: _estimatedAnnualKm,
+              min: 5000,
+              max: 60000,
+              step: 1000,
+              display: '${_estimatedAnnualKm.toStringAsFixed(0)} km',
+              onChanged: (v) => setState(() => _estimatedAnnualKm = v),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _TcoSlider(
+              label: 'Overage fee (¢/km)',
+              value: _overageFeeCentsPerKm,
+              min: 8,
+              max: 25,
+              step: 1,
+              display: '\$${(_overageFeeCentsPerKm / 100).toStringAsFixed(2)}/km',
+              onChanged: (v) => setState(() => _overageFeeCentsPerKm = v),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Builder(builder: (ctx) {
+              final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+              final leaseYears = _leaseTerm / 12;
+              final overagePerYear = (_estimatedAnnualKm - _annualKmAllowance).clamp(0.0, double.infinity);
+              final feePerKm = _overageFeeCentsPerKm / 100;
+              final totalOverageKm = overagePerYear * leaseYears;
+              final totalOverageCost = totalOverageKm * feePerKm;
+              final monthlyOverageCost = totalOverageCost / _leaseTerm;
+
+              if (overagePerYear <= 0) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, size: 18,
+                          color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text('No overage — estimated km within allowance.'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estimated overage: ${overagePerYear.toStringAsFixed(0)} km/year',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Projected overage cost over lease: ${fmt2.format(totalOverageCost)}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                        Text(
+                          'Monthly cost of overage: ${fmt2.format(monthlyOverageCost)}/mo',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onErrorContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Consider increasing your km allowance or choosing a different plan.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              );
+            }),
           ],
         ],
       ],

@@ -267,6 +267,7 @@ class _USCalculatorTab extends StatelessWidget {
                         _USLeaseSection(p: p),
                         if (p.result != null) _USRefiSection(p: p),
                         if (p.result != null) _USTcoSection(p: p),
+                        _USAffordabilityReverseSolverSection(p: p),
                         _USAffordabilitySection(p: p),
                         _USQuickToolsSection(p: p),
                         const SizedBox(height: AppSpacing.listBottomInset),
@@ -1586,6 +1587,326 @@ class _USTcoRow extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+// ── US Affordability Reverse-Solver ───────────────────────────────────────────
+
+class _USAffordabilityReverseSolverSection extends StatefulWidget {
+  final USProvider p;
+  const _USAffordabilityReverseSolverSection({required this.p});
+
+  @override
+  State<_USAffordabilityReverseSolverSection> createState() =>
+      _USAffordabilityReverseSolverSectionState();
+}
+
+class _USAffordabilityReverseSolverSectionState
+    extends State<_USAffordabilityReverseSolverSection> {
+  bool _expanded = false;
+
+  double _monthlyBudget = 500;
+  double _downPayment = 3000;
+  double _tradeIn = 0;
+  double _salesTaxPct = 8.0;
+  double _dealerFees = 500;
+
+  // Desired term (months) — used for main calculation
+  int _term = 60;
+
+  // Results
+  double? _maxPrice;
+
+  // Credit-score tiers for auto-fill rate
+  static const _creditTiers = [
+    (label: 'Excellent (750+)', rate: 5.5),
+    (label: 'Good (700–749)', rate: 6.5),
+    (label: 'Fair (650–699)', rate: 9.0),
+    (label: 'Poor (<650)', rate: 14.0),
+  ];
+  int _creditTierIndex = 0;
+  double get _rate => _creditTiers[_creditTierIndex].rate;
+
+  /// Reverse-PMT: given monthly payment, return max loan principal
+  double _reversePmt(double pmt, double annualRate, int n) {
+    if (pmt <= 0 || n <= 0) return 0;
+    if (annualRate <= 0) return pmt * n;
+    final r = annualRate / 12 / 100;
+    return pmt * (1 - pow(1 + r, -n)) / r;
+  }
+
+  /// Max affordable vehicle price given budget, tax, fees, down, trade-in
+  double _maxVehiclePrice({
+    required double monthlyBudget,
+    required double annualRate,
+    required int termMonths,
+    required double downPayment,
+    required double tradeIn,
+    required double salesTaxPct,
+    required double dealerFees,
+  }) {
+    // financedAmount = vehiclePrice * (1 + tax%) + dealerFees - downPayment - tradeIn
+    // Solve: reversePmt(monthlyBudget, rate, term) = vehiclePrice*(1+taxPct/100) + dealerFees - down - tradeIn
+    final loanPV = _reversePmt(monthlyBudget, annualRate, termMonths);
+    // vehiclePrice*(1+taxPct/100) = loanPV - dealerFees + downPayment + tradeIn
+    final taxFactor = 1.0 + salesTaxPct / 100;
+    final vehiclePrice = (loanPV - dealerFees + downPayment + tradeIn) / taxFactor;
+    return vehiclePrice.clamp(0, double.infinity);
+  }
+
+  void _calculate() {
+    setState(() {
+      _maxPrice = _maxVehiclePrice(
+        monthlyBudget: _monthlyBudget,
+        annualRate: _rate,
+        termMonths: _term,
+        downPayment: _downPayment,
+        tradeIn: _tradeIn,
+        salesTaxPct: _salesTaxPct,
+        dealerFees: _dealerFees,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+    return SectionCard(
+      title: 'How Much Can I Afford?',
+      children: [
+        Row(
+          children: [
+            Switch(
+              value: _expanded,
+              onChanged: (v) => setState(() => _expanded = v),
+            ),
+            const Expanded(child: Text('Affordability Reverse-Solver')),
+          ],
+        ),
+        if (_expanded) ...[
+          const SizedBox(height: AppSpacing.md),
+          // Monthly budget
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Monthly budget for car payment'),
+                  Text(
+                    fmt2.format(_monthlyBudget),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _monthlyBudget.clamp(100, 2000),
+                min: 100,
+                max: 2000,
+                divisions: 38,
+                onChanged: (v) => setState(() => _monthlyBudget = (v / 50).round() * 50.0),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Down payment
+          CurrencySliderInput(
+            label: 'Available down payment',
+            value: _downPayment,
+            min: 0,
+            max: 20000,
+            step: 500,
+            onChanged: (v) => setState(() => _downPayment = v),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Trade-in
+          CurrencySliderInput(
+            label: 'Trade-in value (optional)',
+            value: _tradeIn,
+            min: 0,
+            max: 20000,
+            step: 500,
+            onChanged: (v) => setState(() => _tradeIn = v),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Sales tax
+          PercentSliderInput(
+            label: 'Sales tax (%)',
+            value: _salesTaxPct,
+            min: 0,
+            max: 15,
+            step: 0.5,
+            onChanged: (v) => setState(() => _salesTaxPct = v),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Dealer fees
+          CurrencySliderInput(
+            label: 'Dealer fees',
+            value: _dealerFees,
+            min: 0,
+            max: 3000,
+            step: 50,
+            onChanged: (v) => setState(() => _dealerFees = v),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Credit score tier
+          const Text('Credit score tier', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: AppSpacing.xs),
+          ...List.generate(_creditTiers.length, (i) {
+            final tier = _creditTiers[i];
+            final selected = i == _creditTierIndex;
+            return RadioListTile<int>(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(tier.label),
+              subtitle: Text(
+                'Auto rate: ${tier.rate.toStringAsFixed(1)}% APR',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              value: i,
+              groupValue: _creditTierIndex,
+              onChanged: (v) {
+                if (v != null) setState(() => _creditTierIndex = v);
+              },
+            );
+          }),
+          const SizedBox(height: AppSpacing.sm),
+          // Desired term
+          DurationChips(
+            label: 'Desired loan term',
+            options: const [36, 48, 60, 72],
+            selected: _term,
+            onSelected: (v) => setState(() => _term = v),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton.icon(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _calculate();
+            },
+            icon: const Icon(Icons.calculate_outlined),
+            label: const Text('Calculate Affordability'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+            ),
+          ),
+          if (_maxPrice != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            const Divider(),
+            // Hero result
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'With ${_creditTiers[_creditTierIndex].label} credit at ${_rate.toStringAsFixed(1)}%, you can afford up to',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    fmt.format(_maxPrice!),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'vehicle price  ·  ${fmt2.format(_monthlyBudget)}/mo payment  ·  $_term mo',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // Multi-term table
+            Text(
+              'Same budget at different terms:',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ...const [36, 48, 60, 72].map((mo) {
+              final price = _maxVehiclePrice(
+                monthlyBudget: _monthlyBudget,
+                annualRate: _rate,
+                termMonths: mo,
+                downPayment: _downPayment,
+                tradeIn: _tradeIn,
+                salesTaxPct: _salesTaxPct,
+                dealerFees: _dealerFees,
+              );
+              final isSelected = mo == _term;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        '${mo ~/ 12} yr ($mo mo)',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                          fontWeight: isSelected ? FontWeight.bold : null,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        fmt.format(price),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                          fontWeight: isSelected ? FontWeight.bold : null,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 24,
+                      child: isSelected
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Includes ${_salesTaxPct.toStringAsFixed(1)}% sales tax, '
+              '${fmt.format(_dealerFees)} dealer fees.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
       ],
     );
   }

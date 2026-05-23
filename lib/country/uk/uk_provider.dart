@@ -19,6 +19,12 @@ class UKProvider extends ChangeNotifier {
   double gmfvPercent = 30.0;
   bool isBiWeekly = false;
 
+  /// Financing type: standardLoan / hp / pcp
+  UKFinancingType financingType = UKFinancingType.standardLoan;
+
+  /// CO2 emissions (g/km) — optional. 0 = not entered (use category VED).
+  double co2GPerKm = 0.0;
+
   UKCalculation? _result;
   UKCalculation? get result => _result;
 
@@ -74,7 +80,28 @@ class UKProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFinancingType(UKFinancingType v) {
+    financingType = v;
+    isPcp = v.isPcpType;
+    notifyListeners();
+  }
+
+  void setCo2GPerKm(double v) {
+    co2GPerKm = v;
+    notifyListeners();
+  }
+
+  /// First-year VED based on CO2 (if entered), else null
+  double? get co2FirstYearVed =>
+      co2GPerKm > 0 ? ukCo2FirstYearVed(co2GPerKm) : null;
+
+  /// Year 2+ standard VED based on CO2 (if entered), else null
+  double? get co2StandardVed =>
+      co2GPerKm > 0 ? ukCo2StandardRateVed(co2GPerKm) : null;
+
   void calculate() {
+    // For HP: use same calculation as standard loan (no balloon)
+    final effectiveIsPcp = financingType == UKFinancingType.pcp;
     _result = UKCalculation.calculate(
       vehiclePrice: vehiclePrice,
       downPayment: downPayment,
@@ -83,7 +110,7 @@ class UKProvider extends ChangeNotifier {
       includeRoadTax: includeRoadTax,
       vehicleType: vehicleType,
       customVedAnnual: customVedAnnual,
-      isPcp: isPcp,
+      isPcp: effectiveIsPcp,
       gmfvPercent: gmfvPercent,
       isBiWeekly: isBiWeekly,
     );
