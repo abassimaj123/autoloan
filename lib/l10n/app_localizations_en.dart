@@ -322,11 +322,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Compare two loan scenarios side by side — different terms, down payments, or interest rates. Find the best deal.';
 
   @override
-  String get onboardingTitle3 => 'Go premium';
+  String get onboardingTitle3 => 'Save &\nTrack Results';
 
   @override
   String get onboardingSubtitle3 =>
-      'Unlock the amortization schedule, PDF export, and unlimited history. One small purchase, no subscription.';
+      'Your calculations are saved automatically. Revisit and compare your loan scenarios anytime.';
 
   @override
   String get onboardingNext => 'Next';

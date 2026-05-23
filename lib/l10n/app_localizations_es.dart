@@ -329,11 +329,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Compara dos préstamos lado a lado — distintos plazos, enganches o tasas de interés. Encuentra la mejor oferta.';
 
   @override
-  String get onboardingTitle3 => 'Hazte premium';
+  String get onboardingTitle3 => 'Guarda y\nsigue tus resultados';
 
   @override
   String get onboardingSubtitle3 =>
-      'Desbloquea la tabla de amortización, exportación PDF e historial ilimitado. Una sola compra, sin suscripción.';
+      'Tus cálculos se guardan automáticamente. Recupera y compara tus escenarios de préstamo cuando quieras.';
 
   @override
   String get onboardingNext => 'Siguiente';
