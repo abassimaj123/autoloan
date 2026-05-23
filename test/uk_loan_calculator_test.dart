@@ -224,7 +224,7 @@ void main() {
 
     testVed(VehicleType.petrolSmall, 180.0); // £180/yr → £15.00/mo
     testVed(VehicleType.petrolLarge, 280.0); // £280/yr → £23.33/mo
-    testVed(VehicleType.electric, 0.0); // £0/yr   → £0.00/mo
+    testVed(VehicleType.electric, 10.0); // £10/yr → £0.83/mo (DVLA avril 2025)
     testVed(
       VehicleType.diesel,
       190.0,
@@ -274,7 +274,7 @@ void main() {
       },
     );
 
-    test('[UK-3-elect] Électrique : VED = £0, totalCost = prix + intérêts', () {
+    test('[UK-3-elect] Électrique : VED = £10/an (DVLA avril 2025)', () {
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
         downPayment: 5000,
@@ -283,12 +283,12 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.electric,
       );
-      expect(r.vedMonthly, 0.0, reason: '[UK-3-elect] £0/mo');
-      expect(r.vedTotal, 0.0, reason: '[UK-3-elect] £0 total');
+      expect(r.vedMonthly, closeTo(10.0 / 12, 0.01), reason: '[UK-3-elect] £10/12 = £0.83/mo');
+      expect(r.vedTotal, closeTo(10.0 * 5, 0.01), reason: '[UK-3-elect] £10 × 5 ans = £50 total');
       expect(
         r.monthlyPayment,
-        closeTo(r.baseLoanPayment, 0.001),
-        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment (VED=0)',
+        closeTo(r.baseLoanPayment + 10.0 / 12, 0.01),
+        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment + vedMonthly (VED=£10/an)',
       );
     });
   });

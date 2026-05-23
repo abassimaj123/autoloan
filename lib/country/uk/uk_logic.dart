@@ -69,7 +69,7 @@ extension VehicleTypeExt on VehicleType {
       case VehicleType.petrolLarge:
         return 'Petrol > 1000cc (£280/yr)';
       case VehicleType.electric:
-        return 'Electric (£0/yr)';
+        return 'Electric (£10/yr)'; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
       case VehicleType.diesel:
         return 'Diesel RDE2 (£190/yr)';
       case VehicleType.dieselSurcharge:
@@ -89,7 +89,7 @@ extension VehicleTypeExt on VehicleType {
       case VehicleType.petrolLarge:
         return 280.0;
       case VehicleType.electric:
-        return 0.0;
+        return 10.0; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
       case VehicleType.diesel:
         return 190.0; // Standard 2024 rate (RDE2-compliant)
       case VehicleType.dieselSurcharge:
