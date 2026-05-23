@@ -237,23 +237,31 @@ class _Page1 extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Feature pills
+          // Feature pills — flavor-specific differentiators
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: [
-              _FeaturePill(label: l10n.onboardingFeaturePayment),
-              _FeaturePill(label: l10n.onboardingFeatureInterest),
-              _FeaturePill(label: l10n.onboardingFeatureCost),
-              _FeaturePill(
-                label: switch (flavor) {
-                  'uk' => 'UK Market',
-                  'us' => 'US Market',
-                  _ => 'Canadian Market',
-                },
-              ),
-            ],
+            children: switch (flavor) {
+              'uk' => const [
+                  _FeaturePill(label: 'PCP Calculator'),
+                  _FeaturePill(label: 'HP Finance'),
+                  _FeaturePill(label: 'VED 2025'),
+                  _FeaturePill(label: 'Stamp Duty'),
+                ],
+              'ca' => const [
+                  _FeaturePill(label: 'Français / English'),
+                  _FeaturePill(label: 'KM Overage Calc'),
+                  _FeaturePill(label: 'Lease vs Finance'),
+                  _FeaturePill(label: 'QST + Tax'),
+                ],
+              _ => [
+                  _FeaturePill(label: l10n.onboardingFeaturePayment),
+                  _FeaturePill(label: l10n.onboardingFeatureInterest),
+                  _FeaturePill(label: l10n.onboardingFeatureCost),
+                  const _FeaturePill(label: 'US Market'),
+                ],
+            },
           ),
         ],
       ),
