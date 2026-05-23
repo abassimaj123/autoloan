@@ -237,7 +237,7 @@ class _Page1 extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Feature pills — flavor-specific differentiators
+          // Feature pills — flavor-specific differentiators (ASO-optimised keywords)
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -245,21 +245,21 @@ class _Page1 extends StatelessWidget {
             children: switch (flavor) {
               'uk' => const [
                   _FeaturePill(label: 'PCP Calculator'),
-                  _FeaturePill(label: 'HP Finance'),
-                  _FeaturePill(label: 'VED 2025'),
-                  _FeaturePill(label: 'Stamp Duty'),
+                  _FeaturePill(label: 'HP Finance UK'),
+                  _FeaturePill(label: 'VED 2025/26'),
+                  _FeaturePill(label: 'Rule of 78'),
                 ],
               'ca' => const [
-                  _FeaturePill(label: 'Français / English'),
-                  _FeaturePill(label: 'KM Overage Calc'),
+                  _FeaturePill(label: 'Km Overage Calc'),
                   _FeaturePill(label: 'Lease vs Finance'),
-                  _FeaturePill(label: 'QST + Tax'),
+                  _FeaturePill(label: 'Province Tax'),
+                  _FeaturePill(label: 'Français/English'),
                 ],
-              _ => [
-                  _FeaturePill(label: l10n.onboardingFeaturePayment),
-                  _FeaturePill(label: l10n.onboardingFeatureInterest),
-                  _FeaturePill(label: l10n.onboardingFeatureCost),
-                  const _FeaturePill(label: 'US Market'),
+              _ => const [
+                  _FeaturePill(label: 'Car Affordability'),
+                  _FeaturePill(label: 'Lease vs Finance'),
+                  _FeaturePill(label: 'Credit Score Rates'),
+                  _FeaturePill(label: '50 State Tax'),
                 ],
             },
           ),
