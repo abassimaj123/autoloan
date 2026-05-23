@@ -48,6 +48,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
   void initState() {
     super.initState();
     AnalyticsService.instance.logScreenView('lease_vs_buy');
+    // Auto-calculate on first open so result is visible immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _calculate();
+    });
   }
 
   void _calculate() {
