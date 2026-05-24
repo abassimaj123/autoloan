@@ -83,8 +83,10 @@ class _UKScreenState extends State<UKScreen> {
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
-      else if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+      if (trigger == PaywallTrigger.hard)
+        PaywallHard.show(context);
+      else if (trigger == PaywallTrigger.soft)
+        PaywallSoft.show(context);
       if (!mounted) return;
     }
     setState(() {
@@ -239,15 +241,26 @@ class _UKCalculatorTab extends StatelessWidget {
                           const CalcwiseEmptyState(
                             icon: Icons.directions_car_outlined,
                             title: 'No results yet',
-                            body: 'Enter the vehicle price to see your analysis.',
+                            body:
+                                'Enter the vehicle price to see your analysis.',
                           ),
                         // ── Input sections ────────────────────────────────
-                        _UKVehicleSection(p: p, validated: validated, onCalculate: onCalculate),
-                        _UKLoanTermsSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _UKVehicleSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
+                        _UKLoanTermsSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
                         _UKFinancingTypeSection(p: p, onCalculate: onCalculate),
                         _UKRoadTaxSection(p: p, onCalculate: onCalculate),
                         // ── Extra tools ───────────────────────────────────
-                        if (p.result != null && p.financingType == UKFinancingType.pcp) _UKPcpHpSection(p: p),
+                        if (p.result != null &&
+                            p.financingType == UKFinancingType.pcp)
+                          _UKPcpHpSection(p: p),
                         if (p.result != null) _UKCostOfCreditSection(p: p),
                         if (p.result != null) _UKEarlySettlementSection(p: p),
                         if (p.result != null) _UKTcoSection(p: p),
@@ -315,7 +328,10 @@ class _UKVehicleSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: l10n.loanAmount,
-            value: NumberFormat.currency(symbol: '£', decimalDigits: 2).format(p.result!.loanAmount),
+            value: NumberFormat.currency(
+              symbol: '£',
+              decimalDigits: 2,
+            ).format(p.result!.loanAmount),
           ),
         ],
       ],
@@ -545,7 +561,10 @@ class _UKRoadTaxSection extends StatelessWidget {
               },
             ),
             Expanded(
-              child: Text(l10n.includeRoadTax, style: Theme.of(context).textTheme.bodyMedium),
+              child: Text(
+                l10n.includeRoadTax,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
           ],
         ),
@@ -558,7 +577,10 @@ class _UKRoadTaxSection extends StatelessWidget {
             decoration: InputDecoration(
               labelText: l10n.vehicleType,
               border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
             ),
             items: VehicleType.values
                 .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
@@ -578,7 +600,10 @@ class _UKRoadTaxSection extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Custom annual VED (£)',
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
                 prefixText: '£ ',
               ),
               onChanged: (v) {
@@ -608,9 +633,9 @@ class _UKRoadTaxSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Advanced: CO2-Based VED (post-2017 cars)',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.sm),
           TextFormField(
@@ -620,7 +645,10 @@ class _UKRoadTaxSection extends StatelessWidget {
               labelText: 'CO2 emissions (g/km) — optional',
               hintText: 'Leave blank to use category rate',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
               suffixText: 'g/km',
             ),
             onChanged: (v) {
@@ -656,7 +684,9 @@ class _UKRoadTaxSection extends StatelessWidget {
                   Text(
                     'First year differs from ongoing rate — check with DVLA.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -672,7 +702,8 @@ class _UKRoadTaxSection extends StatelessWidget {
               triggerMode: TooltipTriggerMode.tap,
               showDuration: const Duration(seconds: 6),
               preferBelow: true,
-              message: 'VED Annual Rates\n'
+              message:
+                  'VED Annual Rates\n'
                   'Electric:            £0\n'
                   'Petrol <1000cc:  £180\n'
                   'Diesel / Hybrid:  £190\n'
@@ -681,7 +712,11 @@ class _UKRoadTaxSection extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'VED annual rates',
@@ -740,15 +775,19 @@ class _UKQuickToolsSection extends StatelessWidget {
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const CashbackVsLowAprScreen(flavor: 'uk'),
-                transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+                pageBuilder: (_, __, ___) =>
+                    const CashbackVsLowAprScreen(flavor: 'uk'),
+                transitionsBuilder: (_, anim, __, child) =>
+                    FadeTransition(opacity: anim, child: child),
                 transitionDuration: AppDuration.base,
               ),
             );
           },
           icon: const Icon(Icons.local_offer_rounded),
           label: const Text('Cash-Back vs Low-APR'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
       ],
     );
@@ -792,12 +831,16 @@ class _UKResults extends StatelessWidget {
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
           label: p.isBiWeekly
-              ? (r.isPcp ? l10n.pcpPayment
-                  : p.financingType == UKFinancingType.hp ? 'HP Bi-Weekly Payment'
-                  : l10n.biWeeklyPayment)
-              : (r.isPcp ? l10n.pcpPayment
-                  : p.financingType == UKFinancingType.hp ? 'HP Monthly Payment'
-                  : l10n.monthlyPayment),
+              ? (r.isPcp
+                    ? l10n.pcpPayment
+                    : p.financingType == UKFinancingType.hp
+                    ? 'HP Bi-Weekly Payment'
+                    : l10n.biWeeklyPayment)
+              : (r.isPcp
+                    ? l10n.pcpPayment
+                    : p.financingType == UKFinancingType.hp
+                    ? 'HP Monthly Payment'
+                    : l10n.monthlyPayment),
           value: fmt.format(r.displayPayment),
           secondary: p.financingType == UKFinancingType.hp
               ? 'Hire Purchase — you own the car at end'
@@ -1317,7 +1360,9 @@ class _UKCostOfCreditSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Container(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceVariant,
             borderRadius: BorderRadius.circular(AppRadius.lg),

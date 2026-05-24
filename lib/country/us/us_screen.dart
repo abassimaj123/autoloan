@@ -97,8 +97,10 @@ class _USScreenState extends State<USScreen> {
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
-      else if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+      if (trigger == PaywallTrigger.hard)
+        PaywallHard.show(context);
+      else if (trigger == PaywallTrigger.soft)
+        PaywallSoft.show(context);
       if (!mounted) return;
     }
     setState(() {
@@ -251,17 +253,33 @@ class _USCalculatorTab extends StatelessWidget {
                         else
                           CalcwiseEmptyState(
                             icon: Icons.directions_car_outlined,
-                            title: Localizations.localeOf(context).languageCode == 'es'
+                            title:
+                                Localizations.localeOf(context).languageCode ==
+                                    'es'
                                 ? 'Sin resultados'
                                 : 'No results yet',
-                            body: Localizations.localeOf(context).languageCode == 'es'
+                            body:
+                                Localizations.localeOf(context).languageCode ==
+                                    'es'
                                 ? 'Ingresa el precio del vehículo para ver el análisis.'
                                 : 'Enter the vehicle price to see your analysis.',
                           ),
                         // ── Input sections ────────────────────────────────
-                        _USVehicleSection(p: p, validated: validated, onCalculate: onCalculate),
-                        _USTaxRateSection(p: p, validated: validated, onCalculate: onCalculate),
-                        _USCreditScoreSection(p: p, onCalculate: onCalculate, rateAdjLabel: rateAdjLabel),
+                        _USVehicleSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
+                        _USTaxRateSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
+                        _USCreditScoreSection(
+                          p: p,
+                          onCalculate: onCalculate,
+                          rateAdjLabel: rateAdjLabel,
+                        ),
                         _USLoanTermsSection(p: p, onCalculate: onCalculate),
                         // ── Extra tools ───────────────────────────────────
                         _USLeaseSection(p: p),
@@ -516,9 +534,15 @@ class _USQuickToolsSection extends StatelessWidget {
       children: [
         const SizedBox(height: AppSpacing.md),
         ReverseSolveCard(
-          title: isSpanish ? '¿Qué vehículo puedo pagar?' : 'What vehicle price can I afford?',
-          targetLabel: isSpanish ? 'Pago mensual objetivo' : 'Target monthly payment',
-          resultLabel: isSpanish ? 'Precio máximo del vehículo' : 'Max vehicle price',
+          title: isSpanish
+              ? '¿Qué vehículo puedo pagar?'
+              : 'What vehicle price can I afford?',
+          targetLabel: isSpanish
+              ? 'Pago mensual objetivo'
+              : 'Target monthly payment',
+          resultLabel: isSpanish
+              ? 'Precio máximo del vehículo'
+              : 'Max vehicle price',
           prefix: '\$',
           minBound: 5000,
           maxBound: 200000,
@@ -544,15 +568,21 @@ class _USQuickToolsSection extends StatelessWidget {
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const CashbackVsLowAprScreen(flavor: 'us'),
-                transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+                pageBuilder: (_, __, ___) =>
+                    const CashbackVsLowAprScreen(flavor: 'us'),
+                transitionsBuilder: (_, anim, __, child) =>
+                    FadeTransition(opacity: anim, child: child),
                 transitionDuration: AppDuration.base,
               ),
             );
           },
           icon: const Icon(Icons.local_offer_rounded),
-          label: Text(isSpanish ? 'Reembolso vs Tasa Baja' : 'Cash-Back vs Low-APR'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          label: Text(
+            isSpanish ? 'Reembolso vs Tasa Baja' : 'Cash-Back vs Low-APR',
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
       ],
     );
@@ -922,7 +952,10 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
               suffixText: '%',
             ),
             onChanged: (v) {
@@ -938,7 +971,10 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Cap Cost Reduction (\$)',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -954,7 +990,10 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Acquisition Fee (\$)',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
               prefixText: '\$ ',
             ),
             onChanged: (v) {
@@ -1652,7 +1691,8 @@ class _USAffordabilityReverseSolverSectionState
     final loanPV = _reversePmt(monthlyBudget, annualRate, termMonths);
     // vehiclePrice*(1+taxPct/100) = loanPV - dealerFees + downPayment + tradeIn
     final taxFactor = 1.0 + salesTaxPct / 100;
-    final vehiclePrice = (loanPV - dealerFees + downPayment + tradeIn) / taxFactor;
+    final vehiclePrice =
+        (loanPV - dealerFees + downPayment + tradeIn) / taxFactor;
     return vehiclePrice.clamp(0, double.infinity);
   }
 
@@ -1711,7 +1751,8 @@ class _USAffordabilityReverseSolverSectionState
                 min: 100,
                 max: 2000,
                 divisions: 38,
-                onChanged: (v) => setState(() => _monthlyBudget = (v / 50).round() * 50.0),
+                onChanged: (v) =>
+                    setState(() => _monthlyBudget = (v / 50).round() * 50.0),
               ),
             ],
           ),
@@ -1757,7 +1798,10 @@ class _USAffordabilityReverseSolverSectionState
           ),
           const SizedBox(height: AppSpacing.md),
           // Credit score tier
-          const Text('Credit score tier', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text(
+            'Credit score tier',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: AppSpacing.xs),
           ...List.generate(_creditTiers.length, (i) {
             final tier = _creditTiers[i];
@@ -1838,9 +1882,9 @@ class _USAffordabilityReverseSolverSectionState
             // Multi-term table
             Text(
               'Same budget at different terms:',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: AppSpacing.sm),
             ...const [36, 48, 60, 72].map((mo) {

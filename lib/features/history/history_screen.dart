@@ -45,11 +45,21 @@ class _HistorySkeleton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      _ShimmerBox(width: 120, height: 26, radius: AppRadius.md),
-                      const Spacer(),
-                      _ShimmerBox(width: 70, height: 22, radius: AppRadius.sm),
-                    ]),
+                    Row(
+                      children: [
+                        _ShimmerBox(
+                          width: 120,
+                          height: 26,
+                          radius: AppRadius.md,
+                        ),
+                        const Spacer(),
+                        _ShimmerBox(
+                          width: 70,
+                          height: 22,
+                          radius: AppRadius.sm,
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     ...List.generate(
                       4,
@@ -77,8 +87,11 @@ class _HistorySkeleton extends StatelessWidget {
 
 class _ShimmerBox extends StatelessWidget {
   final double width, height, radius;
-  const _ShimmerBox(
-      {required this.width, required this.height, required this.radius});
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -312,10 +325,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               AppSpacing.sm,
             ),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.secondaryContainer,
                 borderRadius: BorderRadius.circular(AppRadius.lg),

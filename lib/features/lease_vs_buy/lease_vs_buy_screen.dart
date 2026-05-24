@@ -14,7 +14,11 @@ import '../../services/analytics_service.dart';
 class LeaseVsBuyScreen extends StatefulWidget {
   final String flavor; // 'us' | 'ca' | 'uk'
   final bool showAppBar;
-  const LeaseVsBuyScreen({super.key, required this.flavor, this.showAppBar = true});
+  const LeaseVsBuyScreen({
+    super.key,
+    required this.flavor,
+    this.showAppBar = true,
+  });
 
   @override
   State<LeaseVsBuyScreen> createState() => _LeaseVsBuyScreenState();
@@ -103,174 +107,169 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                      // ── Results hero ──────────────────────────────────────
-                      if (_result != null) ...[
-                        _ResultsCard(
-                          r: _result!,
-                          fmt: fmt,
-                          fmt0: fmt0,
-                          sym: _sym,
-                          leaseTerm: _leaseTerm,
-                          buyTerm: _buyTerm,
-                          distLabel: _distLabel,
-                          l10n: l10n,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
-                      // ── Buy section ───────────────────────────────────────
-                      SectionCard(
-                        title: l10n.buyLoanDetails,
-                        children: [
-                          CurrencyTextInput(
-                            label: l10n.vehiclePriceMsrp,
-                            value: _msrp,
-                            symbol: _sym,
-                            helperText: 'e.g. 35 000',
-                            onChanged: (v) => setState(() => _msrp = v),
-                          ),
-                          const SizedBox(height: 12),
-                          CurrencySliderInput(
-                            label: l10n.downPayment,
-                            value: _buyDown,
-                            min: 0,
-                            max: _msrp * 0.5,
-                            step: 500,
-                            symbol: _sym,
-                            onChanged: (v) => setState(() => _buyDown = v),
-                          ),
-                          const SizedBox(height: 12),
-                          DurationChips(
-                            label: l10n.termMonths,
-                            options: const [24, 36, 48, 60, 72, 84],
-                            selected: _buyTerm,
-                            onSelected: (v) => setState(() => _buyTerm = v),
-                          ),
-                          const SizedBox(height: 12),
-                          RateInputField(
-                            label: l10n.interestRateApr,
-                            value: _buyApr,
-                            onChanged: (v) => setState(() => _buyApr = v),
-                          ),
-                          const SizedBox(height: 12),
-                          PercentSliderInput(
-                            label: l10n.residualValuePct,
-                            value: _residualPercent,
-                            min: 20,
-                            max: 70,
-                            step: 1,
-                            decimals: 0,
-                            onChanged: (v) =>
-                                setState(() => _residualPercent = v),
-                          ),
-                          const SizedBox(height: 12),
-                          CurrencySliderInput(
-                            label: l10n.annualInsuranceCost,
-                            value: _annualInsurance,
-                            min: 400,
-                            max: 6000,
-                            step: 100,
-                            symbol: _sym,
-                            onChanged: (v) =>
-                                setState(() => _annualInsurance = v),
-                          ),
-                        ],
+                    // ── Results hero ──────────────────────────────────────
+                    if (_result != null) ...[
+                      _ResultsCard(
+                        r: _result!,
+                        fmt: fmt,
+                        fmt0: fmt0,
+                        sym: _sym,
+                        leaseTerm: _leaseTerm,
+                        buyTerm: _buyTerm,
+                        distLabel: _distLabel,
+                        l10n: l10n,
                       ),
-
-                      // ── Lease section ─────────────────────────────────────
-                      SectionCard(
-                        title: l10n.leaseDetails,
-                        children: [
-                          CurrencyTextInput(
-                            label: l10n.monthlyLeasePayment,
-                            value: _leaseMonthly,
-                            symbol: _sym,
-                            helperText: 'e.g. 399',
-                            onChanged: (v) => setState(() => _leaseMonthly = v),
-                          ),
-                          const SizedBox(height: 12),
-                          DurationChips(
-                            label: l10n.lvbLeaseTerm,
-                            options: const [24, 36, 48],
-                            selected: _leaseTerm,
-                            onSelected: (v) => setState(() => _leaseTerm = v),
-                          ),
-                          const SizedBox(height: 12),
-                          CurrencySliderInput(
-                            label: l10n.downPaymentCap,
-                            value: _leaseDown,
-                            min: 0,
-                            max: 10000,
-                            step: 250,
-                            symbol: _sym,
-                            onChanged: (v) => setState(() => _leaseDown = v),
-                          ),
-                          const SizedBox(height: 12),
-                          CurrencySliderInput(
-                            label: l10n.acquisitionFee,
-                            value: _acquisitionFee,
-                            min: 0,
-                            max: 2000,
-                            step: 50,
-                            symbol: _sym,
-                            onChanged: (v) =>
-                                setState(() => _acquisitionFee = v),
-                          ),
-                          const SizedBox(height: 12),
-                          CurrencySliderInput(
-                            label: l10n.dispositionFee,
-                            value: _dispositionFee,
-                            min: 0,
-                            max: 1000,
-                            step: 25,
-                            symbol: _sym,
-                            onChanged: (v) =>
-                                setState(() => _dispositionFee = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _NumericField(
-                            label: '${l10n.mileageLimitPerYear} ($_distLabel)',
-                            value: _mileageLimit,
-                            suffix: _distLabel,
-                            onChanged: (v) =>
-                                setState(() => _mileageLimit = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _NumericField(
-                            label: '${l10n.overageCostPer} $_distLabel',
-                            value: _overageCostPerMile,
-                            prefix: '$_sym ',
-                            decimals: 3,
-                            onChanged: (v) =>
-                                setState(() => _overageCostPerMile = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _NumericField(
-                            label: '${l10n.estimatedAnnualDriven} ($_distLabel)',
-                            value: _estimatedMiles,
-                            suffix: _distLabel,
-                            onChanged: (v) =>
-                                setState(() => _estimatedMiles = v),
-                          ),
-                        ],
-                      ),
-
-                      // ── Calculate button ──────────────────────────────────
                       const SizedBox(height: 8),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          HapticFeedback.mediumImpact();
-                          await _checkPaywall();
-                          if (!mounted) return;
-                          _calculate();
-                        },
-                        icon: const Icon(Icons.compare_arrows_rounded),
-                        label: Text(l10n.compareLeaseBuy),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                        ),
-                      ),
+                    ],
 
+                    // ── Buy section ───────────────────────────────────────
+                    SectionCard(
+                      title: l10n.buyLoanDetails,
+                      children: [
+                        CurrencyTextInput(
+                          label: l10n.vehiclePriceMsrp,
+                          value: _msrp,
+                          symbol: _sym,
+                          helperText: 'e.g. 35 000',
+                          onChanged: (v) => setState(() => _msrp = v),
+                        ),
+                        const SizedBox(height: 12),
+                        CurrencySliderInput(
+                          label: l10n.downPayment,
+                          value: _buyDown,
+                          min: 0,
+                          max: _msrp * 0.5,
+                          step: 500,
+                          symbol: _sym,
+                          onChanged: (v) => setState(() => _buyDown = v),
+                        ),
+                        const SizedBox(height: 12),
+                        DurationChips(
+                          label: l10n.termMonths,
+                          options: const [24, 36, 48, 60, 72, 84],
+                          selected: _buyTerm,
+                          onSelected: (v) => setState(() => _buyTerm = v),
+                        ),
+                        const SizedBox(height: 12),
+                        RateInputField(
+                          label: l10n.interestRateApr,
+                          value: _buyApr,
+                          onChanged: (v) => setState(() => _buyApr = v),
+                        ),
+                        const SizedBox(height: 12),
+                        PercentSliderInput(
+                          label: l10n.residualValuePct,
+                          value: _residualPercent,
+                          min: 20,
+                          max: 70,
+                          step: 1,
+                          decimals: 0,
+                          onChanged: (v) =>
+                              setState(() => _residualPercent = v),
+                        ),
+                        const SizedBox(height: 12),
+                        CurrencySliderInput(
+                          label: l10n.annualInsuranceCost,
+                          value: _annualInsurance,
+                          min: 400,
+                          max: 6000,
+                          step: 100,
+                          symbol: _sym,
+                          onChanged: (v) =>
+                              setState(() => _annualInsurance = v),
+                        ),
+                      ],
+                    ),
+
+                    // ── Lease section ─────────────────────────────────────
+                    SectionCard(
+                      title: l10n.leaseDetails,
+                      children: [
+                        CurrencyTextInput(
+                          label: l10n.monthlyLeasePayment,
+                          value: _leaseMonthly,
+                          symbol: _sym,
+                          helperText: 'e.g. 399',
+                          onChanged: (v) => setState(() => _leaseMonthly = v),
+                        ),
+                        const SizedBox(height: 12),
+                        DurationChips(
+                          label: l10n.lvbLeaseTerm,
+                          options: const [24, 36, 48],
+                          selected: _leaseTerm,
+                          onSelected: (v) => setState(() => _leaseTerm = v),
+                        ),
+                        const SizedBox(height: 12),
+                        CurrencySliderInput(
+                          label: l10n.downPaymentCap,
+                          value: _leaseDown,
+                          min: 0,
+                          max: 10000,
+                          step: 250,
+                          symbol: _sym,
+                          onChanged: (v) => setState(() => _leaseDown = v),
+                        ),
+                        const SizedBox(height: 12),
+                        CurrencySliderInput(
+                          label: l10n.acquisitionFee,
+                          value: _acquisitionFee,
+                          min: 0,
+                          max: 2000,
+                          step: 50,
+                          symbol: _sym,
+                          onChanged: (v) => setState(() => _acquisitionFee = v),
+                        ),
+                        const SizedBox(height: 12),
+                        CurrencySliderInput(
+                          label: l10n.dispositionFee,
+                          value: _dispositionFee,
+                          min: 0,
+                          max: 1000,
+                          step: 25,
+                          symbol: _sym,
+                          onChanged: (v) => setState(() => _dispositionFee = v),
+                        ),
+                        const SizedBox(height: 12),
+                        _NumericField(
+                          label: '${l10n.mileageLimitPerYear} ($_distLabel)',
+                          value: _mileageLimit,
+                          suffix: _distLabel,
+                          onChanged: (v) => setState(() => _mileageLimit = v),
+                        ),
+                        const SizedBox(height: 12),
+                        _NumericField(
+                          label: '${l10n.overageCostPer} $_distLabel',
+                          value: _overageCostPerMile,
+                          prefix: '$_sym ',
+                          decimals: 3,
+                          onChanged: (v) =>
+                              setState(() => _overageCostPerMile = v),
+                        ),
+                        const SizedBox(height: 12),
+                        _NumericField(
+                          label: '${l10n.estimatedAnnualDriven} ($_distLabel)',
+                          value: _estimatedMiles,
+                          suffix: _distLabel,
+                          onChanged: (v) => setState(() => _estimatedMiles = v),
+                        ),
+                      ],
+                    ),
+
+                    // ── Calculate button ──────────────────────────────────
+                    const SizedBox(height: 8),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        HapticFeedback.mediumImpact();
+                        await _checkPaywall();
+                        if (!mounted) return;
+                        _calculate();
+                      },
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      label: Text(l10n.compareLeaseBuy),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -287,9 +286,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.leaseVsBuy),
-        leading: BackButton(
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: BackButton(onPressed: () => Navigator.of(context).pop()),
       ),
       body: Column(
         children: [
@@ -351,7 +348,8 @@ class _LvBResult {
     if (monthlyRate == 0 || principal <= 0) {
       buyMonthly = buyTerm > 0 ? principal / buyTerm : 0;
     } else {
-      buyMonthly = principal *
+      buyMonthly =
+          principal *
           monthlyRate *
           pow(1 + monthlyRate, buyTerm) /
           (pow(1 + monthlyRate, buyTerm) - 1);
@@ -376,7 +374,8 @@ class _LvBResult {
       double.infinity,
     );
     final leaseOverageCost = overageMiles * overageCostPerMile;
-    final leaseTotalCost = leaseDown +
+    final leaseTotalCost =
+        leaseDown +
         acquisitionFee +
         leaseMonthly * leaseTerm +
         dispositionFee +
@@ -395,7 +394,8 @@ class _LvBResult {
     double breakEvenMiles = -1;
     if (overageCostPerMile > 0 && leaseTerm > 0) {
       final slope = overageCostPerMile * leaseTerm / 12;
-      final intercept = baseLeaseCost - overageCostPerMile * totalLeaseAllowance;
+      final intercept =
+          baseLeaseCost - overageCostPerMile * totalLeaseAllowance;
       // intercept + slope * x = buyOverLeaseTerm => x = (buyOverLeaseTerm - intercept) / slope
       final x = (buyOverLeaseTerm - intercept) / slope;
       if (x > 0) breakEvenMiles = x;
@@ -521,16 +521,12 @@ class _ResultsCard extends StatelessWidget {
         // ── Buy breakdown ──────────────────────────────────────────────────
         Text(
           l10n.buyBreakdown,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
-        ResultTile(
-          label: l10n.monthlyPayment,
-          value: fmt.format(r.buyMonthly),
-        ),
+        ResultTile(label: l10n.monthlyPayment, value: fmt.format(r.buyMonthly)),
         ResultTile(
           label: l10n.totalInterestPaid,
           value: fmt.format(r.buyTotalInterest),
@@ -549,10 +545,9 @@ class _ResultsCard extends StatelessWidget {
         // ── Lease breakdown ────────────────────────────────────────────────
         Text(
           l10n.leaseBreakdown,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         if (r.leaseOverageCost > 0)
@@ -572,8 +567,10 @@ class _ResultsCard extends StatelessWidget {
           const Divider(),
           const SizedBox(height: 6),
           ResultTile(
-            label: '${l10n.mileageLimitPerYear} ($distLabel)\n(lease = buy cost)',
-            value: '${r.breakEvenMiles.toStringAsFixed(0)} $distLabel/${l10n.year}',
+            label:
+                '${l10n.mileageLimitPerYear} ($distLabel)\n(lease = buy cost)',
+            value:
+                '${r.breakEvenMiles.toStringAsFixed(0)} $distLabel/${l10n.year}',
           ),
           Text(
             r.isAboveBreakEven
@@ -622,7 +619,9 @@ class _CompCol extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = highlight ? primary : Theme.of(context).colorScheme.onSurfaceVariant;
+    final color = highlight
+        ? primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.smPlus),
       decoration: BoxDecoration(
@@ -661,10 +660,9 @@ class _CompCol extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             totalLabel,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: color),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: color),
           ),
           Text(
             total,
@@ -733,15 +731,16 @@ class _NumericFieldState extends State<_NumericField> {
     return TextField(
       controller: _ctrl,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-      ],
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
       decoration: InputDecoration(
         labelText: widget.label,
         prefixText: widget.prefix,
         suffixText: widget.suffix,
         border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 16,
+        ),
       ),
       onChanged: (s) {
         final cleaned = s.replaceAll(',', '.');

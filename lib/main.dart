@@ -294,7 +294,6 @@ class _IapErrorWrapperState extends State<_IapErrorWrapper> {
   Widget build(BuildContext context) => widget.child;
 }
 
-
 class _NoAnimPageTransitionsBuilder extends PageTransitionsBuilder {
   const _NoAnimPageTransitionsBuilder();
   @override
@@ -304,6 +303,5 @@ class _NoAnimPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     Widget child,
-  ) =>
-      child;
+  ) => child;
 }

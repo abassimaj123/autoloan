@@ -84,8 +84,10 @@ class _CAScreenState extends State<CAScreen> {
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
-      else if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+      if (trigger == PaywallTrigger.hard)
+        PaywallHard.show(context);
+      else if (trigger == PaywallTrigger.soft)
+        PaywallSoft.show(context);
       if (!mounted) return;
     }
     setState(() {
@@ -239,17 +241,29 @@ class _CACalculatorTab extends StatelessWidget {
                         else
                           CalcwiseEmptyState(
                             icon: Icons.directions_car_outlined,
-                            title: Localizations.localeOf(context).languageCode == 'fr'
+                            title:
+                                Localizations.localeOf(context).languageCode ==
+                                    'fr'
                                 ? 'Pas encore de résultats'
                                 : 'No results yet',
-                            body: Localizations.localeOf(context).languageCode == 'fr'
+                            body:
+                                Localizations.localeOf(context).languageCode ==
+                                    'fr'
                                 ? 'Entrez le prix du véhicule pour voir votre analyse.'
                                 : 'Enter the vehicle price to see your analysis.',
                           ),
                         // ── Input sections ────────────────────────────────
-                        _CAVehicleSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _CAVehicleSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
                         _CAProvinceSection(p: p, onCalculate: onCalculate),
-                        _CALoanTermsSection(p: p, validated: validated, onCalculate: onCalculate),
+                        _CALoanTermsSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
                         _CAInsuranceSection(p: p, onCalculate: onCalculate),
                         // ── Extra tools ───────────────────────────────────
                         if (p.result != null) _CATcoSection(p: p),
@@ -330,7 +344,9 @@ class _CAVehicleSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 '${p.downPayment.toStringAsFixed(1)}%',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ],
@@ -361,7 +377,10 @@ class _CAProvinceSection extends StatelessWidget {
           decoration: InputDecoration(
             labelText: l10n.province,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: 16,
+            ),
           ),
           selectedItemBuilder: (ctx) => kCAProvinces
               .map(
@@ -397,7 +416,10 @@ class _CAProvinceSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: l10n.taxAmount,
-            value: NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(p.result!.taxAmount),
+            value: NumberFormat.currency(
+              symbol: '\$',
+              decimalDigits: 2,
+            ).format(p.result!.taxAmount),
           ),
         ],
       ],
@@ -490,7 +512,8 @@ class _CAInsuranceSection extends StatelessWidget {
       title: l10n.insurance,
       children: [
         _InsuranceRow(
-          label: '${l10n.lifeDisability} (\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
+          label:
+              '${l10n.lifeDisability} (\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
           value: p.insurance.lifeDisability,
           onChanged: (v) {
             p.setLifeDisability(v);
@@ -587,15 +610,19 @@ class _CAQuickToolsSection extends StatelessWidget {
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const CashbackVsLowAprScreen(flavor: 'ca'),
-                transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+                pageBuilder: (_, __, ___) =>
+                    const CashbackVsLowAprScreen(flavor: 'ca'),
+                transitionsBuilder: (_, anim, __, child) =>
+                    FadeTransition(opacity: anim, child: child),
                 transitionDuration: AppDuration.base,
               ),
             );
           },
           icon: const Icon(Icons.local_offer_rounded),
           label: const Text('Cash-Back vs Low-APR'),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
       ],
     );
@@ -981,7 +1008,10 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
             decoration: const InputDecoration(
               labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
               suffixText: '%',
             ),
             onChanged: (v) {
@@ -1084,87 +1114,114 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               min: 8,
               max: 25,
               step: 1,
-              display: '\$${(_overageFeeCentsPerKm / 100).toStringAsFixed(2)}/km',
+              display:
+                  '\$${(_overageFeeCentsPerKm / 100).toStringAsFixed(2)}/km',
               onChanged: (v) => setState(() => _overageFeeCentsPerKm = v),
             ),
             const SizedBox(height: AppSpacing.md),
-            Builder(builder: (ctx) {
-              final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-              final leaseYears = _leaseTerm / 12;
-              final overagePerYear = (_estimatedAnnualKm - _annualKmAllowance).clamp(0.0, double.infinity);
-              final feePerKm = _overageFeeCentsPerKm / 100;
-              final totalOverageKm = overagePerYear * leaseYears;
-              final totalOverageCost = totalOverageKm * feePerKm;
-              final monthlyOverageCost = totalOverageCost / _leaseTerm;
-
-              if (overagePerYear <= 0) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle_rounded, size: 18,
-                          color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text('No overage — estimated km within allowance.'),
-                      ),
-                    ],
-                  ),
+            Builder(
+              builder: (ctx) {
+                final fmt2 = NumberFormat.currency(
+                  symbol: '\$',
+                  decimalDigits: 2,
                 );
-              }
+                final leaseYears = _leaseTerm / 12;
+                final overagePerYear = (_estimatedAnnualKm - _annualKmAllowance)
+                    .clamp(0.0, double.infinity);
+                final feePerKm = _overageFeeCentsPerKm / 100;
+                final totalOverageKm = overagePerYear * leaseYears;
+                final totalOverageCost = totalOverageKm * feePerKm;
+                final monthlyOverageCost = totalOverageCost / _leaseTerm;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                if (overagePerYear <= 0) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
+                      color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          'Estimated overage: ${overagePerYear.toStringAsFixed(0)} km/year',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                          ),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Projected overage cost over lease: ${fmt2.format(totalOverageCost)}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                          ),
-                        ),
-                        Text(
-                          'Monthly cost of overage: ${fmt2.format(monthlyOverageCost)}/mo',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'No overage — estimated km within allowance.',
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Consider increasing your km allowance or choosing a different plan.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Estimated overage: ${overagePerYear.toStringAsFixed(0)} km/year',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Projected overage cost over lease: ${fmt2.format(totalOverageCost)}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
+                          ),
+                          Text(
+                            'Monthly cost of overage: ${fmt2.format(monthlyOverageCost)}/mo',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Consider increasing your km allowance or choosing a different plan.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ],
         ],
       ],

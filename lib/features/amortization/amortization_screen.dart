@@ -199,10 +199,11 @@ class AmortizationScreen extends StatelessWidget {
               label: 'Share schedule',
               button: true,
               child: IconButton(
-              icon: const Icon(Icons.share_rounded),
-              tooltip: 'Share Schedule',
-              onPressed: () => _shareSchedule(rows, fmt2, currencySymbol, l10n),
-            ),
+                icon: const Icon(Icons.share_rounded),
+                tooltip: 'Share Schedule',
+                onPressed: () =>
+                    _shareSchedule(rows, fmt2, currencySymbol, l10n),
+              ),
             ),
           ],
           bottom: const TabBar(
@@ -220,62 +221,64 @@ class AmortizationScreen extends StatelessWidget {
               children: [
                 // Summary header
                 Semantics(
-                  label: '${isBiWeekly ? "Bi-weekly payment" : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
+                  label:
+                      '${isBiWeekly ? "Bi-weekly payment" : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
                       '${l10n.totalInterest}: ${fmt.format(rows.fold(0.0, (s, r) => s + r.interest))}. '
                       '${l10n.totalCostShort}: ${fmt.format(totalCost)}',
                   child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _HeaderCell(
-                              isBiWeekly ? 'Bi-wk Payment' : l10n.payment,
-                              fmt2.format(
-                                rows.isEmpty ? 0 : rows.first.payment,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _HeaderCell(
+                                isBiWeekly ? 'Bi-wk Payment' : l10n.payment,
+                                fmt2.format(
+                                  rows.isEmpty ? 0 : rows.first.payment,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: _HeaderCell(
-                              l10n.totalInterest,
-                              fmt.format(
-                                rows.fold(0.0, (s, r) => s + r.interest),
+                            Expanded(
+                              child: _HeaderCell(
+                                l10n.totalInterest,
+                                fmt.format(
+                                  rows.fold(0.0, (s, r) => s + r.interest),
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: _HeaderCell(
-                              l10n.totalCostShort,
-                              fmt.format(totalCost),
+                            Expanded(
+                              child: _HeaderCell(
+                                l10n.totalCostShort,
+                                fmt.format(totalCost),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (insuranceMonthly > 0) ...[
+                          const SizedBox(height: 4),
+                          Center(
+                            child: Text(
+                              '+ ${fmt2.format(insPerPeriod)}/period insurance · ${fmt.format(insuranceTotal)} total',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
+                                        .withValues(alpha: 0.8),
+                                  ),
                             ),
                           ),
                         ],
-                      ),
-                      if (insuranceMonthly > 0) ...[
-                        const SizedBox(height: 4),
-                        Center(
-                          child: Text(
-                            '+ ${fmt2.format(insPerPeriod)}/period insurance · ${fmt.format(insuranceTotal)} total',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer
-                                      .withValues(alpha: 0.8),
-                                ),
-                          ),
-                        ),
                       ],
-                    ],
+                    ),
                   ),
-                )), // Semantics (summary header)
+                ), // Semantics (summary header)
                 // Column headers
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -301,35 +304,36 @@ class AmortizationScreen extends StatelessWidget {
                       final isOdd = i.isOdd;
                       final periodStr = isBiWeekly ? 'Bi-week' : l10n.month;
                       return Semantics(
-                        label: '$periodStr ${row.period}: payment ${fmt2.format(row.payment)}, '
+                        label:
+                            '$periodStr ${row.period}: payment ${fmt2.format(row.payment)}, '
                             'principal ${fmt2.format(row.principal)}, '
                             'interest ${fmt2.format(row.interest)}, '
                             'balance ${fmt2.format(row.balance)}',
                         child: Container(
-                        color: isOdd
-                            ? Theme.of(context).colorScheme.surface
-                            : Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerLow
-                                  .withValues(alpha: 0.6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 6,
+                          color: isOdd
+                              ? Theme.of(context).colorScheme.surface
+                              : Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerLow
+                                    .withValues(alpha: 0.6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          child: Row(
+                            children: [
+                              _DataCell('${row.period}', flex: 1),
+                              _DataCell(fmt2.format(row.payment), flex: 2),
+                              _DataCell(fmt2.format(row.principal), flex: 2),
+                              _DataCell(fmt2.format(row.interest), flex: 2),
+                              _DataCell(
+                                fmt2.format(row.balance),
+                                flex: 2,
+                                bold: row.balance == 0,
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            _DataCell('${row.period}', flex: 1),
-                            _DataCell(fmt2.format(row.payment), flex: 2),
-                            _DataCell(fmt2.format(row.principal), flex: 2),
-                            _DataCell(fmt2.format(row.interest), flex: 2),
-                            _DataCell(
-                              fmt2.format(row.balance),
-                              flex: 2,
-                              bold: row.balance == 0,
-                            ),
-                          ],
-                        ),
-                      ),
                       );
                     },
                   ),
@@ -468,81 +472,82 @@ class _PayoffChart extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: Semantics(
-              label: 'Line chart showing remaining loan balance over ${rows.length} ${isBiWeekly ? "bi-weekly periods" : "months"}. '
+              label:
+                  'Line chart showing remaining loan balance over ${rows.length} ${isBiWeekly ? "bi-weekly periods" : "months"}. '
                   'Starting balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(maxBalance)}. '
                   'Final balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(rows.last.balance)}.',
               excludeSemantics: true,
               child: LineChart(
-              LineChartData(
-                minY: 0,
-                maxY: maxBalance * 1.05,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.3),
-                    strokeWidth: 1,
+                LineChartData(
+                  minY: 0,
+                  maxY: maxBalance * 1.05,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.3),
+                      strokeWidth: 1,
+                    ),
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 56,
-                      getTitlesWidget: (value, meta) => Text(
-                        fmt.format(value),
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.right,
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 56,
+                        getTitlesWidget: (value, meta) => Text(
+                          fmt.format(value),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.right,
+                        ),
                       ),
                     ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 24,
-                      getTitlesWidget: (value, meta) => Text(
-                        '${value.toInt()} $periodLabel',
-                        style: Theme.of(context).textTheme.bodySmall,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 24,
+                        getTitlesWidget: (value, meta) => Text(
+                          '${value.toInt()} $periodLabel',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ),
                     ),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
-                      return LineTooltipItem(
-                        '$periodLabel ${s.x.toInt()}\n${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(s.y)}',
-                        Theme.of(
-                          context,
-                        ).textTheme.bodySmall!.copyWith(color: Colors.white),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    color: primary,
-                    barWidth: 2.5,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: primary.withValues(alpha: 0.12),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
-                ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
+                        return LineTooltipItem(
+                          '$periodLabel ${s.x.toInt()}\n${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(s.y)}',
+                          Theme.of(
+                            context,
+                          ).textTheme.bodySmall!.copyWith(color: Colors.white),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: primary,
+                      barWidth: 2.5,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: primary.withValues(alpha: 0.12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             ),
           ),
         ],

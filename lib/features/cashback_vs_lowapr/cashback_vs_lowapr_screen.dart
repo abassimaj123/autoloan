@@ -278,7 +278,6 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
       }).toList(),
     );
   }
-
 }
 
 class _Result {

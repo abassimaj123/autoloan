@@ -329,11 +329,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Comparez deux prêts côte à côte — différentes durées, mises de fonds ou taux d\'intérêt. Trouvez la meilleure offre.';
 
   @override
-  String get onboardingTitle3 => 'Sauvegardez\nvos résultats';
+  String get onboardingTitle3 => 'Passez en premium';
 
   @override
   String get onboardingSubtitle3 =>
-      'Vos calculs sont sauvegardés automatiquement. Retrouvez et comparez vos scénarios de prêt à tout moment.';
+      'Déverrouillez le tableau d\'amortissement, l\'export PDF et l\'historique illimité. Un seul achat, sans abonnement.';
 
   @override
   String get onboardingNext => 'Suivant';

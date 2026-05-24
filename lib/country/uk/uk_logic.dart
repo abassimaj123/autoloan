@@ -3,8 +3,8 @@ import 'dart:math';
 /// UK financing type
 enum UKFinancingType {
   standardLoan, // Standard personal loan / HP (you own at end)
-  hp,           // Hire Purchase — same amortization as standard, but branded HP
-  pcp,          // Personal Contract Purchase — balloon payment at end
+  hp, // Hire Purchase — same amortization as standard, but branded HP
+  pcp, // Personal Contract Purchase — balloon payment at end
 }
 
 extension UKFinancingTypeExt on UKFinancingType {
@@ -26,7 +26,7 @@ extension UKFinancingTypeExt on UKFinancingType {
 
 /// Returns first-year VED amount (£) based on CO2 g/km for post-2017 cars.
 double co2FirstYearVed(double co2GPerKm) {
-  if (co2GPerKm <= 0) return 10.0;       // Electric (0 g/km) — £10 from 2025
+  if (co2GPerKm <= 0) return 10.0; // Electric (0 g/km) — £10 from 2025
   if (co2GPerKm <= 50) return 110.0;
   if (co2GPerKm <= 75) return 130.0;
   if (co2GPerKm <= 90) return 270.0;
