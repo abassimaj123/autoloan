@@ -160,34 +160,42 @@ Developer: CalqWise | support@calqwise.com | https://calqwise.com/privacy
 Auto Loan Calculator UK
 
 ### Short Description (max 80 chars)
-Calculate UK car loan payments, total interest & full amortisation table.
+PCP & HP car finance calculator UK — VED road tax, Rule of 78 early settlement.
 
 ### Long Description (max 4000 chars)
-Auto Loan Calculator UK is the dedicated car finance tool for UK drivers. Calculate monthly repayments, total interest, and a complete amortisation schedule for any vehicle loan or HP (hire purchase) agreement.
+Auto Loan Calculator UK is the most complete car finance tool for UK drivers. Calculate monthly repayments, total interest, and a full amortisation schedule — for HP (hire purchase), PCP (Personal Contract Purchase), and standard car loans.
 
 **What you can calculate:**
 - Monthly repayment for any loan amount, APR, and term
 - Total interest paid over the life of the loan
-- Full amortisation table — see exactly how each repayment is allocated
-- Early repayment scenarios — calculate interest saved and time cut from your loan
+- Full amortisation table — see exactly how each repayment is split between principal and interest
+- **PCP finance** — enter your Guaranteed Minimum Future Value (GMFV) balloon payment and get your true monthly cost, total interest, and whether buying outright beats returning the car
+- **Rule of 78 early settlement** — calculate your interest rebate and exact settlement figure if you want to exit your agreement early
+- **VED / Road Tax** — estimate your annual Vehicle Excise Duty based on CO₂ emissions and registration date, so you know the real annual cost of ownership before you buy
+- Early repayment scenarios — see how extra payments reduce your term and total interest
 - Final repayment date for any strategy
 
 **Key features:**
-- Built for UK loans and hire purchase agreements
+- Built for UK car finance: HP, PCP, and personal loans
+- PCP calculator with GMFV balloon — compare cost to buy vs. return vs. part-exchange
+- VED road tax estimator using CO₂-based DVLA rates
+- Rule of 78 settlement calculator — know your exit cost before you sign
 - Export results to PDF and share instantly
-- Save and compare multiple loan offers in history
+- Save and compare multiple finance offers in history
 - No account required, no internet needed — all calculations are local and private
-- Clean, fast interface designed for quick decisions
+- Clean, fast interface designed for quick decisions at the dealership or at home
 
 **Who this is for:**
-Whether you're financing a new car, comparing dealership HP offers, or deciding whether to pay off your car loan early, Auto Loan Calculator UK gives you every number you need before committing.
+Whether you're comparing a PCP deal with a balloon payment, working out how much VED you'll owe on a high-emission car, or calculating your Rule of 78 settlement before handing back the keys — Auto Loan Calculator UK gives you every number before you commit.
+
+No other UK car finance app combines HP, PCP with GMFV, Rule of 78 settlement, and VED road tax in one place. Everything runs locally — no account, no data shared.
 
 **Privacy:** All calculations run locally on your device. No personal or financial data is ever transmitted.
 
 Developer: CalqWise | support@calqwise.com | https://calqwise.com/privacy
 
 ### Keywords (ASO — 10-15 keywords)
-auto loan calculator UK, car loan calculator UK, car finance calculator, HP calculator UK, hire purchase calculator, amortisation table UK, early repayment calculator UK, monthly car payment UK, vehicle loan UK, car finance UK, loan interest calculator UK, car loan payoff UK, dealership finance calculator, car repayment calculator, UK personal loan calculator
+auto loan calculator UK, car loan calculator UK, car finance calculator, HP calculator UK, hire purchase calculator, PCP calculator UK, personal contract purchase calculator, VED calculator, road tax calculator UK, amortisation table UK, early repayment calculator UK, Rule of 78 calculator, monthly car payment UK, car finance UK, dealership finance calculator
 
 ### Category: Finance
 ### Content Rating: Everyone
