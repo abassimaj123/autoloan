@@ -217,24 +217,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     bool hasFull,
   ) {
     if (all.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.history,
-              size: 64,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.noHistory,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+      return CalcwiseEmptyState(
+        icon: Icons.history_rounded,
+        title: l10n.noHistory,
+        body: 'Your saved calculations will appear here.',
       );
     }
 
@@ -468,24 +454,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
       body: all.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.history,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.noHistory,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+          ? CalcwiseEmptyState(
+              icon: Icons.history_rounded,
+              title: l10n.noHistory,
+              body: 'Your saved calculations will appear here.',
             )
           : _buildListView(
               context,
