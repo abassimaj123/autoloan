@@ -10,6 +10,8 @@ class PdfExportService {
   ///
   /// [summary] is an ordered list of label/value pairs shown before the table
   /// (e.g. Monthly Payment, Loan Amount, Total Interest, Total Cost…).
+  ///
+  /// [isFrench] / [isSpanish] translate section headers and column labels.
   static Future<void> exportLoanPdf({
     required String title,
     required String currencySymbol,
@@ -20,6 +22,8 @@ class PdfExportService {
     double balloonAmount = 0,
     double insuranceMonthly = 0,
     List<MapEntry<String, String>> summary = const [],
+    bool isFrench = false,
+    bool isSpanish = false,
   }) async {
     final rows = buildSchedule(
       loanAmount: loanAmount,
@@ -38,6 +42,26 @@ class PdfExportService {
     final totalPayments = rows.fold(0.0, (s, r) => s + r.payment);
     final totalCost =
         totalPayments + downPayment + insuranceMonthly * termMonths;
+
+    // ── Translated labels ────────────────────────────────────────────────────
+    final tSummary =
+        isFrench ? 'Résumé' : (isSpanish ? 'Resumen' : 'Summary');
+    final tTotalInterest = isFrench
+        ? 'Intérêt total'
+        : (isSpanish ? 'Interés total' : 'Total Interest');
+    final tTotalCostLabel =
+        isFrench ? 'Coût total' : (isSpanish ? 'Costo total' : 'Total Cost');
+    final tAmortization = isFrench
+        ? "Tableau d'amortissement"
+        : (isSpanish ? 'Tabla de amortización' : 'Amortization Schedule');
+    final tPayment =
+        isFrench ? 'Paiement' : (isSpanish ? 'Pago' : 'Payment');
+    final tPrincipal =
+        isFrench ? 'Capital' : (isSpanish ? 'Capital' : 'Principal');
+    final tInterest =
+        isFrench ? 'Intérêt' : (isSpanish ? 'Interés' : 'Interest');
+    final tBalance =
+        isFrench ? 'Solde' : (isSpanish ? 'Saldo' : 'Balance');
 
     final pdf = pw.Document();
 
@@ -84,7 +108,7 @@ class PdfExportService {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'Summary',
+                  tSummary,
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: AppTextSize.sm,
@@ -93,9 +117,9 @@ class PdfExportService {
                 pw.SizedBox(height: 8),
                 ...summary.map((e) => _summaryRow(e.key, e.value)),
                 if (summary.isNotEmpty) pw.Divider(color: PdfColors.grey400),
-                _summaryRow('Total Interest', fmt.format(totalInterest)),
+                _summaryRow(tTotalInterest, fmt.format(totalInterest)),
                 _summaryRow(
-                  'Total Cost',
+                  tTotalCostLabel,
                   fmtInt.format(totalCost),
                   highlight: true,
                 ),
@@ -107,7 +131,7 @@ class PdfExportService {
 
           // ── Amortization table ────────────────────────────────────────────
           pw.Text(
-            'Amortization Schedule',
+            tAmortization,
             style: pw.TextStyle(
               fontWeight: pw.FontWeight.bold,
               fontSize: AppTextSize.sm,
@@ -132,10 +156,10 @@ class PdfExportService {
                 ),
                 children: [
                   '#',
-                  'Payment',
-                  'Principal',
-                  'Interest',
-                  'Balance',
+                  tPayment,
+                  tPrincipal,
+                  tInterest,
+                  tBalance,
                 ].map((h) => _cell(h, header: true)).toList(),
               ),
               // Data rows

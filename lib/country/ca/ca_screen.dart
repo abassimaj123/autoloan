@@ -743,14 +743,25 @@ class _CAResults extends StatelessWidget {
             final payment = p.isBiWeekly
                 ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
                 : 'Monthly: ${fmt.format(r.monthlyPayment)}';
+            final isFrenchShare =
+                Localizations.localeOf(context).languageCode == 'fr';
             try {
               await Share.share(
-                'Auto Loan CA\n'
-                'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
-                'Loan: ${fmt.format(r.loanAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
-                '$payment\n'
-                'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}\n'
-                'Tax (${r.provinceCode}): ${fmt.format(r.taxAmount)}',
+                isFrenchShare
+                    ? 'Prêt Auto CA\n'
+                        'Véhicule: ${fmt.format(r.vehiclePrice)}  |  Mise de fonds: ${fmt.format(r.downPayment)}\n'
+                        'Prêt: ${fmt.format(r.loanAmount)}  |  Taux: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} ans\n'
+                        '$payment\n'
+                        'Intérêts totaux: ${fmt.format(r.totalInterest)}  |  Coût total: ${fmt.format(r.totalCost)}\n'
+                        'Taxe (${r.provinceCode}): ${fmt.format(r.taxAmount)}\n\n'
+                        '📄 Exportez le rapport PDF complet dans l\'app →'
+                    : 'Auto Loan CA\n'
+                        'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
+                        'Loan: ${fmt.format(r.loanAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
+                        '$payment\n'
+                        'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}\n'
+                        'Tax (${r.provinceCode}): ${fmt.format(r.taxAmount)}\n\n'
+                        '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -817,6 +828,8 @@ class _CAResults extends StatelessWidget {
                   termMonths: r.termMonths,
                   downPayment: r.downPayment,
                   insuranceMonthly: p.insurance.monthlyTotal(r.termMonths),
+                  isFrench:
+                      Localizations.localeOf(context).languageCode == 'fr',
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,

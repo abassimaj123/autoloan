@@ -922,7 +922,8 @@ class _UKResults extends StatelessWidget {
                 'Loan: ${fmt.format(r.loanAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
                 '$payment\n'
                 'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
-                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${fmt.format(r.vedTotal)}" : ""}',
+                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${fmt.format(r.vedTotal)}" : ""}\n\n'
+                '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

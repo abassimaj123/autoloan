@@ -684,14 +684,25 @@ class _USResults extends StatelessWidget {
             final payment = p.isBiWeekly
                 ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
                 : 'Monthly: ${fmt.format(r.monthlyPayment)}';
+            final isSpanishShare =
+                Localizations.localeOf(context).languageCode == 'es';
             try {
               await Share.share(
-                'Auto Loan USA\n'
-                'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
-                'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
-                '$payment\n'
-                'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
-                '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}',
+                isSpanishShare
+                    ? 'Préstamo Auto EE.UU.\n'
+                        'Vehículo: ${fmt.format(r.vehiclePrice)}  |  Inicial: ${fmt.format(r.downPayment)}\n'
+                        'Financiado: ${fmt.format(r.financedAmount)}  |  Tasa: ${r.annualRate.toStringAsFixed(2)}% (ef. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} años\n'
+                        '$payment\n'
+                        'Interés total: ${fmt.format(r.totalInterest)}  |  Costo total: ${fmt.format(r.totalCost)}'
+                        '${r.taxAmount > 0 ? "\nImpuesto: ${fmt.format(r.taxAmount)}" : ""}\n\n'
+                        '📄 Exporta el reporte completo en PDF →'
+                    : 'Auto Loan USA\n'
+                        'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
+                        'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
+                        '$payment\n'
+                        'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
+                        '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}\n\n'
+                        '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -755,6 +766,7 @@ class _USResults extends StatelessWidget {
                   annualRate: r.effectiveRate,
                   termMonths: r.termMonths,
                   downPayment: r.downPayment,
+                  isSpanish: Localizations.localeOf(context).languageCode == 'es',
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
