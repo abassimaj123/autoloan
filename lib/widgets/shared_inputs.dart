@@ -152,7 +152,7 @@ class _CurrencyTextInputState extends State<CurrencyTextInput> {
           horizontal: 16,
         ),
         helperText: widget.errorText == null ? widget.helperText : null,
-        helperStyle: const TextStyle(fontSize: 10),
+        helperStyle: const TextStyle(fontSize: AppTextSize.xs),
         errorText: widget.errorText,
       ),
       onChanged: (s) {
@@ -436,7 +436,7 @@ class _RateInputFieldState extends State<RateInputField> {
           horizontal: 16,
         ),
         helperText: widget.errorText == null ? widget.helperText : null,
-        helperStyle: const TextStyle(fontSize: 10),
+        helperStyle: const TextStyle(fontSize: AppTextSize.xs),
         errorText: widget.errorText,
       ),
       onChanged: (s) {

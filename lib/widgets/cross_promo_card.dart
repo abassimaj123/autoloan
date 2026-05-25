@@ -98,7 +98,7 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
                         'CalqWise',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: AppTextSize.xxs,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
