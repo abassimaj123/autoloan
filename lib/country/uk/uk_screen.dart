@@ -327,7 +327,7 @@ class _UKVehicleSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: l10n.loanAmount,
-            value: AmountFormatter.format(p.result!.loanAmount, 'GBP'),
+            value: AmountFormatter.ui(p.result!.loanAmount, 'GBP'),
           ),
         ],
       ],
@@ -802,7 +802,7 @@ class _UKResults extends StatelessWidget {
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
@@ -835,28 +835,28 @@ class _UKResults extends StatelessWidget {
                     : p.financingType == UKFinancingType.hp
                     ? 'HP Monthly Payment'
                     : l10n.monthlyPayment),
-          value: AmountFormatter.format(r.displayPayment, 'GBP'),
+          value: AmountFormatter.ui(r.displayPayment, 'GBP'),
           secondary: p.financingType == UKFinancingType.hp
               ? 'Hire Purchase — you own the car at end'
               : 'Principal & Interest',
           stats: [
-            (label: l10n.totalInterest, value: AmountFormatter.format(r.totalInterest, 'GBP')),
-            (label: l10n.totalCost, value: AmountFormatter.format(r.totalCost, 'GBP')),
+            (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'GBP')),
+            (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'GBP')),
           ],
         ),
         if (p.isBiWeekly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
-            value: AmountFormatter.format(r.monthlyPayment, 'GBP'),
+            value: AmountFormatter.ui(r.monthlyPayment, 'GBP'),
           ),
         if (r.vedMonthly > 0) ...[
           ResultTile(
             label: '  ${l10n.roadTax} /${p.isBiWeekly ? "2wk" : "mo"}',
-            value: AmountFormatter.format(p.isBiWeekly ? r.vedBiWeekly : r.vedMonthly, 'GBP'),
+            value: AmountFormatter.ui(p.isBiWeekly ? r.vedBiWeekly : r.vedMonthly, 'GBP'),
           ),
           ResultTile(
             label: '  ${l10n.loanOnly}',
-            value: AmountFormatter.format(
+            value: AmountFormatter.ui(
               p.isBiWeekly ? r.biWeeklyLoanPayment : r.baseLoanPayment,
               'GBP',
             ),
@@ -865,29 +865,29 @@ class _UKResults extends StatelessWidget {
         if (r.isPcp)
           ResultTile(
             label: l10n.pcpFinalPayment,
-            value: AmountFormatter.format(r.gmfvAmount, 'GBP'),
+            value: AmountFormatter.ui(r.gmfvAmount, 'GBP'),
           ),
-        ResultTile(label: l10n.loanAmount, value: AmountFormatter.format(r.loanAmount, 'GBP')),
+        ResultTile(label: l10n.loanAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         const Divider(),
         // Cost breakdown — always visible
-        ResultTile(label: l10n.financedAmount, value: AmountFormatter.format(r.loanAmount, 'GBP')),
+        ResultTile(label: l10n.financedAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         ResultTile(
           label: l10n.totalInterest,
-          value: AmountFormatter.format(r.totalInterest, 'GBP'),
+          value: AmountFormatter.ui(r.totalInterest, 'GBP'),
         ),
         if (r.vedTotal > 0)
-          ResultTile(label: l10n.totalVed, value: AmountFormatter.format(r.vedTotal, 'GBP')),
-        ResultTile(label: l10n.downPayment, value: AmountFormatter.format(r.downPayment, 'GBP')),
+          ResultTile(label: l10n.totalVed, value: AmountFormatter.ui(r.vedTotal, 'GBP')),
+        ResultTile(label: l10n.downPayment, value: AmountFormatter.ui(r.downPayment, 'GBP')),
         const Divider(height: 8),
         ResultTile(
           label: l10n.totalCost,
-          value: AmountFormatter.format(r.totalCost, 'GBP'),
+          value: AmountFormatter.ui(r.totalCost, 'GBP'),
           isHighlight: true,
         ),
         if (r.isPcp)
           ResultTile(
             label: 'Total if buying at end',
-            value: AmountFormatter.format(r.pcpTotalIfBuy, 'GBP'),
+            value: AmountFormatter.ui(r.pcpTotalIfBuy, 'GBP'),
           ),
         const SizedBox(height: AppSpacing.sm),
         // ── Smart Insights ────────────────────────────────────────────
@@ -908,16 +908,16 @@ class _UKResults extends StatelessWidget {
           onPressed: () async {
             HapticFeedback.lightImpact();
             final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${AmountFormatter.format(r.biWeeklyPayment, 'GBP')}'
-                : '${r.isPcp ? "PCP payment" : "Monthly"}: ${AmountFormatter.format(r.monthlyPayment, 'GBP')}';
+                ? 'Bi-weekly: ${AmountFormatter.ui(r.biWeeklyPayment, 'GBP')}'
+                : '${r.isPcp ? "PCP payment" : "Monthly"}: ${AmountFormatter.ui(r.monthlyPayment, 'GBP')}';
             try {
               await Share.share(
                 'Auto Loan UK\n'
-                'Vehicle: ${AmountFormatter.format(r.vehiclePrice, 'GBP')}  |  Down: ${AmountFormatter.format(r.downPayment, 'GBP')}\n'
-                'Loan: ${AmountFormatter.format(r.loanAmount, 'GBP')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
+                'Vehicle: ${AmountFormatter.ui(r.vehiclePrice, 'GBP')}  |  Down: ${AmountFormatter.ui(r.downPayment, 'GBP')}\n'
+                'Loan: ${AmountFormatter.ui(r.loanAmount, 'GBP')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
                 '$payment\n'
-                'Total Interest: ${AmountFormatter.format(r.totalInterest, 'GBP')}  |  Total Cost: ${AmountFormatter.format(r.totalCost, 'GBP')}'
-                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${AmountFormatter.format(r.vedTotal, 'GBP')}" : ""}\n\n'
+                'Total Interest: ${AmountFormatter.ui(r.totalInterest, 'GBP')}  |  Total Cost: ${AmountFormatter.ui(r.totalCost, 'GBP')}'
+                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${AmountFormatter.ui(r.vedTotal, 'GBP')}" : ""}\n\n'
                 '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
@@ -990,15 +990,15 @@ class _UKResults extends StatelessWidget {
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
-                      AmountFormatter.format(r.vehiclePrice, 'GBP'),
+                      AmountFormatter.ui(r.vehiclePrice, 'GBP'),
                     ),
                     MapEntry(
                       l10n.downPayment,
-                      AmountFormatter.format(r.downPayment, 'GBP'),
+                      AmountFormatter.ui(r.downPayment, 'GBP'),
                     ),
                     MapEntry(
                       l10n.loanAmount,
-                      AmountFormatter.format(r.loanAmount, 'GBP'),
+                      AmountFormatter.ui(r.loanAmount, 'GBP'),
                     ),
                     MapEntry(
                       l10n.annualRate,
@@ -1009,36 +1009,36 @@ class _UKResults extends StatelessWidget {
                       MapEntry(l10n.financingType, l10n.pcp),
                       MapEntry(
                         l10n.gmfv,
-                        AmountFormatter.format(r.gmfvAmount, 'GBP'),
+                        AmountFormatter.ui(r.gmfvAmount, 'GBP'),
                       ),
                     ],
                     MapEntry(
                       r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment,
-                      AmountFormatter.format(r.monthlyPayment, 'GBP'),
+                      AmountFormatter.ui(r.monthlyPayment, 'GBP'),
                     ),
                     if (p.isBiWeekly)
                       MapEntry(
                         l10n.biWeeklyPayment,
-                        AmountFormatter.format(r.biWeeklyPayment, 'GBP'),
+                        AmountFormatter.ui(r.biWeeklyPayment, 'GBP'),
                       ),
                     if (r.vedMonthly > 0) ...[
                       MapEntry(
                         '${l10n.roadTax} /mo',
-                        AmountFormatter.format(r.vedMonthly, 'GBP'),
+                        AmountFormatter.ui(r.vedMonthly, 'GBP'),
                       ),
                       MapEntry(
                         l10n.totalVed,
-                        AmountFormatter.format(r.vedTotal, 'GBP'),
+                        AmountFormatter.ui(r.vedTotal, 'GBP'),
                       ),
                     ],
                     if (r.isPcp) ...[
                       MapEntry(
                         l10n.pcpFinalPayment,
-                        AmountFormatter.format(r.gmfvAmount, 'GBP'),
+                        AmountFormatter.ui(r.gmfvAmount, 'GBP'),
                       ),
                       MapEntry(
                         'Total if buying at end',
-                        AmountFormatter.format(r.pcpTotalIfBuy, 'GBP'),
+                        AmountFormatter.ui(r.pcpTotalIfBuy, 'GBP'),
                       ),
                     ],
                   ],
@@ -1147,8 +1147,8 @@ class _UKPcpHpSection extends StatelessWidget {
             Expanded(
               child: _UKCompareCol(
                 label: 'PCP',
-                monthly: AmountFormatter.format(pcpMonthly, 'GBP'),
-                total: AmountFormatter.format(pcpTotal, 'GBP'),
+                monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
+                total: AmountFormatter.ui(pcpTotal, 'GBP'),
                 footnote: 'incl. ${AmountFormatter.formatInteger(r.gmfvAmount)} balloon',
                 highlight: pcpSavesPerMo > 0,
               ),
@@ -1157,8 +1157,8 @@ class _UKPcpHpSection extends StatelessWidget {
             Expanded(
               child: _UKCompareCol(
                 label: 'HP',
-                monthly: AmountFormatter.format(hpMonthly, 'GBP'),
-                total: AmountFormatter.format(hpTotal, 'GBP'),
+                monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
+                total: AmountFormatter.ui(hpTotal, 'GBP'),
                 footnote: 'full ownership',
                 highlight: pcpSavesPerMo <= 0,
               ),
@@ -1176,7 +1176,7 @@ class _UKPcpHpSection extends StatelessWidget {
             children: [
               if (pcpSavesPerMo > 0)
                 Text(
-                  'PCP saves ${AmountFormatter.format(pcpSavesPerMo, 'GBP')}/mo during contract',
+                  'PCP saves ${AmountFormatter.ui(pcpSavesPerMo, 'GBP')}/mo during contract',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1184,7 +1184,7 @@ class _UKPcpHpSection extends StatelessWidget {
                 ),
               if (hpSavesTotal > 0)
                 Text(
-                  'HP saves ${AmountFormatter.format(hpSavesTotal, 'GBP')} total (if buying at end of PCP)',
+                  'HP saves ${AmountFormatter.ui(hpSavesTotal, 'GBP')} total (if buying at end of PCP)',
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -1302,24 +1302,24 @@ class _UKCostOfCreditSection extends StatelessWidget {
     return SectionCard(
       title: 'Total Cost of Credit',
       children: [
-        ResultTile(label: 'Vehicle price', value: AmountFormatter.format(p.vehiclePrice, 'GBP')),
+        ResultTile(label: 'Vehicle price', value: AmountFormatter.ui(p.vehiclePrice, 'GBP')),
         ResultTile(
           label: r.isPcp
               ? 'Total amount payable (if buying)'
               : 'Total amount payable',
-          value: AmountFormatter.format(totalPayable, 'GBP'),
+          value: AmountFormatter.ui(totalPayable, 'GBP'),
           isHighlight: true,
         ),
-        ResultTile(label: 'Cost of credit', value: AmountFormatter.format(costOfCredit, 'GBP')),
+        ResultTile(label: 'Cost of credit', value: AmountFormatter.ui(costOfCredit, 'GBP')),
         if (r.vedTotal > 0)
           ResultTile(
             label: 'Includes VED (road tax)',
-            value: AmountFormatter.format(r.vedTotal, 'GBP'),
+            value: AmountFormatter.ui(r.vedTotal, 'GBP'),
           ),
         if (r.isPcp) ...[
           ResultTile(
             label: 'Optional final balloon',
-            value: AmountFormatter.format(r.gmfvAmount, 'GBP'),
+            value: AmountFormatter.ui(r.gmfvAmount, 'GBP'),
           ),
         ],
         if (looksLikeFlat) ...[
@@ -1560,29 +1560,29 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             const Divider(),
             ResultTile(
               label: 'Total fuel',
-              value: AmountFormatter.format(_tco!.totalFuel, 'GBP'),
+              value: AmountFormatter.ui(_tco!.totalFuel, 'GBP'),
             ),
             ResultTile(
               label: 'Total insurance',
-              value: AmountFormatter.format(_tco!.totalInsurance, 'GBP'),
+              value: AmountFormatter.ui(_tco!.totalInsurance, 'GBP'),
             ),
             ResultTile(
               label: 'Total MOT & service',
-              value: AmountFormatter.format(_tco!.totalMot, 'GBP'),
+              value: AmountFormatter.ui(_tco!.totalMot, 'GBP'),
             ),
             if (_tco!.totalVed > 0)
               ResultTile(
                 label: 'Total VED (road tax)',
-                value: AmountFormatter.format(_tco!.totalVed, 'GBP'),
+                value: AmountFormatter.ui(_tco!.totalVed, 'GBP'),
               ),
             ResultTile(
               label: 'Total interest',
-              value: AmountFormatter.format(_tco!.totalInterest, 'GBP'),
+              value: AmountFormatter.ui(_tco!.totalInterest, 'GBP'),
             ),
             const Divider(height: 8),
             ResultTile(
               label: 'Grand total over $termYears years',
-              value: AmountFormatter.format(_tco!.grandTotal, 'GBP'),
+              value: AmountFormatter.ui(_tco!.grandTotal, 'GBP'),
               isHighlight: true,
             ),
           ],
@@ -1681,9 +1681,9 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               Expanded(
                 child: _UKFinanceCol(
                   label: 'HP',
-                  monthly: AmountFormatter.format(hpMonthly, 'GBP'),
+                  monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
                   totalLabel: 'Total cost',
-                  total: AmountFormatter.format(hpTotal, 'GBP'),
+                  total: AmountFormatter.ui(hpTotal, 'GBP'),
                   footnote: 'You own it outright',
                   highlight: pcpSavesPerMo <= 0,
                 ),
@@ -1692,9 +1692,9 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               Expanded(
                 child: _UKFinanceCol(
                   label: 'PCP',
-                  monthly: AmountFormatter.format(pcpMonthly, 'GBP'),
+                  monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
                   totalLabel: 'Payments total',
-                  total: AmountFormatter.format(pcpPaymentsTotal, 'GBP'),
+                  total: AmountFormatter.ui(pcpPaymentsTotal, 'GBP'),
                   footnote: '+ ${AmountFormatter.formatInteger(gmfvBalloon)} balloon',
                   highlight: pcpSavesPerMo > 0,
                 ),
@@ -1714,7 +1714,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               children: [
                 if (pcpSavesPerMo > 0) ...[
                   Text(
-                    'PCP saves ${AmountFormatter.format(pcpSavesPerMo, 'GBP')}/mo during contract',
+                    'PCP saves ${AmountFormatter.ui(pcpSavesPerMo, 'GBP')}/mo during contract',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1944,7 +1944,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
             const Divider(),
             ResultTile(
               label: 'Settlement figure (Rule of 78)',
-              value: AmountFormatter.format(_settlement!, 'GBP'),
+              value: AmountFormatter.ui(_settlement!, 'GBP'),
               isHighlight: true,
             ),
             ResultTile(
@@ -2068,7 +2068,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: 'Recommended max payment (15% of income)',
-            value: '${AmountFormatter.format(_monthlyIncome * 0.15, 'GBP')}/mo',
+            value: '${AmountFormatter.ui(_monthlyIncome * 0.15, 'GBP')}/mo',
           ),
           if (r != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -2085,7 +2085,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your payment ${AmountFormatter.format(r.baseLoanPayment, 'GBP')}/mo — $_trafficLabel',
+                    'Your payment ${AmountFormatter.ui(r.baseLoanPayment, 'GBP')}/mo — $_trafficLabel',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: _trafficColor,

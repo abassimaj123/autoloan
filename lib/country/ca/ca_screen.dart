@@ -415,7 +415,7 @@ class _CAProvinceSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: l10n.taxAmount,
-            value: AmountFormatter.format(p.result!.taxAmount, 'CAD'),
+            value: AmountFormatter.ui(p.result!.taxAmount, 'CAD'),
           ),
         ],
       ],
@@ -658,7 +658,7 @@ class _CAResults extends StatelessWidget {
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
@@ -681,40 +681,40 @@ class _CAResults extends StatelessWidget {
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
           label: p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
-          value: AmountFormatter.format(r.displayPayment, 'CAD'),
+          value: AmountFormatter.ui(r.displayPayment, 'CAD'),
           secondary: 'Principal & Interest',
           stats: [
-            (label: l10n.totalInterest, value: AmountFormatter.format(r.totalInterest, 'CAD')),
-            (label: l10n.totalCost, value: AmountFormatter.format(r.totalCost, 'CAD')),
+            (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'CAD')),
+            (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'CAD')),
           ],
         ),
         if (p.isBiWeekly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
-            value: AmountFormatter.format(r.monthlyPayment, 'CAD'),
+            value: AmountFormatter.ui(r.monthlyPayment, 'CAD'),
           ),
-        ResultTile(label: l10n.loanAmount, value: AmountFormatter.format(r.loanAmount, 'CAD')),
+        ResultTile(label: l10n.loanAmount, value: AmountFormatter.ui(r.loanAmount, 'CAD')),
         ResultTile(
           label: '${l10n.taxAmount} (${r.provinceCode})',
-          value: AmountFormatter.format(r.taxAmount, 'CAD'),
+          value: AmountFormatter.ui(r.taxAmount, 'CAD'),
         ),
         const Divider(),
         // Cost breakdown — always visible
-        ResultTile(label: l10n.financedAmount, value: AmountFormatter.format(r.loanAmount, 'CAD')),
+        ResultTile(label: l10n.financedAmount, value: AmountFormatter.ui(r.loanAmount, 'CAD')),
         ResultTile(
           label: l10n.totalInterest,
-          value: AmountFormatter.format(r.totalInterest, 'CAD'),
+          value: AmountFormatter.ui(r.totalInterest, 'CAD'),
         ),
         if (r.insuranceTotal > 0)
           ResultTile(
             label: l10n.totalInsurances,
-            value: AmountFormatter.format(r.insuranceTotal, 'CAD'),
+            value: AmountFormatter.ui(r.insuranceTotal, 'CAD'),
           ),
-        ResultTile(label: l10n.downPayment, value: AmountFormatter.format(r.downPayment, 'CAD')),
+        ResultTile(label: l10n.downPayment, value: AmountFormatter.ui(r.downPayment, 'CAD')),
         const Divider(height: 8),
         ResultTile(
           label: l10n.totalCost,
-          value: AmountFormatter.format(r.totalCost, 'CAD'),
+          value: AmountFormatter.ui(r.totalCost, 'CAD'),
           isHighlight: true,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -735,26 +735,26 @@ class _CAResults extends StatelessWidget {
           onPressed: () async {
             HapticFeedback.lightImpact();
             final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${AmountFormatter.format(r.biWeeklyPayment, 'CAD')}'
-                : 'Monthly: ${AmountFormatter.format(r.monthlyPayment, 'CAD')}';
+                ? 'Bi-weekly: ${AmountFormatter.ui(r.biWeeklyPayment, 'CAD')}'
+                : 'Monthly: ${AmountFormatter.ui(r.monthlyPayment, 'CAD')}';
             final isFrenchShare =
                 Localizations.localeOf(context).languageCode == 'fr';
             try {
               await Share.share(
                 isFrenchShare
                     ? 'Prêt Auto CA\n'
-                        'Véhicule: ${AmountFormatter.format(r.vehiclePrice, 'CAD')}  |  Mise de fonds: ${AmountFormatter.format(r.downPayment, 'CAD')}\n'
-                        'Prêt: ${AmountFormatter.format(r.loanAmount, 'CAD')}  |  Taux: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} ans\n'
+                        'Véhicule: ${AmountFormatter.ui(r.vehiclePrice, 'CAD')}  |  Mise de fonds: ${AmountFormatter.ui(r.downPayment, 'CAD')}\n'
+                        'Prêt: ${AmountFormatter.ui(r.loanAmount, 'CAD')}  |  Taux: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} ans\n'
                         '$payment\n'
-                        'Intérêts totaux: ${AmountFormatter.format(r.totalInterest, 'CAD')}  |  Coût total: ${AmountFormatter.format(r.totalCost, 'CAD')}\n'
-                        'Taxe (${r.provinceCode}): ${AmountFormatter.format(r.taxAmount, 'CAD')}\n\n'
+                        'Intérêts totaux: ${AmountFormatter.ui(r.totalInterest, 'CAD')}  |  Coût total: ${AmountFormatter.ui(r.totalCost, 'CAD')}\n'
+                        'Taxe (${r.provinceCode}): ${AmountFormatter.ui(r.taxAmount, 'CAD')}\n\n'
                         '📄 Exportez le rapport PDF complet dans l\'app →'
                     : 'Auto Loan CA\n'
-                        'Vehicle: ${AmountFormatter.format(r.vehiclePrice, 'CAD')}  |  Down: ${AmountFormatter.format(r.downPayment, 'CAD')}\n'
-                        'Loan: ${AmountFormatter.format(r.loanAmount, 'CAD')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
+                        'Vehicle: ${AmountFormatter.ui(r.vehiclePrice, 'CAD')}  |  Down: ${AmountFormatter.ui(r.downPayment, 'CAD')}\n'
+                        'Loan: ${AmountFormatter.ui(r.loanAmount, 'CAD')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
                         '$payment\n'
-                        'Total Interest: ${AmountFormatter.format(r.totalInterest, 'CAD')}  |  Total Cost: ${AmountFormatter.format(r.totalCost, 'CAD')}\n'
-                        'Tax (${r.provinceCode}): ${AmountFormatter.format(r.taxAmount, 'CAD')}\n\n'
+                        'Total Interest: ${AmountFormatter.ui(r.totalInterest, 'CAD')}  |  Total Cost: ${AmountFormatter.ui(r.totalCost, 'CAD')}\n'
+                        'Tax (${r.provinceCode}): ${AmountFormatter.ui(r.taxAmount, 'CAD')}\n\n'
                         '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
@@ -827,19 +827,19 @@ class _CAResults extends StatelessWidget {
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
-                      AmountFormatter.format(r.vehiclePrice, 'CAD'),
+                      AmountFormatter.ui(r.vehiclePrice, 'CAD'),
                     ),
                     MapEntry(
                       '${l10n.taxAmount} (${r.provinceCode})',
-                      AmountFormatter.format(r.taxAmount, 'CAD'),
+                      AmountFormatter.ui(r.taxAmount, 'CAD'),
                     ),
                     MapEntry(
                       l10n.downPayment,
-                      AmountFormatter.format(r.downPayment, 'CAD'),
+                      AmountFormatter.ui(r.downPayment, 'CAD'),
                     ),
                     MapEntry(
                       l10n.loanAmount,
-                      AmountFormatter.format(r.loanAmount, 'CAD'),
+                      AmountFormatter.ui(r.loanAmount, 'CAD'),
                     ),
                     MapEntry(
                       l10n.annualRate,
@@ -851,17 +851,17 @@ class _CAResults extends StatelessWidget {
                     ),
                     MapEntry(
                       l10n.monthlyPayment,
-                      AmountFormatter.format(r.monthlyPayment, 'CAD'),
+                      AmountFormatter.ui(r.monthlyPayment, 'CAD'),
                     ),
                     if (p.isBiWeekly)
                       MapEntry(
                         l10n.biWeeklyPayment,
-                        AmountFormatter.format(r.biWeeklyPayment, 'CAD'),
+                        AmountFormatter.ui(r.biWeeklyPayment, 'CAD'),
                       ),
                     if (r.insuranceTotal > 0)
                       MapEntry(
                         l10n.totalInsurances,
-                        AmountFormatter.format(r.insuranceTotal, 'CAD'),
+                        AmountFormatter.ui(r.insuranceTotal, 'CAD'),
                       ),
                   ],
                 );
@@ -1190,7 +1190,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Projected overage cost over lease: ${AmountFormatter.format(totalOverageCost, 'CAD')}',
+                            'Projected overage cost over lease: ${AmountFormatter.ui(totalOverageCost, 'CAD')}',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1199,7 +1199,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                                 ),
                           ),
                           Text(
-                            'Monthly cost of overage: ${AmountFormatter.format(monthlyOverageCost, 'CAD')}/mo',
+                            'Monthly cost of overage: ${AmountFormatter.ui(monthlyOverageCost, 'CAD')}/mo',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1259,8 +1259,8 @@ class _ComparisonCard extends StatelessWidget {
             Expanded(
               child: _ComparisonColumn(
                 label: 'Lease ($leaseTermMonths mo)',
-                monthly: AmountFormatter.format(lease.monthlyLease, 'CAD'),
-                total: AmountFormatter.format(lease.totalLeaseCost, 'CAD'),
+                monthly: AmountFormatter.ui(lease.monthlyLease, 'CAD'),
+                total: AmountFormatter.ui(lease.totalLeaseCost, 'CAD'),
                 highlight: leaseWins,
               ),
             ),
@@ -1268,8 +1268,8 @@ class _ComparisonCard extends StatelessWidget {
             Expanded(
               child: _ComparisonColumn(
                 label: 'Buy ($buyTermMonths mo)',
-                monthly: AmountFormatter.format(buyMonthly, 'CAD'),
-                total: AmountFormatter.format(buyTotalOverLeaseTerm, 'CAD'),
+                monthly: AmountFormatter.ui(buyMonthly, 'CAD'),
+                total: AmountFormatter.ui(buyTotalOverLeaseTerm, 'CAD'),
                 highlight: !leaseWins,
                 footnote: 'over $leaseTermMonths mo',
               ),
@@ -1285,8 +1285,8 @@ class _ComparisonCard extends StatelessWidget {
           ),
           child: Text(
             leaseWins
-                ? 'Lease saves ${AmountFormatter.format(absDiff, 'CAD')} over $leaseTermMonths months'
-                : 'Buy saves ${AmountFormatter.format(absDiff, 'CAD')} over $leaseTermMonths months',
+                ? 'Lease saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months'
+                : 'Buy saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1295,7 +1295,7 @@ class _ComparisonCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Residual: ${AmountFormatter.format(lease.residualValue, 'CAD')} · '
+          'Residual: ${AmountFormatter.ui(lease.residualValue, 'CAD')} · '
           'Money factor: ${lease.moneyFactor.toStringAsFixed(5)}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1464,7 +1464,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
             min: 1.00,
             max: 2.50,
             step: 0.05,
-            display: AmountFormatter.format(_fuelPrice, 'CAD'),
+            display: AmountFormatter.ui(_fuelPrice, 'CAD'),
             onChanged: (v) => setState(() => _fuelPrice = v),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -1848,7 +1848,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: 'Recommended max payment (15% of income)',
-            value: '${AmountFormatter.format(maxRecommended, 'CAD')}/mo',
+            value: '${AmountFormatter.ui(maxRecommended, 'CAD')}/mo',
           ),
           ResultTile(
             label: 'Max affordable vehicle (at current rate/term)',
@@ -1871,7 +1871,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your payment ${AmountFormatter.format(r.monthlyPayment, 'CAD')}/mo — $_trafficLabel',
+                    'Your payment ${AmountFormatter.ui(r.monthlyPayment, 'CAD')}/mo — $_trafficLabel',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: _trafficColor,
