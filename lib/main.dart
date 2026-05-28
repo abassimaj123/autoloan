@@ -45,7 +45,10 @@ import 'country/us/us_provider.dart';
 import 'features/cashback_vs_lowapr/cashback_vs_lowapr_screen.dart';
 import 'screens/splash_screen.dart';
 
-final paywallSession = PaywallSessionService(appKey: 'autoloan');
+final paywallSession = PaywallSessionService(
+  appKey: 'autoloan',
+  hasFullAccess: () => freemiumService.hasFullAccess,
+);
 
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
@@ -142,7 +145,9 @@ class AutoLoanApp extends StatelessWidget {
         ChangeNotifierProvider<LocaleNotifier>.value(value: localeNotifier),
         if (flavor == 'ca')
           ChangeNotifierProvider(
-            create: (_) => CAProvider(adService, historyService),
+            // Smart Auto: pass locale-detected province (QC for French, ON for English CA)
+            create: (_) => CAProvider(adService, historyService,
+                smartProvince: localeNotifier.isFrench ? 'QC' : 'ON'),
           ),
         if (flavor == 'uk')
           ChangeNotifierProvider(

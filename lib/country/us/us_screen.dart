@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/premium_gate.dart';
@@ -598,7 +597,6 @@ class _USResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final r = p.result!;
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -608,7 +606,7 @@ class _USResults extends StatelessWidget {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        return _buildCard(context, l10n, r, fmt, hasFull);
+        return _buildCard(context, l10n, r, hasFull);
       },
     );
   }
@@ -617,7 +615,6 @@ class _USResults extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
     USCalculation r,
-    NumberFormat fmt,
     bool hasFull,
   ) {
     return SectionCard(
@@ -625,39 +622,39 @@ class _USResults extends StatelessWidget {
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
           label: p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
-          value: fmt.format(r.displayPayment),
+          value: AmountFormatter.format(r.displayPayment, 'USD'),
           secondary: 'Principal & Interest',
           stats: [
-            (label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
-            (label: l10n.totalCost, value: fmt.format(r.totalCost)),
+            (label: l10n.totalInterest, value: AmountFormatter.format(r.totalInterest, 'USD')),
+            (label: l10n.totalCost, value: AmountFormatter.format(r.totalCost, 'USD')),
           ],
         ),
         if (p.isBiWeekly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
-            value: fmt.format(r.monthlyPayment),
+            value: AmountFormatter.format(r.monthlyPayment, 'USD'),
           ),
-        ResultTile(label: l10n.loanAmount, value: fmt.format(r.financedAmount)),
-        ResultTile(label: l10n.taxAmount, value: fmt.format(r.taxAmount)),
+        ResultTile(label: l10n.loanAmount, value: AmountFormatter.format(r.financedAmount, 'USD')),
+        ResultTile(label: l10n.taxAmount, value: AmountFormatter.format(r.taxAmount, 'USD')),
         if (r.tradeInValue > 0)
           ResultTile(
             label: l10n.tradeInValue,
-            value: fmt.format(r.tradeInValue),
+            value: AmountFormatter.format(r.tradeInValue, 'USD'),
           ),
         const Divider(),
         ResultTile(
           label: l10n.financedAmount,
-          value: fmt.format(r.financedAmount),
+          value: AmountFormatter.format(r.financedAmount, 'USD'),
         ),
         ResultTile(
           label: l10n.totalInterest,
-          value: fmt.format(r.totalInterest),
+          value: AmountFormatter.format(r.totalInterest, 'USD'),
         ),
-        ResultTile(label: l10n.downPayment, value: fmt.format(r.downPayment)),
+        ResultTile(label: l10n.downPayment, value: AmountFormatter.format(r.downPayment, 'USD')),
         const Divider(height: 8),
         ResultTile(
           label: l10n.totalCost,
-          value: fmt.format(r.totalCost),
+          value: AmountFormatter.format(r.totalCost, 'USD'),
           isHighlight: true,
         ),
         ResultTile(
@@ -682,26 +679,26 @@ class _USResults extends StatelessWidget {
           onPressed: () async {
             HapticFeedback.lightImpact();
             final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
-                : 'Monthly: ${fmt.format(r.monthlyPayment)}';
+                ? 'Bi-weekly: ${AmountFormatter.format(r.biWeeklyPayment, 'USD')}'
+                : 'Monthly: ${AmountFormatter.format(r.monthlyPayment, 'USD')}';
             final isSpanishShare =
                 Localizations.localeOf(context).languageCode == 'es';
             try {
               await Share.share(
                 isSpanishShare
                     ? 'Préstamo Auto EE.UU.\n'
-                        'Vehículo: ${fmt.format(r.vehiclePrice)}  |  Inicial: ${fmt.format(r.downPayment)}\n'
-                        'Financiado: ${fmt.format(r.financedAmount)}  |  Tasa: ${r.annualRate.toStringAsFixed(2)}% (ef. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} años\n'
+                        'Vehículo: ${AmountFormatter.format(r.vehiclePrice, 'USD')}  |  Inicial: ${AmountFormatter.format(r.downPayment, 'USD')}\n'
+                        'Financiado: ${AmountFormatter.format(r.financedAmount, 'USD')}  |  Tasa: ${r.annualRate.toStringAsFixed(2)}% (ef. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} años\n'
                         '$payment\n'
-                        'Interés total: ${fmt.format(r.totalInterest)}  |  Costo total: ${fmt.format(r.totalCost)}'
-                        '${r.taxAmount > 0 ? "\nImpuesto: ${fmt.format(r.taxAmount)}" : ""}\n\n'
+                        'Interés total: ${AmountFormatter.format(r.totalInterest, 'USD')}  |  Costo total: ${AmountFormatter.format(r.totalCost, 'USD')}'
+                        '${r.taxAmount > 0 ? "\nImpuesto: ${AmountFormatter.format(r.taxAmount, 'USD')}" : ""}\n\n'
                         '📄 Exporta el reporte completo en PDF →'
                     : 'Auto Loan USA\n'
-                        'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
-                        'Financed: ${fmt.format(r.financedAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
+                        'Vehicle: ${AmountFormatter.format(r.vehiclePrice, 'USD')}  |  Down: ${AmountFormatter.format(r.downPayment, 'USD')}\n'
+                        'Financed: ${AmountFormatter.format(r.financedAmount, 'USD')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
                         '$payment\n'
-                        'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
-                        '${r.taxAmount > 0 ? "\nTax: ${fmt.format(r.taxAmount)}" : ""}\n\n'
+                        'Total Interest: ${AmountFormatter.format(r.totalInterest, 'USD')}  |  Total Cost: ${AmountFormatter.format(r.totalCost, 'USD')}'
+                        '${r.taxAmount > 0 ? "\nTax: ${AmountFormatter.format(r.taxAmount, 'USD')}" : ""}\n\n'
                         '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
@@ -770,29 +767,29 @@ class _USResults extends StatelessWidget {
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
-                      '\$${r.vehiclePrice.toStringAsFixed(2)}',
+                      AmountFormatter.format(r.vehiclePrice, 'USD'),
                     ),
                     if (r.tradeInValue > 0)
                       MapEntry(
                         l10n.tradeInValue,
-                        '-\$${r.tradeInValue.toStringAsFixed(2)}',
+                        '-${AmountFormatter.format(r.tradeInValue, 'USD')}',
                       ),
                     MapEntry(
                       l10n.downPayment,
-                      '\$${r.downPayment.toStringAsFixed(2)}',
+                      AmountFormatter.format(r.downPayment, 'USD'),
                     ),
                     if (r.dealerFees > 0)
                       MapEntry(
                         l10n.dealerFees,
-                        '\$${r.dealerFees.toStringAsFixed(2)}',
+                        AmountFormatter.format(r.dealerFees, 'USD'),
                       ),
                     MapEntry(
                       l10n.taxAmount,
-                      '\$${r.taxAmount.toStringAsFixed(2)}',
+                      AmountFormatter.format(r.taxAmount, 'USD'),
                     ),
                     MapEntry(
                       l10n.financedAmount,
-                      '\$${r.financedAmount.toStringAsFixed(2)}',
+                      AmountFormatter.format(r.financedAmount, 'USD'),
                     ),
                     MapEntry(
                       l10n.annualRate,
@@ -805,12 +802,12 @@ class _USResults extends StatelessWidget {
                     MapEntry(l10n.termMonths, '${r.termMonths} mo'),
                     MapEntry(
                       p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
-                      '\$${r.displayPayment.toStringAsFixed(2)}',
+                      AmountFormatter.format(r.displayPayment, 'USD'),
                     ),
                     if (p.isBiWeekly)
                       MapEntry(
                         '${l10n.monthlyPayment} (equiv.)',
-                        '\$${r.monthlyPayment.toStringAsFixed(2)}',
+                        AmountFormatter.format(r.monthlyPayment, 'USD'),
                       ),
                   ],
                 );
@@ -915,7 +912,6 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     final r = widget.p.result;
 
     return SectionCard(
@@ -1053,7 +1049,6 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
             const SizedBox(height: AppSpacing.lg),
             const Divider(),
             _USComparisonCard(
-              fmt: fmt,
               lease: _lease!,
               buyMonthly: r.monthlyPayment,
               buyTermMonths: widget.p.termMonths,
@@ -1067,14 +1062,12 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
 }
 
 class _USComparisonCard extends StatelessWidget {
-  final NumberFormat fmt;
   final USLeaseCalculation lease;
   final double buyMonthly;
   final int buyTermMonths;
   final int leaseTermMonths;
 
   const _USComparisonCard({
-    required this.fmt,
     required this.lease,
     required this.buyMonthly,
     required this.buyTermMonths,
@@ -1096,8 +1089,8 @@ class _USComparisonCard extends StatelessWidget {
             Expanded(
               child: _USColumn(
                 label: 'Lease ($leaseTermMonths mo)',
-                monthly: fmt.format(lease.monthlyLease),
-                total: fmt.format(lease.totalLeaseCost),
+                monthly: AmountFormatter.format(lease.monthlyLease, 'USD'),
+                total: AmountFormatter.format(lease.totalLeaseCost, 'USD'),
                 highlight: leaseWins,
               ),
             ),
@@ -1105,8 +1098,8 @@ class _USComparisonCard extends StatelessWidget {
             Expanded(
               child: _USColumn(
                 label: 'Buy ($buyTermMonths mo)',
-                monthly: fmt.format(buyMonthly),
-                total: fmt.format(buyTotalOverLeaseTerm),
+                monthly: AmountFormatter.format(buyMonthly, 'USD'),
+                total: AmountFormatter.format(buyTotalOverLeaseTerm, 'USD'),
                 highlight: !leaseWins,
                 footnote: 'over $leaseTermMonths mo',
               ),
@@ -1122,8 +1115,8 @@ class _USComparisonCard extends StatelessWidget {
           ),
           child: Text(
             leaseWins
-                ? 'Lease saves ${fmt.format(absDiff)} over $leaseTermMonths months'
-                : 'Buy saves ${fmt.format(absDiff)} over $leaseTermMonths months',
+                ? 'Lease saves ${AmountFormatter.format(absDiff, 'USD')} over $leaseTermMonths months'
+                : 'Buy saves ${AmountFormatter.format(absDiff, 'USD')} over $leaseTermMonths months',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1132,8 +1125,8 @@ class _USComparisonCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Adj cap cost: ${fmt.format(lease.adjCapCost)}  ·  '
-          'Residual: ${fmt.format(lease.residualValue)}',
+          'Adj cap cost: ${AmountFormatter.format(lease.adjCapCost, 'USD')}  ·  '
+          'Residual: ${AmountFormatter.format(lease.residualValue, 'USD')}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -1288,8 +1281,6 @@ class _USRefiSectionState extends State<_USRefiSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-
     return SectionCard(
       title: 'Refi Calculator',
       children: [
@@ -1349,20 +1340,20 @@ class _USRefiSectionState extends State<_USRefiSection> {
             const Divider(),
             ResultTile(
               label: 'Current monthly payment',
-              value: fmt.format(_refi!.currentMonthly),
+              value: AmountFormatter.format(_refi!.currentMonthly, 'USD'),
             ),
             ResultTile(
               label: 'New monthly payment',
-              value: fmt.format(_refi!.newMonthly),
+              value: AmountFormatter.format(_refi!.newMonthly, 'USD'),
             ),
             ResultTile(
               label: 'Monthly savings',
-              value: fmt.format(_refi!.monthlySavings),
+              value: AmountFormatter.format(_refi!.monthlySavings, 'USD'),
               isHighlight: _refi!.monthlySavings > 0,
             ),
             ResultTile(
               label: 'Total interest saved',
-              value: fmt.format(_refi!.totalInterestSavings),
+              value: AmountFormatter.format(_refi!.totalInterestSavings, 'USD'),
             ),
             if (_refi!.breakevenMonths > 0)
               ResultTile(
@@ -1475,8 +1466,6 @@ class _USTcoSectionState extends State<_USTcoSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     final r = widget.p.result!;
     final termYears = r.termMonths ~/ 12;
 
@@ -1520,7 +1509,7 @@ class _USTcoSectionState extends State<_USTcoSection> {
             min: 1.50,
             max: 6.00,
             step: 0.10,
-            display: fmt2.format(_gasPrice),
+            display: AmountFormatter.format(_gasPrice, 'USD'),
             onChanged: (v) => setState(() => _gasPrice = v),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -1530,7 +1519,7 @@ class _USTcoSectionState extends State<_USTcoSection> {
             min: 400,
             max: 5000,
             step: 100,
-            display: fmt.format(_annualIns),
+            display: AmountFormatter.formatInteger(_annualIns),
             onChanged: (v) => setState(() => _annualIns = v),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -1540,7 +1529,7 @@ class _USTcoSectionState extends State<_USTcoSection> {
             min: 200,
             max: 3000,
             step: 100,
-            display: fmt.format(_annualMaint),
+            display: AmountFormatter.formatInteger(_annualMaint),
             onChanged: (v) => setState(() => _annualMaint = v),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1560,25 +1549,25 @@ class _USTcoSectionState extends State<_USTcoSection> {
             const Divider(),
             ResultTile(
               label: 'Net vehicle cost',
-              value: fmt.format(_tco!.netVehicleCost),
+              value: AmountFormatter.formatInteger(_tco!.netVehicleCost),
             ),
             ResultTile(
               label: 'Total interest',
-              value: fmt.format(_tco!.totalInterest),
+              value: AmountFormatter.formatInteger(_tco!.totalInterest),
             ),
-            ResultTile(label: 'Total gas', value: fmt.format(_tco!.totalGas)),
+            ResultTile(label: 'Total gas', value: AmountFormatter.formatInteger(_tco!.totalGas)),
             ResultTile(
               label: 'Total insurance',
-              value: fmt.format(_tco!.totalInsurance),
+              value: AmountFormatter.formatInteger(_tco!.totalInsurance),
             ),
             ResultTile(
               label: 'Total maintenance',
-              value: fmt.format(_tco!.totalMaintenance),
+              value: AmountFormatter.formatInteger(_tco!.totalMaintenance),
             ),
             const Divider(height: 8),
             ResultTile(
               label: 'True cost of owning over $termYears years',
-              value: fmt.format(_tco!.grandTotal),
+              value: AmountFormatter.formatInteger(_tco!.grandTotal),
               isHighlight: true,
             ),
           ],
@@ -1724,9 +1713,6 @@ class _USAffordabilityReverseSolverSectionState
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-
     return SectionCard(
       title: 'How Much Can I Afford?',
       children: [
@@ -1750,7 +1736,7 @@ class _USAffordabilityReverseSolverSectionState
                 children: [
                   const Text('Monthly budget for car payment'),
                   Text(
-                    fmt2.format(_monthlyBudget),
+                    AmountFormatter.format(_monthlyBudget, 'USD'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -1875,14 +1861,14 @@ class _USAffordabilityReverseSolverSectionState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    fmt.format(_maxPrice!),
+                    AmountFormatter.formatInteger(_maxPrice!),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'vehicle price  ·  ${fmt2.format(_monthlyBudget)}/mo payment  ·  $_term mo',
+                    'vehicle price  ·  ${AmountFormatter.format(_monthlyBudget, 'USD')}/mo payment  ·  $_term mo',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
@@ -1928,7 +1914,7 @@ class _USAffordabilityReverseSolverSectionState
                     ),
                     Expanded(
                       child: Text(
-                        fmt.format(price),
+                        AmountFormatter.formatInteger(price),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isSelected
                               ? Theme.of(context).colorScheme.primary
@@ -1956,7 +1942,7 @@ class _USAffordabilityReverseSolverSectionState
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Includes ${_salesTaxPct.toStringAsFixed(1)}% sales tax, '
-              '${fmt.format(_dealerFees)} dealer fees.',
+              '${AmountFormatter.formatInteger(_dealerFees)} dealer fees.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1985,9 +1971,6 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-    final fmt2 = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-
     final r = widget.p.result;
 
     // Traffic-light: US thresholds — 15% / 20%
@@ -2029,7 +2012,7 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
                 children: [
                   const Text('Gross monthly income'),
                   Text(
-                    fmt.format(_monthlyIncome),
+                    AmountFormatter.formatInteger(_monthlyIncome),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -2049,13 +2032,13 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    fmt.format(2000),
+                    AmountFormatter.formatInteger(2000),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
-                    fmt.format(25000),
+                    AmountFormatter.formatInteger(25000),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -2069,7 +2052,7 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: 'Recommended max payment (15% of income)',
-            value: '${fmt2.format(_monthlyIncome * 0.15)}/mo',
+            value: '${AmountFormatter.format(_monthlyIncome * 0.15, 'USD')}/mo',
           ),
           if (r != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -2086,7 +2069,7 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your payment ${fmt2.format(r.monthlyPayment)}/mo — $_trafficLabel',
+                    'Your payment ${AmountFormatter.format(r.monthlyPayment, 'USD')}/mo — $_trafficLabel',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: _trafficColor,
