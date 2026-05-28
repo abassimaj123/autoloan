@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../amortization/amortization_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 
@@ -184,11 +186,13 @@ class PdfExportService {
       ),
     );
 
-    await Printing.sharePdf(
-      bytes: await pdf.save(),
-      filename:
-          '${title.replaceAll(' ', '_')}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf',
-    );
+    final pdfBytes = await pdf.save();
+    final tmpDir = await getTemporaryDirectory();
+    final pdfFile = File(
+        '${tmpDir.path}/${title.replaceAll(' ', '_')}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf');
+    await pdfFile.writeAsBytes(pdfBytes);
+    await Share.shareXFiles(
+        [XFile(pdfFile.path, mimeType: 'application/pdf')]);
   }
 
   static pw.Widget _summaryRow(
