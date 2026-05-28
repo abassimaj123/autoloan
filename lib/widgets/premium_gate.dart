@@ -25,7 +25,7 @@ class PremiumGate extends StatelessWidget {
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {

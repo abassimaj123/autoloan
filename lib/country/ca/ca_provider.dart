@@ -32,13 +32,16 @@ class CAProvider extends ChangeNotifier {
   double annualRate = 7.9;
   int termMonths = 60;
   bool isBiWeekly = false;
-  String provinceCode = 'ON';
+  late String provinceCode;
   final InsuranceOptions insurance = InsuranceOptions();
 
   CACalculation? _result;
   CACalculation? get result => _result;
 
-  CAProvider(this._ads, this._history);
+  // smartProvince: locale-detected default ('QC' for French, 'ON' for English CA).
+  CAProvider(this._ads, this._history, {String smartProvince = 'ON'}) {
+    provinceCode = smartProvince;
+  }
 
   double get dpAmount =>
       dpIsPercent ? vehiclePrice * downPayment / 100 : downPayment;

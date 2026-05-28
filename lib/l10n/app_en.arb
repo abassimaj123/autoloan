@@ -122,5 +122,58 @@
   "onboardingFeaturePDF": "PDF export",
   "onboardingPremiumBullet1": "Full amortization schedule",
   "onboardingPremiumBullet2": "PDF export & sharing",
-  "onboardingPremiumBullet3": "Unlimited calculation history"
+  "onboardingPremiumBullet3": "Unlimited calculation history",
+  "earlyPayoff": "Early Payoff",
+  "loanSummary": "Loan Summary",
+  "extraMonthlyPayment": "Extra Monthly Payment",
+  "extraAmountPerMonth": "Extra amount per month",
+  "withExtraPayment": "With Extra Payment",
+  "newMonthlyPayment": "New Monthly Payment",
+  "paidOffIn": "Paid off in",
+  "youSave": "You save",
+  "interestSaved": "Interest saved",
+  "monthsSaved": "Months saved",
+  "leaseVsBuy": "Lease vs Buy",
+  "buyLoanDetails": "Buy — Loan Details",
+  "vehiclePriceMsrp": "Vehicle price (MSRP)",
+  "interestRateApr": "Interest rate (APR)",
+  "residualValuePct": "Residual value (%)",
+  "annualInsuranceCost": "Annual insurance cost",
+  "leaseDetails": "Lease Details",
+  "monthlyLeasePayment": "Monthly lease payment",
+  "lvbLeaseTerm": "Lease term (months)",
+  "downPaymentCap": "Down payment / cap reduction",
+  "acquisitionFee": "Acquisition fee",
+  "dispositionFee": "Disposition fee",
+  "mileageLimitPerYear": "Mileage limit per year",
+  "overageCostPer": "Overage cost per",
+  "estimatedAnnualDriven": "Estimated annual miles driven",
+  "compareLeaseBuy": "Compare Lease vs Buy",
+  "comparisonResults": "Comparison Results",
+  "betterBadge": "BETTER",
+  "totalLabel": "Total",
+  "buyBreakdown": "Buy Breakdown",
+  "totalInterestPaid": "Total interest paid",
+  "insuranceOverTerm": "Insurance over term",
+  "totalBuyCost": "Total buy cost",
+  "leaseBreakdown": "Lease Breakdown",
+  "estimatedMileageOverage": "Estimated mileage overage",
+  "totalLeaseCost": "Total lease cost",
+  "mileageExceedsBreakEven": "Mileage exceeds break-even — buying may be cheaper",
+  "mileageBelowBreakEven": "Mileage below break-even — leasing may be cheaper",
+  "informationalOnly": "For informational purposes only. Results depend on actual insurance rates, depreciation, and other factors.",
+  "leasingSaves": "Leasing saves {amount} over {months} months",
+  "@leasingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  },
+  "buyingSaves": "Buying saves {amount} over {months} months",
+  "@buyingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  }
 }

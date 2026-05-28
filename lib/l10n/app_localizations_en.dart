@@ -360,4 +360,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPremiumBullet3 => 'Unlimited calculation history';
+
+  @override
+  String get earlyPayoff => 'Early Payoff';
+
+  @override
+  String get loanSummary => 'Loan Summary';
+
+  @override
+  String get extraMonthlyPayment => 'Extra Monthly Payment';
+
+  @override
+  String get extraAmountPerMonth => 'Extra amount per month';
+
+  @override
+  String get withExtraPayment => 'With Extra Payment';
+
+  @override
+  String get newMonthlyPayment => 'New Monthly Payment';
+
+  @override
+  String get paidOffIn => 'Paid off in';
+
+  @override
+  String get youSave => 'You save';
+
+  @override
+  String get interestSaved => 'Interest saved';
+
+  @override
+  String get monthsSaved => 'Months saved';
+
+  @override
+  String get leaseVsBuy => 'Lease vs Buy';
+
+  @override
+  String get buyLoanDetails => 'Buy — Loan Details';
+
+  @override
+  String get vehiclePriceMsrp => 'Vehicle price (MSRP)';
+
+  @override
+  String get interestRateApr => 'Interest rate (APR)';
+
+  @override
+  String get residualValuePct => 'Residual value (%)';
+
+  @override
+  String get annualInsuranceCost => 'Annual insurance cost';
+
+  @override
+  String get leaseDetails => 'Lease Details';
+
+  @override
+  String get monthlyLeasePayment => 'Monthly lease payment';
+
+  @override
+  String get lvbLeaseTerm => 'Lease term (months)';
+
+  @override
+  String get downPaymentCap => 'Down payment / cap reduction';
+
+  @override
+  String get acquisitionFee => 'Acquisition fee';
+
+  @override
+  String get dispositionFee => 'Disposition fee';
+
+  @override
+  String get mileageLimitPerYear => 'Mileage limit per year';
+
+  @override
+  String get overageCostPer => 'Overage cost per';
+
+  @override
+  String get estimatedAnnualDriven => 'Estimated annual miles driven';
+
+  @override
+  String get compareLeaseBuy => 'Compare Lease vs Buy';
+
+  @override
+  String get comparisonResults => 'Comparison Results';
+
+  @override
+  String get betterBadge => 'BETTER';
+
+  @override
+  String get totalLabel => 'Total';
+
+  @override
+  String get buyBreakdown => 'Buy Breakdown';
+
+  @override
+  String get totalInterestPaid => 'Total interest paid';
+
+  @override
+  String get insuranceOverTerm => 'Insurance over term';
+
+  @override
+  String get totalBuyCost => 'Total buy cost';
+
+  @override
+  String get leaseBreakdown => 'Lease Breakdown';
+
+  @override
+  String get estimatedMileageOverage => 'Estimated mileage overage';
+
+  @override
+  String get totalLeaseCost => 'Total lease cost';
+
+  @override
+  String get mileageExceedsBreakEven =>
+      'Mileage exceeds break-even — buying may be cheaper';
+
+  @override
+  String get mileageBelowBreakEven =>
+      'Mileage below break-even — leasing may be cheaper';
+
+  @override
+  String get informationalOnly =>
+      'For informational purposes only. Results depend on actual insurance rates, depreciation, and other factors.';
+
+  @override
+  String leasingSaves(String amount, int months) {
+    return 'Leasing saves $amount over $months months';
+  }
+
+  @override
+  String buyingSaves(String amount, int months) {
+    return 'Buying saves $amount over $months months';
+  }
 }

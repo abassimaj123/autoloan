@@ -367,4 +367,134 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingPremiumBullet3 => 'Historique de calculs illimité';
+
+  @override
+  String get earlyPayoff => 'Remboursement anticipé';
+
+  @override
+  String get loanSummary => 'Résumé du prêt';
+
+  @override
+  String get extraMonthlyPayment => 'Paiement mensuel supplémentaire';
+
+  @override
+  String get extraAmountPerMonth => 'Montant supplémentaire par mois';
+
+  @override
+  String get withExtraPayment => 'Avec paiement supplémentaire';
+
+  @override
+  String get newMonthlyPayment => 'Nouveau paiement mensuel';
+
+  @override
+  String get paidOffIn => 'Remboursé en';
+
+  @override
+  String get youSave => 'Vous économisez';
+
+  @override
+  String get interestSaved => 'Intérêts économisés';
+
+  @override
+  String get monthsSaved => 'Mois économisés';
+
+  @override
+  String get leaseVsBuy => 'Location vs Achat';
+
+  @override
+  String get buyLoanDetails => 'Achat — Détails du prêt';
+
+  @override
+  String get vehiclePriceMsrp => 'Prix du véhicule (PDSF)';
+
+  @override
+  String get interestRateApr => 'Taux d\'intérêt (APR)';
+
+  @override
+  String get residualValuePct => 'Valeur résiduelle (%)';
+
+  @override
+  String get annualInsuranceCost => 'Coût annuel d\'assurance';
+
+  @override
+  String get leaseDetails => 'Détails de la location';
+
+  @override
+  String get monthlyLeasePayment => 'Paiement mensuel de location';
+
+  @override
+  String get lvbLeaseTerm => 'Durée de location (mois)';
+
+  @override
+  String get downPaymentCap => 'Mise de fonds / réduction cap';
+
+  @override
+  String get acquisitionFee => 'Frais d\'acquisition';
+
+  @override
+  String get dispositionFee => 'Frais de disposition';
+
+  @override
+  String get mileageLimitPerYear => 'Limite de kilométrage par an';
+
+  @override
+  String get overageCostPer => 'Coût de dépassement par';
+
+  @override
+  String get estimatedAnnualDriven => 'Kilométrage annuel estimé';
+
+  @override
+  String get compareLeaseBuy => 'Comparer Location vs Achat';
+
+  @override
+  String get comparisonResults => 'Résultats de comparaison';
+
+  @override
+  String get betterBadge => 'MIEUX';
+
+  @override
+  String get totalLabel => 'Total';
+
+  @override
+  String get buyBreakdown => 'Détail Achat';
+
+  @override
+  String get totalInterestPaid => 'Total des intérêts payés';
+
+  @override
+  String get insuranceOverTerm => 'Assurance sur la durée';
+
+  @override
+  String get totalBuyCost => 'Coût total d\'achat';
+
+  @override
+  String get leaseBreakdown => 'Détail Location';
+
+  @override
+  String get estimatedMileageOverage => 'Dépassement kilométrique estimé';
+
+  @override
+  String get totalLeaseCost => 'Coût total de location';
+
+  @override
+  String get mileageExceedsBreakEven =>
+      'Kilométrage dépasse le seuil — l\'achat peut être plus économique';
+
+  @override
+  String get mileageBelowBreakEven =>
+      'Kilométrage sous le seuil — la location peut être plus économique';
+
+  @override
+  String get informationalOnly =>
+      'À titre informatif seulement. Les résultats dépendent des taux d\'assurance réels, de la dépréciation et d\'autres facteurs.';
+
+  @override
+  String leasingSaves(String amount, int months) {
+    return 'La location économise $amount sur $months mois';
+  }
+
+  @override
+  String buyingSaves(String amount, int months) {
+    return 'L\'achat économise $amount sur $months mois';
+  }
 }

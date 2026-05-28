@@ -1,2 +1,32 @@
-// Re-export from shared package — do not edit here, edit in packages/calcwise_core
-export 'package:calcwise_core/calcwise_core.dart' show PaywallHard;
+/// Thin wrapper — delegates to calcwise_core's PaywallHard.
+/// Keeps the same API so no screen files need to change.
+import 'package:calcwise_core/calcwise_core.dart' as cw;
+import 'package:flutter/foundation.dart' show ValueNotifier;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/freemium/iap_service.dart';
+import '../core/locale_notifier.dart';
+
+class PaywallHard extends StatelessWidget {
+  const PaywallHard({super.key});
+
+  /// Forward the localized price to calcwise_core's global price notifier.
+  static void registerPrice(ValueNotifier<String?> priceNotifier) {
+    cw.PaywallHard.registerPrice(priceNotifier);
+  }
+
+  static Future<void> show(BuildContext context) {
+    final localeNotifier =
+        Provider.of<LocaleNotifier>(context, listen: false);
+    final isFrench = localeNotifier.isFrench;
+    return cw.PaywallHard.show(
+      context,
+      isFrench: isFrench,
+      onPurchase: IAPService.instance.buy,
+      onWatchAd: () => cw.CalcwiseRewardAdSheet.show(context),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}

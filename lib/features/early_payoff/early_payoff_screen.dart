@@ -104,7 +104,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
     final result = _compute(_extraMonthly);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Early Payoff')),
+      appBar: AppBar(title: Text(l10n.earlyPayoff)),
       body: Column(
         children: [
           Expanded(
@@ -118,7 +118,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
               children: [
                 // ── Loan summary ────────────────────────────────────────────
                 SectionCard(
-                  title: 'Loan Summary',
+                  title: l10n.loanSummary,
                   children: [
                     ResultTile(
                       label: l10n.loanAmount,
@@ -142,10 +142,10 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
 
                 // ── Extra payment slider ─────────────────────────────────────
                 SectionCard(
-                  title: 'Extra Monthly Payment',
+                  title: l10n.extraMonthlyPayment,
                   children: [
                     CurrencySliderInput(
-                      label: 'Extra amount / month',
+                      label: l10n.extraAmountPerMonth,
                       value: _extraMonthly,
                       min: 0,
                       max: result.stdMonthlyPayment.clamp(50, 2000),
@@ -167,17 +167,17 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                 // ── Results ──────────────────────────────────────────────────
                 if (_extraMonthly > 0) ...[
                   SectionCard(
-                    title: 'With Extra Payment',
+                    title: l10n.withExtraPayment,
                     children: [
                       ResultTile(
-                        label: 'New Monthly Payment',
+                        label: l10n.newMonthlyPayment,
                         value: fmt.format(
                           result.stdMonthlyPayment + _extraMonthly,
                         ),
                         isHighlight: true,
                       ),
                       ResultTile(
-                        label: 'Paid Off In',
+                        label: l10n.paidOffIn,
                         value:
                             '${result.earlyMonths} mo (${(result.earlyMonths / 12).toStringAsFixed(1)} yr)',
                       ),
@@ -207,7 +207,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'You Save',
+                                l10n.youSave,
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
@@ -223,13 +223,13 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _SavingsChip(
-                                label: 'Interest Saved',
+                                label: l10n.interestSaved,
                                 value: fmt.format(result.interestSaved),
                                 context: context,
                               ),
                               _SavingsChip(
-                                label: 'Months Saved',
-                                value: '${result.monthsSaved} mo',
+                                label: l10n.monthsSaved,
+                                value: '${result.monthsSaved} ${l10n.month}',
                                 context: context,
                               ),
                             ],

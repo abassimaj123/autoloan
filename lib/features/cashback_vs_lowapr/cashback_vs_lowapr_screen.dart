@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
+import '../../widgets/shared_inputs.dart';
 
 /// Cash-Back vs Low-APR comparator.
 ///
@@ -105,68 +106,69 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _sectionCard(
+                    SectionCard(
                       title: isSpanish ? 'Vehículo' : 'Vehicle',
                       children: [
-                        _numField(
+                        CurrencyTextInput(
                           label: isSpanish
                               ? 'Precio del vehículo'
                               : 'Vehicle price',
                           value: _vehiclePrice,
-                          prefix: _currencySymbol,
+                          symbol: _currencySymbol,
+                          helperText: 'e.g. 35 000',
                           onChanged: (v) => setState(() => _vehiclePrice = v),
                         ),
-                        const SizedBox(height: 12),
-                        _numField(
+                        const SizedBox(height: AppSpacing.md),
+                        CurrencyTextInput(
                           label: isSpanish ? 'Pago inicial' : 'Down payment',
                           value: _downPayment,
-                          prefix: _currencySymbol,
+                          symbol: _currencySymbol,
+                          helperText: 'e.g. 5 000',
                           onChanged: (v) => setState(() => _downPayment = v),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         _termChips(),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    _sectionCard(
+                    const SizedBox(height: AppSpacing.md),
+                    SectionCard(
                       title: isSpanish
                           ? 'Escenario A — Reembolso'
                           : 'Scenario A — Cash-Back',
                       children: [
-                        _numField(
+                        CurrencyTextInput(
                           label: isSpanish
                               ? 'Reembolso en efectivo'
                               : 'Cash-back amount',
                           value: _cashBack,
-                          prefix: _currencySymbol,
+                          symbol: _currencySymbol,
+                          helperText: 'e.g. 2 000',
                           onChanged: (v) => setState(() => _cashBack = v),
                         ),
-                        const SizedBox(height: 12),
-                        _numField(
+                        const SizedBox(height: AppSpacing.md),
+                        RateInputField(
                           label: isSpanish
                               ? 'Tasa anual estándar'
                               : 'Standard APR',
                           value: _rateA,
-                          suffix: '%',
                           onChanged: (v) => setState(() => _rateA = v),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    _sectionCard(
+                    const SizedBox(height: AppSpacing.md),
+                    SectionCard(
                       title: isSpanish
                           ? 'Escenario B — Tasa Baja'
                           : 'Scenario B — Low APR',
                       children: [
-                        _numField(
+                        RateInputField(
                           label: isSpanish
                               ? 'Tasa promocional'
                               : 'Promotional APR',
                           value: _rateB,
-                          suffix: '%',
                           onChanged: (v) => setState(() => _rateB = v),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           isSpanish
                               ? 'Sin reembolso — préstamo completo a esta tasa.'
@@ -243,10 +245,8 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                           : 'For informational purposes only. Not financial advice.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 10,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.55),
+                        fontSize: AppTextSize.xs,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -276,59 +276,6 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
           },
         );
       }).toList(),
-    );
-  }
-
-  Widget _sectionCard({required String title, required List<Widget> children}) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        side: BorderSide(color: Theme.of(context).dividerColor),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: AppTextSize.bodyMd,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _numField({
-    required String label,
-    required double value,
-    String? prefix,
-    String? suffix,
-    required ValueChanged<double> onChanged,
-  }) {
-    return TextFormField(
-      initialValue: value == 0
-          ? ''
-          : value.toStringAsFixed(value % 1 == 0 ? 0 : 2),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixText: prefix,
-        suffixText: suffix,
-        border: const OutlineInputBorder(),
-        isDense: true,
-      ),
-      onChanged: (s) {
-        final v = double.tryParse(s.replaceAll(',', ''));
-        if (v != null && v >= 0) onChanged(v);
-      },
     );
   }
 }

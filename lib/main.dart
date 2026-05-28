@@ -45,7 +45,10 @@ import 'country/us/us_provider.dart';
 import 'features/cashback_vs_lowapr/cashback_vs_lowapr_screen.dart';
 import 'screens/splash_screen.dart';
 
-final paywallSession = PaywallSessionService(appKey: 'autoloan');
+final paywallSession = PaywallSessionService(
+  appKey: 'autoloan',
+  hasFullAccess: () => freemiumService.hasFullAccess,
+);
 
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
@@ -83,18 +86,18 @@ void main() async {
   await freemiumService.initialize();
   await IAPService.instance.initialize();
   await paywallSession.initialize();
-  await paywallSession.recordSession();
   AnalyticsService.instance.setUserPremium(freemiumService.hasFullAccess);
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
   final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
 
+  // Initial system UI style — brightness-aware update happens in MaterialApp builder
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0D0B1E),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFFF8FAFC),
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -142,7 +145,9 @@ class AutoLoanApp extends StatelessWidget {
         ChangeNotifierProvider<LocaleNotifier>.value(value: localeNotifier),
         if (flavor == 'ca')
           ChangeNotifierProvider(
-            create: (_) => CAProvider(adService, historyService),
+            // Smart Auto: pass locale-detected province (QC for French, ON for English CA)
+            create: (_) => CAProvider(adService, historyService,
+                smartProvince: localeNotifier.isFrench ? 'QC' : 'ON'),
           ),
         if (flavor == 'uk')
           ChangeNotifierProvider(
@@ -177,15 +182,30 @@ class AutoLoanApp extends StatelessWidget {
               final isDark = Theme.of(context).brightness == Brightness.dark;
               SystemChrome.setSystemUIOverlayStyle(
                 SystemUiOverlayStyle(
-                  systemNavigationBarColor: Theme.of(
-                    context,
-                  ).scaffoldBackgroundColor,
+                  systemNavigationBarColor: isDark
+                      ? const Color(0xFF121212)
+                      : const Color(0xFFF8FAFC),
                   systemNavigationBarIconBrightness: isDark
+                      ? Brightness.light
+                      : Brightness.dark,
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: isDark
                       ? Brightness.light
                       : Brightness.dark,
                 ),
               );
-              return child!;
+              if (!MediaQuery.of(context).disableAnimations) return child!;
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  pageTransitionsTheme: const PageTransitionsTheme(
+                    builders: {
+                      TargetPlatform.android: _NoAnimPageTransitionsBuilder(),
+                      TargetPlatform.iOS: _NoAnimPageTransitionsBuilder(),
+                    },
+                  ),
+                ),
+                child: child!,
+              );
             },
             home: const SplashScreen(),
             routes: {
@@ -277,4 +297,16 @@ class _IapErrorWrapperState extends State<_IapErrorWrapper> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+class _NoAnimPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoAnimPageTransitionsBuilder();
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => child;
 }

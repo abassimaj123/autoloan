@@ -122,5 +122,58 @@
   "onboardingFeaturePDF": "Exportar PDF",
   "onboardingPremiumBullet1": "Tabla de amortización completa",
   "onboardingPremiumBullet2": "Exportación PDF y compartir",
-  "onboardingPremiumBullet3": "Historial de cálculos ilimitado"
+  "onboardingPremiumBullet3": "Historial de cálculos ilimitado",
+  "earlyPayoff": "Pago anticipado",
+  "loanSummary": "Resumen del préstamo",
+  "extraMonthlyPayment": "Pago mensual extra",
+  "extraAmountPerMonth": "Monto extra por mes",
+  "withExtraPayment": "Con pago extra",
+  "newMonthlyPayment": "Nuevo pago mensual",
+  "paidOffIn": "Pagado en",
+  "youSave": "Ahorras",
+  "interestSaved": "Interés ahorrado",
+  "monthsSaved": "Meses ahorrados",
+  "leaseVsBuy": "Arrendamiento vs Compra",
+  "buyLoanDetails": "Compra — Detalles del préstamo",
+  "vehiclePriceMsrp": "Precio del vehículo (MSRP)",
+  "interestRateApr": "Tasa de interés (APR)",
+  "residualValuePct": "Valor residual (%)",
+  "annualInsuranceCost": "Costo anual de seguro",
+  "leaseDetails": "Detalles del arrendamiento",
+  "monthlyLeasePayment": "Pago mensual de arrendamiento",
+  "lvbLeaseTerm": "Plazo de arrendamiento (meses)",
+  "downPaymentCap": "Pago inicial / reducción cap",
+  "acquisitionFee": "Tarifa de adquisición",
+  "dispositionFee": "Tarifa de disposición",
+  "mileageLimitPerYear": "Límite de millas por año",
+  "overageCostPer": "Costo de exceso por",
+  "estimatedAnnualDriven": "Millas anuales estimadas",
+  "compareLeaseBuy": "Comparar Arrendamiento vs Compra",
+  "comparisonResults": "Resultados de comparación",
+  "betterBadge": "MEJOR",
+  "totalLabel": "Total",
+  "buyBreakdown": "Desglose de Compra",
+  "totalInterestPaid": "Total de intereses pagados",
+  "insuranceOverTerm": "Seguro durante el plazo",
+  "totalBuyCost": "Costo total de compra",
+  "leaseBreakdown": "Desglose de Arrendamiento",
+  "estimatedMileageOverage": "Exceso de millaje estimado",
+  "totalLeaseCost": "Costo total de arrendamiento",
+  "mileageExceedsBreakEven": "Millaje supera el umbral — comprar puede ser más económico",
+  "mileageBelowBreakEven": "Millaje bajo el umbral — arrendar puede ser más económico",
+  "informationalOnly": "Solo con fines informativos. Los resultados dependen de las tasas reales de seguro, depreciación y otros factores.",
+  "leasingSaves": "El arrendamiento ahorra {amount} en {months} meses",
+  "@leasingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  },
+  "buyingSaves": "La compra ahorra {amount} en {months} meses",
+  "@buyingSaves": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "months": {"type": "int"}
+    }
+  }
 }

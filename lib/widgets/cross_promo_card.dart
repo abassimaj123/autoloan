@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../core/theme/app_theme.dart';
 
 // ── Cross-promo: SalaryApp ──────────────────────────────────────────────────
 // Shown to free users only. Dismissible, remembers dismissal for 7 days.
@@ -97,32 +98,35 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
                         'CalqWise',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: AppTextSize.xxs,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'Also from us',
-                      style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                      style: TextStyle(
+                        fontSize: AppTextSize.xs,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
-                const Text(
+                Text(
                   _targetName,
                   style: TextStyle(
                     fontSize: AppTextSize.md,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const Text(
+                Text(
                   _targetTagline,
                   style: TextStyle(
                     fontSize: AppTextSize.xs,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.labelGray,
                   ),
                 ),
               ],
@@ -131,17 +135,19 @@ class _CrossPromoCardState extends State<CrossPromoCard> {
           const SizedBox(width: AppSpacing.sm),
           Column(
             children: [
-              GestureDetector(
+              InkWell(
                 onTap: _dismiss,
-                child: const Icon(
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                child: Icon(
                   Icons.close_rounded,
                   size: 16,
-                  color: Color(0xFF94A3B8),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              GestureDetector(
+              InkWell(
                 onTap: _open,
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,

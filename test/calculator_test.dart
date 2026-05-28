@@ -143,7 +143,8 @@ void main() {
       expect(r.monthlyPayment, closeTo(r.baseLoanPayment + 280.0 / 12, 0.01));
     });
 
-    test('electric VED = £0', () {
+    test('electric VED = £10/yr since April 2025 (DVLA 2025/26)', () {
+      // UK EVs are no longer VED-exempt from April 2025 — £10/year standard rate.
       final r = UKCalculation.calculate(
         vehiclePrice: 30000,
         downPayment: 5000,
@@ -152,9 +153,8 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.electric,
       );
-      expect(r.vedMonthly, 0);
-      expect(r.vedTotal, 0);
-      expect(r.monthlyPayment, closeTo(r.baseLoanPayment, 0.001));
+      expect(r.vedMonthly, closeTo(10.0 / 12, 0.01)); // £0.83/mo
+      expect(r.vedTotal, closeTo(10.0 / 12 * 48, 0.01)); // £40 over 48 months
     });
 
     test('total cost = price + interest + vedTotal', () {

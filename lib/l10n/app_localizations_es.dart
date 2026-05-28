@@ -367,4 +367,134 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingPremiumBullet3 => 'Historial de cálculos ilimitado';
+
+  @override
+  String get earlyPayoff => 'Pago anticipado';
+
+  @override
+  String get loanSummary => 'Resumen del préstamo';
+
+  @override
+  String get extraMonthlyPayment => 'Pago mensual extra';
+
+  @override
+  String get extraAmountPerMonth => 'Monto extra por mes';
+
+  @override
+  String get withExtraPayment => 'Con pago extra';
+
+  @override
+  String get newMonthlyPayment => 'Nuevo pago mensual';
+
+  @override
+  String get paidOffIn => 'Pagado en';
+
+  @override
+  String get youSave => 'Ahorras';
+
+  @override
+  String get interestSaved => 'Interés ahorrado';
+
+  @override
+  String get monthsSaved => 'Meses ahorrados';
+
+  @override
+  String get leaseVsBuy => 'Arrendamiento vs Compra';
+
+  @override
+  String get buyLoanDetails => 'Compra — Detalles del préstamo';
+
+  @override
+  String get vehiclePriceMsrp => 'Precio del vehículo (MSRP)';
+
+  @override
+  String get interestRateApr => 'Tasa de interés (APR)';
+
+  @override
+  String get residualValuePct => 'Valor residual (%)';
+
+  @override
+  String get annualInsuranceCost => 'Costo anual de seguro';
+
+  @override
+  String get leaseDetails => 'Detalles del arrendamiento';
+
+  @override
+  String get monthlyLeasePayment => 'Pago mensual de arrendamiento';
+
+  @override
+  String get lvbLeaseTerm => 'Plazo de arrendamiento (meses)';
+
+  @override
+  String get downPaymentCap => 'Pago inicial / reducción cap';
+
+  @override
+  String get acquisitionFee => 'Tarifa de adquisición';
+
+  @override
+  String get dispositionFee => 'Tarifa de disposición';
+
+  @override
+  String get mileageLimitPerYear => 'Límite de millas por año';
+
+  @override
+  String get overageCostPer => 'Costo de exceso por';
+
+  @override
+  String get estimatedAnnualDriven => 'Millas anuales estimadas';
+
+  @override
+  String get compareLeaseBuy => 'Comparar Arrendamiento vs Compra';
+
+  @override
+  String get comparisonResults => 'Resultados de comparación';
+
+  @override
+  String get betterBadge => 'MEJOR';
+
+  @override
+  String get totalLabel => 'Total';
+
+  @override
+  String get buyBreakdown => 'Desglose de Compra';
+
+  @override
+  String get totalInterestPaid => 'Total de intereses pagados';
+
+  @override
+  String get insuranceOverTerm => 'Seguro durante el plazo';
+
+  @override
+  String get totalBuyCost => 'Costo total de compra';
+
+  @override
+  String get leaseBreakdown => 'Desglose de Arrendamiento';
+
+  @override
+  String get estimatedMileageOverage => 'Exceso de millaje estimado';
+
+  @override
+  String get totalLeaseCost => 'Costo total de arrendamiento';
+
+  @override
+  String get mileageExceedsBreakEven =>
+      'Millaje supera el umbral — comprar puede ser más económico';
+
+  @override
+  String get mileageBelowBreakEven =>
+      'Millaje bajo el umbral — arrendar puede ser más económico';
+
+  @override
+  String get informationalOnly =>
+      'Solo con fines informativos. Los resultados dependen de las tasas reales de seguro, depreciación y otros factores.';
+
+  @override
+  String leasingSaves(String amount, int months) {
+    return 'El arrendamiento ahorra $amount en $months meses';
+  }
+
+  @override
+  String buyingSaves(String amount, int months) {
+    return 'La compra ahorra $amount en $months meses';
+  }
 }

@@ -23,7 +23,12 @@ class HistoryService {
 
   Future<void> add(String country, Map<String, dynamic> data) async {
     var all = getAll().reversed.toList();
-    all.add({...data, 'country': country});
+    all.add({
+      ...data,
+      'country': country,
+      if (!data.containsKey('timestamp'))
+        'timestamp': DateTime.now().toIso8601String(),
+    });
     // Freemium gate — FIFO: trim oldest entries when free user exceeds limit
     if (!freemiumService.hasFullAccess &&
         all.length > MonetizationConfig.freeCalculationLimit) {

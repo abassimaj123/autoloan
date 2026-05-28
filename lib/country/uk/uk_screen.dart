@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/premium_gate.dart';
@@ -20,6 +19,7 @@ import '../../features/pdf/pdf_export_service.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
+import '../../features/lease_vs_buy/lease_vs_buy_screen.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
@@ -38,61 +38,60 @@ class _UKScreenState extends State<UKScreen> {
   Timer? _debounce;
   Timer? _saveDebounce;
   bool _validated = false;
+  int _selectedTab = 0;
+  int _historyRefreshKey = 0;
+  bool _wasPremium = false;
 
   @override
   void initState() {
     super.initState();
+    _wasPremium = freemiumService.hasFullAccess;
+    freemiumService.isPremiumNotifier.addListener(_onPremiumChange);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async => await paywallSession.recordSession(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) => _debouncedCalculate());
   }
 
   @override
   void dispose() {
+    freemiumService.isPremiumNotifier.removeListener(_onPremiumChange);
     _debounce?.cancel();
     _saveDebounce?.cancel();
     super.dispose();
   }
 
+  void _onPremiumChange() {
+    final now = freemiumService.hasFullAccess;
+    if (now && !_wasPremium && mounted) {
+      showPremiumWelcomeSnackBar(context);
+    }
+    _wasPremium = now;
+  }
+
   Future<void> _onNavTap(int i) async {
+    if (i == _selectedTab) return;
     if (i == 1) {
       AnalyticsService.instance.logTabChanged('compare');
       AnalyticsService.instance.logCompareUsed('uk');
-      final trigger = await paywallSession.recordAction();
-      if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) {
-        PaywallHard.show(context);
-      } else if (trigger == PaywallTrigger.soft) {
-        PaywallSoft.show(context);
-      }
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const CompareScreen(flavor: 'uk'),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: AppDuration.base,
-        ),
-      );
     } else if (i == 2) {
       AnalyticsService.instance.logTabChanged('history');
+    } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('lease_vs_buy');
+    }
+    if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard) {
+      if (trigger == PaywallTrigger.hard)
         PaywallHard.show(context);
-      } else if (trigger == PaywallTrigger.soft) {
+      else if (trigger == PaywallTrigger.soft)
         PaywallSoft.show(context);
-      }
       if (!mounted) return;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const HistoryScreen(country: 'uk'),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: AppDuration.base,
-        ),
-      );
     }
+    setState(() {
+      _selectedTab = i;
+      if (i == 2) _historyRefreshKey++;
+    });
   }
 
   void _debouncedCalculate() {
@@ -114,7 +113,7 @@ class _UKScreenState extends State<UKScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('🇬🇧 ${l10n.appNameUK}'),
+        title: Text(l10n.appNameUK),
         actions: [
           CalcwiseAppBarActions(
             freemium: freemiumService,
@@ -133,509 +132,142 @@ class _UKScreenState extends State<UKScreen> {
               );
             },
             onRewardAd: () => CalcwiseRewardAdSheet.show(context),
+            onPremium: () => PaywallHard.show(context),
           ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
+        selectedIndex: _selectedTab,
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.calculate_rounded),
-            selectedIcon: const Icon(Icons.calculate),
+            icon: const Icon(Icons.calculate_outlined),
+            selectedIcon: const Icon(Icons.calculate_rounded),
             label: l10n.calculate,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.compare_arrows_rounded),
-            selectedIcon: const Icon(Icons.compare_arrows),
+            icon: const Icon(Icons.compare_arrows_outlined),
+            selectedIcon: const Icon(Icons.compare_arrows_rounded),
             label: l10n.compareLoans,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.history_rounded),
-            selectedIcon: const Icon(Icons.history),
+            icon: const Icon(Icons.history_outlined),
+            selectedIcon: const Icon(Icons.history_rounded),
             label: l10n.history,
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.balance_outlined),
+            selectedIcon: Icon(Icons.balance_rounded),
+            label: 'Lease vs Buy',
           ),
         ],
       ),
-      body: Consumer<UKProvider>(
-        builder: (context, p, _) => SafeArea(
-          top: false,
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: SingleChildScrollView(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: CalcwisePageEntrance(
-                      child: Column(
-                        children: [
-                          // ── Hero result (moved to top so users see the answer first) ──
-                          AnimatedSwitcher(
-                            duration: AppDuration.base,
-                            transitionBuilder: (child, animation) =>
-                                FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.04),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                ),
-                            child: p.result != null
-                                ? KeyedSubtree(
-                                    key: const ValueKey('results'),
-                                    child: _UKResults(
-                                      p: p,
-                                      adService: adService,
-                                    ),
-                                  )
-                                : Padding(
-                                    key: const ValueKey('empty'),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 32,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.directions_car_rounded,
-                                          size: 48,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.3),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          'Enter vehicle price to see your monthly payment',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: AppTextSize.body,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withValues(alpha: 0.5),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                          ),
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: _selectedTab,
+              children: [
+                // Tab 0: Calculator
+                _UKCalculatorTab(
+                  validated: _validated,
+                  onCalculate: _debouncedCalculate,
+                  adService: adService,
+                ),
+                // Tab 1: Compare
+                CompareScreen(flavor: 'uk', showAppBar: false),
+                // Tab 2: History
+                HistoryScreen(
+                  key: ValueKey(_historyRefreshKey),
+                  country: 'uk',
+                  showAppBar: false,
+                  onClear: () => setState(() => _historyRefreshKey++),
+                ),
+                // Tab 3: Lease vs Buy
+                const LeaseVsBuyScreen(flavor: 'uk', showAppBar: false),
+              ],
+            ),
+          ),
+          const CalcwiseAdFooter(),
+        ],
+      ),
+    );
+  }
+}
 
-                          // ── Vehicle ───────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.vehicle,
-                            children: [
-                              CurrencyTextInput(
-                                label: '${l10n.vehiclePrice} (VAT incl.)',
-                                value: p.vehiclePrice,
-                                symbol: '£',
-                                onChanged: (v) {
-                                  p.setVehiclePrice(v);
-                                  _debouncedCalculate();
-                                },
-                                helperText: 'e.g. 25 000',
-                                errorText: _validated && p.vehiclePrice <= 0
-                                    ? 'Required'
-                                    : null,
-                              ),
-                              const SizedBox(height: 12),
-                              CurrencySliderInput(
-                                label: l10n.downPayment,
-                                value: p.downPayment,
-                                min: 0,
-                                max: p.vehiclePrice * 0.9,
-                                step: 500,
-                                symbol: '£',
-                                onChanged: (v) {
-                                  p.setDownPayment(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              if (p.result != null) ...[
-                                const SizedBox(height: 8),
-                                ResultTile(
-                                  label: l10n.loanAmount,
-                                  value: NumberFormat.currency(
-                                    symbol: '£',
-                                    decimalDigits: 2,
-                                  ).format(p.result!.loanAmount),
+// ── UK Calculator Tab ──────────────────────────────────────────────────────────
+
+class _UKCalculatorTab extends StatelessWidget {
+  final bool validated;
+  final VoidCallback onCalculate;
+  final CalcwiseAdService adService;
+
+  const _UKCalculatorTab({
+    required this.validated,
+    required this.onCalculate,
+    required this.adService,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<UKProvider>(
+      builder: (context, p, _) => SafeArea(
+        top: false,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: CalcwisePageEntrance(
+                    child: Column(
+                      children: [
+                        // ── Hero result ───────────────────────────────────
+                        if (p.result != null)
+                          CalcwisePageEntrance(
+                            child: Column(
+                              children: [
+                                CalcwiseStaggerItem(
+                                  index: 0,
+                                  child: _UKResults(p: p, adService: adService),
                                 ),
                               ],
-                            ],
-                          ),
-
-                          // ── Loan Terms ────────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.loanTerms,
-                            children: [
-                              RateInputField(
-                                label: '${l10n.annualRate} (APR)',
-                                value: p.annualRate,
-                                helperText:
-                                    'Default rate as of 2026 — update to your actual rate',
-                                onChanged: (v) {
-                                  p.setAnnualRate(v);
-                                  _debouncedCalculate();
-                                },
-                                errorText: _validated && p.annualRate <= 0
-                                    ? 'Required'
-                                    : null,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'Representative APR. Actual rate depends on your credit status (FCA CONC).',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              DurationChips(
-                                label: l10n.termMonths,
-                                options: const [24, 36, 48, 60, 72, 84],
-                                selected: p.termMonths,
-                                onSelected: (v) {
-                                  p.setTermMonths(v);
-                                  _debouncedCalculate();
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.isBiWeekly,
-                                    onChanged: (v) {
-                                      p.setIsBiWeekly(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(l10n.biWeeklyToggle),
-                                        Text(
-                                          l10n.biWeeklySubtitle,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          // ── Financing Type (Standard / PCP) ──────────────────────
-                          SectionCard(
-                            title: l10n.financingType,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: !p.isPcp
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.primaryContainer
-                                            : null,
-                                      ),
-                                      onPressed: () {
-                                        p.setIsPcp(false);
-                                        _debouncedCalculate();
-                                      },
-                                      child: Text(l10n.standardLoan),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: p.isPcp
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.primaryContainer
-                                            : null,
-                                      ),
-                                      onPressed: () {
-                                        p.setIsPcp(true);
-                                        _debouncedCalculate();
-                                      },
-                                      child: Text(l10n.pcp),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (p.isPcp) ...[
-                                const SizedBox(height: 12),
-                                PercentSliderInput(
-                                  label: l10n.gmfvPercent,
-                                  value: p.gmfvPercent,
-                                  min: 10,
-                                  max: 60,
-                                  step: 1,
-                                  onChanged: (v) {
-                                    p.setGmfvPercent(v);
-                                    _debouncedCalculate();
-                                  },
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${l10n.gmfv}: £${(p.vehiclePrice * p.gmfvPercent / 100).toStringAsFixed(0)}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.pcpNote,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                            ],
-                          ),
-
-                          // ── Road Tax (VED) ────────────────────────────────────────
-                          SectionCard(
-                            title: l10n.roadTax,
-                            children: [
-                              Row(
-                                children: [
-                                  Switch(
-                                    value: p.includeRoadTax,
-                                    onChanged: (v) {
-                                      p.setIncludeRoadTax(v);
-                                      _debouncedCalculate();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      l10n.includeRoadTax,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (p.includeRoadTax) ...[
-                                const SizedBox(height: 12),
-                                DropdownButtonFormField<VehicleType>(
-                                  // ignore: deprecated_member_use
-                                  value: p.vehicleType,
-                                  isExpanded: true,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.vehicleType,
-                                    border: const OutlineInputBorder(),
-                                    isDense: true,
-                                  ),
-                                  items: VehicleType.values
-                                      .map(
-                                        (t) => DropdownMenuItem(
-                                          value: t,
-                                          child: Text(t.label),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (v) {
-                                    if (v != null) {
-                                      p.setVehicleType(v);
-                                      _debouncedCalculate();
-                                    }
-                                  },
-                                ),
-                                if (p.vehicleType == VehicleType.custom) ...[
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    initialValue: p.customVedAnnual
-                                        .toStringAsFixed(0),
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Custom annual VED (£)',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                      prefixText: '£ ',
-                                    ),
-                                    onChanged: (v) {
-                                      final val = double.tryParse(v);
-                                      if (val != null && val >= 0) {
-                                        p.setCustomVedAnnual(val);
-                                        _debouncedCalculate();
-                                      }
-                                    },
-                                  ),
-                                ],
-                                const SizedBox(height: 8),
-                                Text(
-                                  () {
-                                    final annual =
-                                        p.vehicleType == VehicleType.custom
-                                        ? p.customVedAnnual
-                                        : p.vehicleType.vedAnnual;
-                                    return 'Annual VED: £${annual.toStringAsFixed(0)}  ·  '
-                                        'Monthly: £${(annual / 12).toStringAsFixed(2)}';
-                                  }(),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                ),
-                              ],
-                              if (!p.includeRoadTax)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Tooltip(
-                                    triggerMode: TooltipTriggerMode.tap,
-                                    showDuration: const Duration(seconds: 6),
-                                    preferBelow: true,
-                                    message:
-                                        'VED Annual Rates\n'
-                                        'Electric:            £0\n'
-                                        'Petrol <1000cc:  £180\n'
-                                        'Diesel / Hybrid:  £190\n'
-                                        'Petrol >1000cc:  £280\n'
-                                        'Diesel surcharge: £590',
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          size: 16,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'VED annual rates',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-
-                          // ── PCP vs HP Comparison (only when PCP is on) ────────────
-                          if (p.result != null && p.isPcp)
-                            _UKPcpHpSection(p: p),
-
-                          // ── Total Cost of Credit ──────────────────────────────────
-                          if (p.result != null) _UKCostOfCreditSection(p: p),
-
-                          // ── Early Settlement ──────────────────────────────────────
-                          if (p.result != null) _UKEarlySettlementSection(p: p),
-
-                          // ── TCO ───────────────────────────────────────────────────
-                          if (p.result != null) _UKTcoSection(p: p),
-
-                          // ── HP vs PCP Comparison ──────────────────────────────────
-                          if (p.result != null) _UKHpVsPcpSection(p: p),
-
-                          // ── Affordability Guide ───────────────────────────────────
-                          _UKAffordabilitySection(p: p),
-
-                          // ── Reverse Affordability — "what vehicle can I afford?" ──
-                          const SizedBox(height: 12),
-                          ReverseSolveCard(
-                            title: 'What vehicle price can I afford?',
-                            targetLabel: 'Target monthly payment',
-                            resultLabel: 'Max vehicle price',
-                            prefix: '£',
-                            minBound: 5000,
-                            maxBound: 200000,
-                            targetValue: 0,
-                            ascending: true,
-                            compute: (vehiclePrice) {
-                              final dpRatio = p.vehiclePrice > 0
-                                  ? (p.downPayment / p.vehiclePrice).clamp(
-                                      0.0,
-                                      0.95,
-                                    )
-                                  : 0.15;
-                              final down = vehiclePrice * dpRatio;
-                              final loan = vehiclePrice - down;
-                              final r = p.annualRate / 100 / 12;
-                              final n = p.termMonths;
-                              if (loan <= 0 || n <= 0) return 0;
-                              if (r == 0) return loan / n;
-                              return loan *
-                                  r *
-                                  pow(1 + r, n) /
-                                  (pow(1 + r, n) - 1);
-                            },
-                          ),
-
-                          // ── Cash-Back vs Low-APR Comparator ───────────────────────
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (_, __, ___) =>
-                                      const CashbackVsLowAprScreen(
-                                        flavor: 'uk',
-                                      ),
-                                  transitionsBuilder: (_, anim, __, child) =>
-                                      FadeTransition(
-                                        opacity: anim,
-                                        child: child,
-                                      ),
-                                  transitionDuration: AppDuration.base,
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.local_offer_rounded),
-                            label: const Text('Cash-Back vs Low-APR'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(48),
                             ),
+                          )
+                        else
+                          const CalcwiseEmptyState(
+                            icon: Icons.directions_car_outlined,
+                            title: 'No results yet',
+                            body:
+                                'Enter the vehicle price to see your analysis.',
                           ),
-
-                          const SizedBox(height: 16),
-                          const CalcwiseAdFooter(),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                        // ── Input sections ────────────────────────────────
+                        _UKVehicleSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
+                        _UKLoanTermsSection(
+                          p: p,
+                          validated: validated,
+                          onCalculate: onCalculate,
+                        ),
+                        _UKFinancingTypeSection(p: p, onCalculate: onCalculate),
+                        _UKRoadTaxSection(p: p, onCalculate: onCalculate),
+                        // ── Extra tools ───────────────────────────────────
+                        if (p.result != null &&
+                            p.financingType == UKFinancingType.pcp)
+                          _UKPcpHpSection(p: p),
+                        if (p.result != null) _UKCostOfCreditSection(p: p),
+                        if (p.result != null) _UKEarlySettlementSection(p: p),
+                        if (p.result != null) _UKTcoSection(p: p),
+                        if (p.result != null) _UKHpVsPcpSection(p: p),
+                        _UKAffordabilitySection(p: p),
+                        _UKQuickToolsSection(p: p),
+                        const SizedBox(height: AppSpacing.listBottomInset),
+                      ],
                     ),
                   ),
                 ),
@@ -644,6 +276,516 @@ class _UKScreenState extends State<UKScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── UK Vehicle Section ─────────────────────────────────────────────────────────
+
+class _UKVehicleSection extends StatelessWidget {
+  final UKProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _UKVehicleSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.vehicle,
+      children: [
+        CurrencyTextInput(
+          label: '${l10n.vehiclePrice} (VAT incl.)',
+          value: p.vehiclePrice,
+          symbol: '£',
+          onChanged: (v) {
+            p.setVehiclePrice(v);
+            onCalculate();
+          },
+          helperText: 'e.g. 25 000',
+          errorText: validated && p.vehiclePrice <= 0 ? 'Required' : null,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        CurrencySliderInput(
+          label: l10n.downPayment,
+          value: p.downPayment,
+          min: 0,
+          max: p.vehiclePrice * 0.9,
+          step: 500,
+          symbol: '£',
+          onChanged: (v) {
+            p.setDownPayment(v);
+            onCalculate();
+          },
+        ),
+        if (p.result != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ResultTile(
+            label: l10n.loanAmount,
+            value: AmountFormatter.ui(p.result!.loanAmount, 'GBP'),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK Loan Terms Section ──────────────────────────────────────────────────────
+
+class _UKLoanTermsSection extends StatelessWidget {
+  final UKProvider p;
+  final bool validated;
+  final VoidCallback onCalculate;
+
+  const _UKLoanTermsSection({
+    required this.p,
+    required this.validated,
+    required this.onCalculate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.loanTerms,
+      children: [
+        RateInputField(
+          label: '${l10n.annualRate} (APR)',
+          value: p.annualRate,
+          helperText: 'Default rate as of 2026 — update to your actual rate',
+          onChanged: (v) {
+            p.setAnnualRate(v);
+            onCalculate();
+          },
+          errorText: validated && p.annualRate <= 0 ? 'Required' : null,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            'Representative APR. Actual rate depends on your credit status (FCA CONC).',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        DurationChips(
+          label: l10n.termMonths,
+          options: const [24, 36, 48, 60, 72, 84],
+          selected: p.termMonths,
+          onSelected: (v) {
+            p.setTermMonths(v);
+            onCalculate();
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            Switch(
+              value: p.isBiWeekly,
+              onChanged: (v) {
+                p.setIsBiWeekly(v);
+                onCalculate();
+              },
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.biWeeklyToggle),
+                  Text(
+                    l10n.biWeeklySubtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ── UK Financing Type Section ──────────────────────────────────────────────────
+
+class _UKFinancingTypeSection extends StatelessWidget {
+  final UKProvider p;
+  final VoidCallback onCalculate;
+
+  const _UKFinancingTypeSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final ft = p.financingType;
+    return SectionCard(
+      title: l10n.financingType,
+      children: [
+        // Three-way toggle: Standard Loan | HP | PCP
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: ft == UKFinancingType.standardLoan
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                onPressed: () {
+                  p.setFinancingType(UKFinancingType.standardLoan);
+                  onCalculate();
+                },
+                child: Text(l10n.standardLoan, textAlign: TextAlign.center),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: ft == UKFinancingType.hp
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                onPressed: () {
+                  p.setFinancingType(UKFinancingType.hp);
+                  onCalculate();
+                },
+                child: const Text('HP', textAlign: TextAlign.center),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: ft == UKFinancingType.pcp
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                onPressed: () {
+                  p.setFinancingType(UKFinancingType.pcp);
+                  onCalculate();
+                },
+                child: Text(l10n.pcp, textAlign: TextAlign.center),
+              ),
+            ),
+          ],
+        ),
+        // HP description
+        if (ft == UKFinancingType.hp) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Text(
+              'HP (Hire Purchase): Fixed monthly payments — you own the car outright at the end. '
+              'No balloon payment, no mileage restrictions.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ],
+        // PCP — GMFV inputs
+        if (ft == UKFinancingType.pcp) ...[
+          const SizedBox(height: AppSpacing.md),
+          PercentSliderInput(
+            label: l10n.gmfvPercent,
+            value: p.gmfvPercent,
+            min: 10,
+            max: 60,
+            step: 1,
+            onChanged: (v) {
+              p.setGmfvPercent(v);
+              onCalculate();
+            },
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${l10n.gmfv}: £${(p.vehiclePrice * p.gmfvPercent / 100).toStringAsFixed(0)}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.pcpNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── UK Road Tax (VED) Section ──────────────────────────────────────────────────
+
+class _UKRoadTaxSection extends StatelessWidget {
+  final UKProvider p;
+  final VoidCallback onCalculate;
+
+  const _UKRoadTaxSection({required this.p, required this.onCalculate});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SectionCard(
+      title: l10n.roadTax,
+      children: [
+        Row(
+          children: [
+            Switch(
+              value: p.includeRoadTax,
+              onChanged: (v) {
+                p.setIncludeRoadTax(v);
+                onCalculate();
+              },
+            ),
+            Expanded(
+              child: Text(
+                l10n.includeRoadTax,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+        if (p.includeRoadTax) ...[
+          const SizedBox(height: AppSpacing.md),
+          DropdownButtonFormField<VehicleType>(
+            // ignore: deprecated_member_use
+            value: p.vehicleType,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10n.vehicleType,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
+            ),
+            items: VehicleType.values
+                .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) {
+                p.setVehicleType(v);
+                onCalculate();
+              }
+            },
+          ),
+          if (p.vehicleType == VehicleType.custom) ...[
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              initialValue: p.customVedAnnual.toStringAsFixed(0),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Custom annual VED (£)',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
+                prefixText: '£ ',
+              ),
+              onChanged: (v) {
+                final val = double.tryParse(v);
+                if (val != null && val >= 0) {
+                  p.setCustomVedAnnual(val);
+                  onCalculate();
+                }
+              },
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            () {
+              final annual = p.vehicleType == VehicleType.custom
+                  ? p.customVedAnnual
+                  : p.vehicleType.vedAnnual;
+              return 'Annual VED: £${annual.toStringAsFixed(0)}  ·  Monthly: £${(annual / 12).toStringAsFixed(2)}';
+            }(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          // ── CO2 Advanced Mode ──────────────────────────────────────
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Advanced: CO2-Based VED (post-2017 cars)',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextFormField(
+            initialValue: p.co2GPerKm > 0 ? p.co2GPerKm.toStringAsFixed(0) : '',
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'CO2 emissions (g/km) — optional',
+              hintText: 'Leave blank to use category rate',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
+              suffixText: 'g/km',
+            ),
+            onChanged: (v) {
+              final val = double.tryParse(v) ?? 0.0;
+              p.setCo2GPerKm(val);
+              onCalculate();
+            },
+          ),
+          if (p.co2GPerKm > 0) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Year 1 VED (CO2-based): £${p.co2FirstYearVed!.toStringAsFixed(0)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  Text(
+                    'Year 2+ VED (standard): £${p.co2StandardVed!.toStringAsFixed(0)}/yr  ·  £${(p.co2StandardVed! / 12).toStringAsFixed(2)}/mo',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  Text(
+                    'First year differs from ongoing rate — check with DVLA.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+        if (!p.includeRoadTax)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: const Duration(seconds: 6),
+              preferBelow: true,
+              message:
+                  'VED Annual Rates\n'
+                  'Electric:            £0\n'
+                  'Petrol <1000cc:  £180\n'
+                  'Diesel / Hybrid:  £190\n'
+                  'Petrol >1000cc:  £280\n'
+                  'Diesel surcharge: £590',
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'VED annual rates',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── UK Quick Tools Section (Reverse Solve + Cash-Back) ────────────────────────
+
+class _UKQuickToolsSection extends StatelessWidget {
+  final UKProvider p;
+
+  const _UKQuickToolsSection({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: AppSpacing.md),
+        ReverseSolveCard(
+          title: 'What vehicle price can I afford?',
+          targetLabel: 'Target monthly payment',
+          resultLabel: 'Max vehicle price',
+          prefix: '£',
+          minBound: 5000,
+          maxBound: 200000,
+          targetValue: 0,
+          ascending: true,
+          compute: (vehiclePrice) {
+            final dpRatio = p.vehiclePrice > 0
+                ? (p.downPayment / p.vehiclePrice).clamp(0.0, 0.95)
+                : 0.15;
+            final down = vehiclePrice * dpRatio;
+            final loan = vehiclePrice - down;
+            final r = p.annualRate / 100 / 12;
+            final n = p.termMonths;
+            if (loan <= 0 || n <= 0) return 0;
+            if (r == 0) return loan / n;
+            return loan * r * pow(1 + r, n) / (pow(1 + r, n) - 1);
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        OutlinedButton.icon(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) =>
+                    const CashbackVsLowAprScreen(flavor: 'uk'),
+                transitionsBuilder: (_, anim, __, child) =>
+                    FadeTransition(opacity: anim, child: child),
+                transitionDuration: AppDuration.base,
+              ),
+            );
+          },
+          icon: const Icon(Icons.local_offer_rounded),
+          label: const Text('Cash-Back vs Low-APR'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -657,17 +799,16 @@ class _UKResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final r = p.result!;
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        return _buildCard(context, l10n, r, fmt, hasFull);
+        return _buildCard(context, l10n, r, hasFull);
       },
     );
   }
@@ -676,7 +817,6 @@ class _UKResults extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
     UKCalculation r,
-    NumberFormat fmt,
     bool hasFull,
   ) {
     return SectionCard(
@@ -685,60 +825,71 @@ class _UKResults extends StatelessWidget {
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
           label: p.isBiWeekly
-              ? (r.isPcp ? l10n.pcpPayment : l10n.biWeeklyPayment)
-              : (r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment),
-          value: fmt.format(r.displayPayment),
-          secondary: 'Principal & Interest',
+              ? (r.isPcp
+                    ? l10n.pcpPayment
+                    : p.financingType == UKFinancingType.hp
+                    ? 'HP Bi-Weekly Payment'
+                    : l10n.biWeeklyPayment)
+              : (r.isPcp
+                    ? l10n.pcpPayment
+                    : p.financingType == UKFinancingType.hp
+                    ? 'HP Monthly Payment'
+                    : l10n.monthlyPayment),
+          value: AmountFormatter.ui(r.displayPayment, 'GBP'),
+          secondary: p.financingType == UKFinancingType.hp
+              ? 'Hire Purchase — you own the car at end'
+              : 'Principal & Interest',
           stats: [
-            (label: l10n.totalInterest, value: fmt.format(r.totalInterest)),
-            (label: l10n.totalCost, value: fmt.format(r.totalCost)),
+            (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'GBP')),
+            (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'GBP')),
           ],
         ),
         if (p.isBiWeekly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
-            value: fmt.format(r.monthlyPayment),
+            value: AmountFormatter.ui(r.monthlyPayment, 'GBP'),
           ),
         if (r.vedMonthly > 0) ...[
           ResultTile(
             label: '  ${l10n.roadTax} /${p.isBiWeekly ? "2wk" : "mo"}',
-            value: fmt.format(p.isBiWeekly ? r.vedBiWeekly : r.vedMonthly),
+            value: AmountFormatter.ui(p.isBiWeekly ? r.vedBiWeekly : r.vedMonthly, 'GBP'),
           ),
           ResultTile(
             label: '  ${l10n.loanOnly}',
-            value: fmt.format(
+            value: AmountFormatter.ui(
               p.isBiWeekly ? r.biWeeklyLoanPayment : r.baseLoanPayment,
+              'GBP',
             ),
           ),
         ],
         if (r.isPcp)
           ResultTile(
             label: l10n.pcpFinalPayment,
-            value: fmt.format(r.gmfvAmount),
+            value: AmountFormatter.ui(r.gmfvAmount, 'GBP'),
           ),
-        ResultTile(label: l10n.loanAmount, value: fmt.format(r.loanAmount)),
+        ResultTile(label: l10n.loanAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         const Divider(),
         // Cost breakdown — always visible
-        ResultTile(label: l10n.financedAmount, value: fmt.format(r.loanAmount)),
+        ResultTile(label: l10n.financedAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         ResultTile(
           label: l10n.totalInterest,
-          value: fmt.format(r.totalInterest),
+          value: AmountFormatter.ui(r.totalInterest, 'GBP'),
         ),
         if (r.vedTotal > 0)
-          ResultTile(label: l10n.totalVed, value: fmt.format(r.vedTotal)),
-        ResultTile(label: l10n.downPayment, value: fmt.format(r.downPayment)),
+          ResultTile(label: l10n.totalVed, value: AmountFormatter.ui(r.vedTotal, 'GBP')),
+        ResultTile(label: l10n.downPayment, value: AmountFormatter.ui(r.downPayment, 'GBP')),
         const Divider(height: 8),
         ResultTile(
           label: l10n.totalCost,
-          value: fmt.format(r.totalCost),
+          value: AmountFormatter.ui(r.totalCost, 'GBP'),
           isHighlight: true,
         ),
         if (r.isPcp)
           ResultTile(
             label: 'Total if buying at end',
-            value: fmt.format(r.pcpTotalIfBuy),
+            value: AmountFormatter.ui(r.pcpTotalIfBuy, 'GBP'),
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         // ── Smart Insights ────────────────────────────────────────────
         InsightCard(
           insights: InsightEngine.generate(
@@ -752,21 +903,22 @@ class _UKResults extends StatelessWidget {
             currencySymbol: '£',
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () async {
             HapticFeedback.lightImpact();
             final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${fmt.format(r.biWeeklyPayment)}'
-                : '${r.isPcp ? "PCP payment" : "Monthly"}: ${fmt.format(r.monthlyPayment)}';
+                ? 'Bi-weekly: ${AmountFormatter.ui(r.biWeeklyPayment, 'GBP')}'
+                : '${r.isPcp ? "PCP payment" : "Monthly"}: ${AmountFormatter.ui(r.monthlyPayment, 'GBP')}';
             try {
               await Share.share(
-                '🇬🇧 Auto Loan UK\n'
-                'Vehicle: ${fmt.format(r.vehiclePrice)}  |  Down: ${fmt.format(r.downPayment)}\n'
-                'Loan: ${fmt.format(r.loanAmount)}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
+                'Auto Loan UK\n'
+                'Vehicle: ${AmountFormatter.ui(r.vehiclePrice, 'GBP')}  |  Down: ${AmountFormatter.ui(r.downPayment, 'GBP')}\n'
+                'Loan: ${AmountFormatter.ui(r.loanAmount, 'GBP')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}%  |  ${r.termMonths ~/ 12} yr\n'
                 '$payment\n'
-                'Total Interest: ${fmt.format(r.totalInterest)}  |  Total Cost: ${fmt.format(r.totalCost)}'
-                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${fmt.format(r.vedTotal)}" : ""}',
+                'Total Interest: ${AmountFormatter.ui(r.totalInterest, 'GBP')}  |  Total Cost: ${AmountFormatter.ui(r.totalCost, 'GBP')}'
+                '${r.vedTotal > 0 ? "\nRoad Tax (VED): ${AmountFormatter.ui(r.vedTotal, 'GBP')}" : ""}\n\n'
+                '📄 Export the full PDF report in the app →',
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -790,7 +942,7 @@ class _UKResults extends StatelessWidget {
           icon: const Icon(Icons.share_rounded),
           label: const Text('Share'),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         if (hasFull) ...[
           OutlinedButton.icon(
             onPressed: () {
@@ -822,7 +974,7 @@ class _UKResults extends StatelessWidget {
             icon: const Icon(Icons.table_chart),
             label: const Text('Amortisation Schedule'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () async {
               try {
@@ -838,15 +990,15 @@ class _UKResults extends StatelessWidget {
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
-                      '£${r.vehiclePrice.toStringAsFixed(2)}',
+                      AmountFormatter.ui(r.vehiclePrice, 'GBP'),
                     ),
                     MapEntry(
                       l10n.downPayment,
-                      '£${r.downPayment.toStringAsFixed(2)}',
+                      AmountFormatter.ui(r.downPayment, 'GBP'),
                     ),
                     MapEntry(
                       l10n.loanAmount,
-                      '£${r.loanAmount.toStringAsFixed(2)}',
+                      AmountFormatter.ui(r.loanAmount, 'GBP'),
                     ),
                     MapEntry(
                       l10n.annualRate,
@@ -857,36 +1009,36 @@ class _UKResults extends StatelessWidget {
                       MapEntry(l10n.financingType, l10n.pcp),
                       MapEntry(
                         l10n.gmfv,
-                        '£${r.gmfvAmount.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.gmfvAmount, 'GBP'),
                       ),
                     ],
                     MapEntry(
                       r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment,
-                      '£${r.monthlyPayment.toStringAsFixed(2)}',
+                      AmountFormatter.ui(r.monthlyPayment, 'GBP'),
                     ),
                     if (p.isBiWeekly)
                       MapEntry(
                         l10n.biWeeklyPayment,
-                        '£${r.biWeeklyPayment.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.biWeeklyPayment, 'GBP'),
                       ),
                     if (r.vedMonthly > 0) ...[
                       MapEntry(
                         '${l10n.roadTax} /mo',
-                        '£${r.vedMonthly.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.vedMonthly, 'GBP'),
                       ),
                       MapEntry(
                         l10n.totalVed,
-                        '£${r.vedTotal.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.vedTotal, 'GBP'),
                       ),
                     ],
                     if (r.isPcp) ...[
                       MapEntry(
                         l10n.pcpFinalPayment,
-                        '£${r.gmfvAmount.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.gmfvAmount, 'GBP'),
                       ),
                       MapEntry(
                         'Total if buying at end',
-                        '£${r.pcpTotalIfBuy.toStringAsFixed(2)}',
+                        AmountFormatter.ui(r.pcpTotalIfBuy, 'GBP'),
                       ),
                     ],
                   ],
@@ -915,7 +1067,7 @@ class _UKResults extends StatelessWidget {
             icon: const Icon(Icons.picture_as_pdf),
             label: const Text('Export PDF'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () {
               Navigator.push(
@@ -940,12 +1092,12 @@ class _UKResults extends StatelessWidget {
         ] else ...[
           PremiumGate(adService: adService, flavor: 'uk'),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           'For informational purposes only. Not financial advice.',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: AppTextSize.xs,
             color: Theme.of(
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.55),
@@ -964,7 +1116,6 @@ class _UKPcpHpSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
     final r = p.result!;
 
     // Compute HP equivalent with same vehicle price, down payment, rate, term
@@ -996,9 +1147,9 @@ class _UKPcpHpSection extends StatelessWidget {
             Expanded(
               child: _UKCompareCol(
                 label: 'PCP',
-                monthly: fmt.format(pcpMonthly),
-                total: fmt.format(pcpTotal),
-                footnote: 'incl. £${r.gmfvAmount.toStringAsFixed(0)} balloon',
+                monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
+                total: AmountFormatter.ui(pcpTotal, 'GBP'),
+                footnote: 'incl. ${AmountFormatter.formatInteger(r.gmfvAmount)} balloon',
                 highlight: pcpSavesPerMo > 0,
               ),
             ),
@@ -1006,8 +1157,8 @@ class _UKPcpHpSection extends StatelessWidget {
             Expanded(
               child: _UKCompareCol(
                 label: 'HP',
-                monthly: fmt.format(hpMonthly),
-                total: fmt.format(hpTotal),
+                monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
+                total: AmountFormatter.ui(hpTotal, 'GBP'),
                 footnote: 'full ownership',
                 highlight: pcpSavesPerMo <= 0,
               ),
@@ -1025,7 +1176,7 @@ class _UKPcpHpSection extends StatelessWidget {
             children: [
               if (pcpSavesPerMo > 0)
                 Text(
-                  'PCP saves ${fmt.format(pcpSavesPerMo)}/mo during contract',
+                  'PCP saves ${AmountFormatter.ui(pcpSavesPerMo, 'GBP')}/mo during contract',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1033,7 +1184,7 @@ class _UKPcpHpSection extends StatelessWidget {
                 ),
               if (hpSavesTotal > 0)
                 Text(
-                  'HP saves ${fmt.format(hpSavesTotal)} total (if buying at end of PCP)',
+                  'HP saves ${AmountFormatter.ui(hpSavesTotal, 'GBP')} total (if buying at end of PCP)',
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -1091,7 +1242,7 @@ class _UKCompareCol extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             monthly,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1105,7 +1256,7 @@ class _UKCompareCol extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'Total: $total',
             style: Theme.of(
@@ -1133,7 +1284,6 @@ class _UKCostOfCreditSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
     final r = p.result!;
 
     // Total amount payable = all monthly payments + balloon if PCP
@@ -1152,28 +1302,28 @@ class _UKCostOfCreditSection extends StatelessWidget {
     return SectionCard(
       title: 'Total Cost of Credit',
       children: [
-        ResultTile(label: 'Vehicle price', value: fmt.format(p.vehiclePrice)),
+        ResultTile(label: 'Vehicle price', value: AmountFormatter.ui(p.vehiclePrice, 'GBP')),
         ResultTile(
           label: r.isPcp
               ? 'Total amount payable (if buying)'
               : 'Total amount payable',
-          value: fmt.format(totalPayable),
+          value: AmountFormatter.ui(totalPayable, 'GBP'),
           isHighlight: true,
         ),
-        ResultTile(label: 'Cost of credit', value: fmt.format(costOfCredit)),
+        ResultTile(label: 'Cost of credit', value: AmountFormatter.ui(costOfCredit, 'GBP')),
         if (r.vedTotal > 0)
           ResultTile(
             label: 'Includes VED (road tax)',
-            value: fmt.format(r.vedTotal),
+            value: AmountFormatter.ui(r.vedTotal, 'GBP'),
           ),
         if (r.isPcp) ...[
           ResultTile(
             label: 'Optional final balloon',
-            value: fmt.format(r.gmfvAmount),
+            value: AmountFormatter.ui(r.gmfvAmount, 'GBP'),
           ),
         ],
         if (looksLikeFlat) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -1201,11 +1351,29 @@ class _UKCostOfCreditSection extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 4),
-        Text(
-          'FCA CONC 3.5.4 — Representative APR must be disclosed.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border(
+              left: BorderSide(
+                color: AppTheme.accent.withValues(alpha: 0.7),
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            'FCA CONC 3.5.4 — Representative APR must be disclosed. '
+            'For informational purposes only — not financial advice.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.5,
+            ),
           ),
         ),
       ],
@@ -1309,8 +1477,6 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 0);
-    final fmt2 = NumberFormat.currency(symbol: '£', decimalDigits: 2);
     final r = widget.p.result!;
     final termYears = r.termMonths ~/ 12;
 
@@ -1327,7 +1493,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           _UKTcoSlider(
             label: 'Annual miles driven',
             value: _annualMiles,
@@ -1337,7 +1503,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_annualMiles.toStringAsFixed(0)} mi',
             onChanged: (v) => setState(() => _annualMiles = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Fuel efficiency (MPG)',
             value: _mpg,
@@ -1347,7 +1513,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_mpg.toStringAsFixed(0)} mpg',
             onChanged: (v) => setState(() => _mpg = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Fuel price (p/litre)',
             value: _fuelPricePence,
@@ -1357,66 +1523,66 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
             display: '${_fuelPricePence.toStringAsFixed(0)}p/L',
             onChanged: (v) => setState(() => _fuelPricePence = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Annual insurance (£)',
             value: _annualInsurance,
             min: 300,
             max: 5000,
             step: 50,
-            display: fmt.format(_annualInsurance),
+            display: AmountFormatter.formatInteger(_annualInsurance),
             onChanged: (v) => setState(() => _annualInsurance = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           _UKTcoSlider(
             label: 'Annual MOT & service (£)',
             value: _annualMot,
             min: 0,
             max: 500,
             step: 10,
-            display: fmt.format(_annualMot),
+            display: AmountFormatter.formatInteger(_annualMot),
             onChanged: (v) => setState(() => _annualMot = v),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
               HapticFeedback.lightImpact();
               _calculate();
             },
-            icon: const Icon(Icons.calculate_rounded),
+            icon: const Icon(Icons.calculate_outlined),
             label: const Text('Calculate TCO'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
           ),
           if (_tco != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const Divider(),
             ResultTile(
               label: 'Total fuel',
-              value: fmt2.format(_tco!.totalFuel),
+              value: AmountFormatter.ui(_tco!.totalFuel, 'GBP'),
             ),
             ResultTile(
               label: 'Total insurance',
-              value: fmt2.format(_tco!.totalInsurance),
+              value: AmountFormatter.ui(_tco!.totalInsurance, 'GBP'),
             ),
             ResultTile(
               label: 'Total MOT & service',
-              value: fmt2.format(_tco!.totalMot),
+              value: AmountFormatter.ui(_tco!.totalMot, 'GBP'),
             ),
             if (_tco!.totalVed > 0)
               ResultTile(
                 label: 'Total VED (road tax)',
-                value: fmt2.format(_tco!.totalVed),
+                value: AmountFormatter.ui(_tco!.totalVed, 'GBP'),
               ),
             ResultTile(
               label: 'Total interest',
-              value: fmt2.format(_tco!.totalInterest),
+              value: AmountFormatter.ui(_tco!.totalInterest, 'GBP'),
             ),
             const Divider(height: 8),
             ResultTile(
               label: 'Grand total over $termYears years',
-              value: fmt2.format(_tco!.grandTotal),
+              value: AmountFormatter.ui(_tco!.grandTotal, 'GBP'),
               isHighlight: true,
             ),
           ],
@@ -1442,7 +1608,6 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
     final p = widget.p;
 
     // HP calculation: standard loan (no GMFV)
@@ -1497,7 +1662,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // GMFV slider
           _UKTcoSlider(
             label: 'GMFV balloon (%)',
@@ -1506,19 +1671,19 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
             max: 60,
             step: 1,
             display:
-                '${_gmfvPercent.toStringAsFixed(0)}%  (£${gmfvBalloon.toStringAsFixed(0)})',
+                '${_gmfvPercent.toStringAsFixed(0)}%  (${AmountFormatter.formatInteger(gmfvBalloon)})',
             onChanged: (v) => setState(() => _gmfvPercent = v),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           // Side-by-side cards
           Row(
             children: [
               Expanded(
                 child: _UKFinanceCol(
                   label: 'HP',
-                  monthly: fmt.format(hpMonthly),
+                  monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
                   totalLabel: 'Total cost',
-                  total: fmt.format(hpTotal),
+                  total: AmountFormatter.ui(hpTotal, 'GBP'),
                   footnote: 'You own it outright',
                   highlight: pcpSavesPerMo <= 0,
                 ),
@@ -1527,10 +1692,10 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               Expanded(
                 child: _UKFinanceCol(
                   label: 'PCP',
-                  monthly: fmt.format(pcpMonthly),
+                  monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
                   totalLabel: 'Payments total',
-                  total: fmt.format(pcpPaymentsTotal),
-                  footnote: '+ £${gmfvBalloon.toStringAsFixed(0)} balloon',
+                  total: AmountFormatter.ui(pcpPaymentsTotal, 'GBP'),
+                  footnote: '+ ${AmountFormatter.formatInteger(gmfvBalloon)} balloon',
                   highlight: pcpSavesPerMo > 0,
                 ),
               ),
@@ -1549,14 +1714,14 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               children: [
                 if (pcpSavesPerMo > 0) ...[
                   Text(
-                    'PCP saves ${fmt.format(pcpSavesPerMo)}/mo during contract',
+                    'PCP saves ${AmountFormatter.ui(pcpSavesPerMo, 'GBP')}/mo during contract',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    'but £${gmfvBalloon.toStringAsFixed(0)} balloon payment at end',
+                    'but ${AmountFormatter.formatInteger(gmfvBalloon)} balloon payment at end',
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
@@ -1570,9 +1735,9 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
                   ),
                 ],
                 if (hpSavesOverall > 0) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'HP saves £${hpSavesOverall.toStringAsFixed(0)} overall vs PCP if buying at end',
+                    'HP saves ${AmountFormatter.formatInteger(hpSavesOverall)} overall vs PCP if buying at end',
                     style: Theme.of(context).textTheme.bodySmall,
                     textAlign: TextAlign.center,
                   ),
@@ -1580,7 +1745,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             'PCP total excludes GMFV balloon. HP total = vehicle price + all interest.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1635,7 +1800,7 @@ class _UKFinanceCol extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             monthly,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1649,7 +1814,7 @@ class _UKFinanceCol extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             '$totalLabel: $total',
             style: Theme.of(
@@ -1721,7 +1886,6 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
     final r = widget.p.result!;
 
     return SectionCard(
@@ -1737,7 +1901,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1763,7 +1927,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
               HapticFeedback.lightImpact();
@@ -1776,11 +1940,11 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
             ),
           ),
           if (_settlement != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             const Divider(),
             ResultTile(
               label: 'Settlement figure (Rule of 78)',
-              value: fmt.format(_settlement!),
+              value: AmountFormatter.ui(_settlement!, 'GBP'),
               isHighlight: true,
             ),
             ResultTile(
@@ -1791,7 +1955,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
               label: 'Months remaining',
               value: '${r.termMonths - _monthsPaid} months',
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Settlement is calculated using the Rule of 78 (sum of digits). '
               'Your lender may quote a slightly different figure.',
@@ -1823,9 +1987,6 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 0);
-    final fmt2 = NumberFormat.currency(symbol: '£', decimalDigits: 2);
-
     final r = widget.p.result;
 
     // Traffic-light: UK thresholds — 15% / 20%
@@ -1858,7 +2019,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
           ],
         ),
         if (_expanded) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1867,7 +2028,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
                 children: [
                   const Text('Gross monthly income'),
                   Text(
-                    fmt.format(_monthlyIncome),
+                    AmountFormatter.formatInteger(_monthlyIncome),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -1887,13 +2048,13 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    fmt.format(1500),
+                    AmountFormatter.formatInteger(1500),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Text(
-                    fmt.format(15000),
+                    AmountFormatter.formatInteger(15000),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -1902,15 +2063,15 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           const Divider(),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           ResultTile(
             label: 'Recommended max payment (15% of income)',
-            value: '${fmt2.format(_monthlyIncome * 0.15)}/mo',
+            value: '${AmountFormatter.ui(_monthlyIncome * 0.15, 'GBP')}/mo',
           ),
           if (r != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 Container(
@@ -1924,7 +2085,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your payment ${fmt2.format(r.baseLoanPayment)}/mo — $_trafficLabel',
+                    'Your payment ${AmountFormatter.ui(r.baseLoanPayment, 'GBP')}/mo — $_trafficLabel',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: _trafficColor,
@@ -1934,7 +2095,7 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
               ],
             ),
           ] else ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Calculate a loan above to see your payment rating.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

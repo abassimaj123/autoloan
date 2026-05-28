@@ -17,7 +17,12 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 
 class CompareScreen extends StatefulWidget {
   final String flavor; // 'ca', 'uk', 'us'
-  const CompareScreen({super.key, required this.flavor});
+  final bool showAppBar;
+  const CompareScreen({
+    super.key,
+    required this.flavor,
+    this.showAppBar = true,
+  });
 
   @override
   State<CompareScreen> createState() => _CompareScreenState();
@@ -89,199 +94,203 @@ class _CompareScreenState extends State<CompareScreen> {
         ? (_resA!.totalCost - _resB!.totalCost).abs()
         : 0.0;
 
+    final listView = SafeArea(
+      top: false,
+      bottom: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xxl,
+        ),
+        children: [
+          // ── Shared ──────────────────────────────────────────────────────
+          SectionCard(
+            title: l10n.vehicle,
+            children: [
+              CurrencySliderInput(
+                label: l10n.vehiclePrice,
+                value: vehiclePrice,
+                min: 3000,
+                max: 200000,
+                step: 500,
+                symbol: _currencySymbol,
+                onChanged: (v) {
+                  setState(() {
+                    vehiclePrice = v;
+                    if (downPayment > v * 0.5) downPayment = v * 0.5;
+                  });
+                  _calculate();
+                },
+              ),
+              const SizedBox(height: 12),
+              CurrencySliderInput(
+                label: l10n.downPayment,
+                value: downPayment,
+                min: 0,
+                max: vehiclePrice * 0.5,
+                step: 500,
+                symbol: _currencySymbol,
+                onChanged: (v) {
+                  setState(() => downPayment = v);
+                  _calculate();
+                },
+              ),
+              const SizedBox(height: 8),
+              ResultTile(
+                label: l10n.loanAmount,
+                value: NumberFormat.currency(
+                  symbol: _currencySymbol,
+                  decimalDigits: 2,
+                ).format(loanAmount),
+              ),
+              if (widget.flavor == 'us') ...[
+                const SizedBox(height: 12),
+                PercentSliderInput(
+                  label: l10n.salesTax,
+                  value: salesTaxPct,
+                  min: 0,
+                  max: 15,
+                  step: 0.1,
+                  onChanged: (v) {
+                    setState(() => salesTaxPct = v);
+                    _calculate();
+                  },
+                ),
+              ],
+              if (_showBiWeekly) ...[
+                const SizedBox(height: 8),
+                Semantics(
+                  label: l10n.biWeeklyToggle,
+                  toggled: isBiWeekly,
+                  child: Row(
+                    children: [
+                      Switch(
+                        value: isBiWeekly,
+                        onChanged: (v) {
+                          setState(() => isBiWeekly = v);
+                          _calculate();
+                        },
+                      ),
+                      Text(l10n.biWeeklyToggle),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // ── Side-by-side scenarios ──────────────────────────────────────
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _ScenarioCard(
+                  label: '${l10n.scenario} A',
+                  rate: rateA,
+                  term: termA,
+                  isBetter: _resA != null && _resB != null && aBetter,
+                  betterLabel: l10n.betterDeal,
+                  onRateChanged: (v) {
+                    setState(() => rateA = v);
+                    _calculate();
+                  },
+                  onTermChanged: (v) {
+                    setState(() => termA = v);
+                    _calculate();
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ScenarioCard(
+                  label: '${l10n.scenario} B',
+                  rate: rateB,
+                  term: termB,
+                  isBetter: _resA != null && _resB != null && !aBetter,
+                  betterLabel: l10n.betterDeal,
+                  onRateChanged: (v) {
+                    setState(() => rateB = v);
+                    _calculate();
+                  },
+                  onTermChanged: (v) {
+                    setState(() => termB = v);
+                    _calculate();
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // ── Quick comparison summary (calcwise_core ComparisonView) ─────
+          if (_resA != null && _resB != null)
+            ComparisonView(
+              title: l10n.compareLoans,
+              winnerIndex: aBetter ? 0 : 1,
+              scenarios: [
+                ComparisonScenario(
+                  label: '${l10n.scenario} A',
+                  metrics: {
+                    (isBiWeekly && _showBiWeekly
+                        ? l10n.biWeeklyPayment
+                        : l10n.monthlyPayment): fmt.format(
+                      isBiWeekly && _showBiWeekly
+                          ? _resA!.biWeeklyPayment
+                          : _resA!.monthlyPayment,
+                    ),
+                    l10n.totalInterest: fmt.format(_resA!.totalInterest),
+                    l10n.totalCost: fmt.format(_resA!.totalCost),
+                  },
+                ),
+                ComparisonScenario(
+                  label: '${l10n.scenario} B',
+                  metrics: {
+                    (isBiWeekly && _showBiWeekly
+                        ? l10n.biWeeklyPayment
+                        : l10n.monthlyPayment): fmt.format(
+                      isBiWeekly && _showBiWeekly
+                          ? _resB!.biWeeklyPayment
+                          : _resB!.monthlyPayment,
+                    ),
+                    l10n.totalInterest: fmt.format(_resB!.totalInterest),
+                    l10n.totalCost: fmt.format(_resB!.totalCost),
+                  },
+                ),
+              ],
+            ),
+
+          const SizedBox(height: 8),
+
+          // ── Results side-by-side ────────────────────────────────────────
+          if (_resA != null && _resB != null)
+            _GatedCompareResults(
+              resA: _resA!,
+              resB: _resB!,
+              savings: savings,
+              aBetter: aBetter,
+              fmt: fmt,
+              isBiWeekly: isBiWeekly && _showBiWeekly,
+              l10n: l10n,
+              flavor: widget.flavor,
+            ),
+        ],
+      ),
+    );
+
+    if (!widget.showAppBar) {
+      return Column(children: [Expanded(child: listView)]);
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.compareLoans)),
       body: Column(
         children: [
-          Expanded(
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.xxl,
-                ),
-                children: [
-                  // ── Shared ──────────────────────────────────────────────────────
-                  SectionCard(
-                    title: l10n.vehicle,
-                    children: [
-                      CurrencySliderInput(
-                        label: l10n.vehiclePrice,
-                        value: vehiclePrice,
-                        min: 3000,
-                        max: 200000,
-                        step: 500,
-                        symbol: _currencySymbol,
-                        onChanged: (v) {
-                          setState(() {
-                            vehiclePrice = v;
-                            if (downPayment > v * 0.5) downPayment = v * 0.5;
-                          });
-                          _calculate();
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      CurrencySliderInput(
-                        label: l10n.downPayment,
-                        value: downPayment,
-                        min: 0,
-                        max: vehiclePrice * 0.5,
-                        step: 500,
-                        symbol: _currencySymbol,
-                        onChanged: (v) {
-                          setState(() => downPayment = v);
-                          _calculate();
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      ResultTile(
-                        label: l10n.loanAmount,
-                        value: NumberFormat.currency(
-                          symbol: _currencySymbol,
-                          decimalDigits: 2,
-                        ).format(loanAmount),
-                      ),
-                      if (widget.flavor == 'us') ...[
-                        const SizedBox(height: 12),
-                        PercentSliderInput(
-                          label: l10n.salesTax,
-                          value: salesTaxPct,
-                          min: 0,
-                          max: 15,
-                          step: 0.1,
-                          onChanged: (v) {
-                            setState(() => salesTaxPct = v);
-                            _calculate();
-                          },
-                        ),
-                      ],
-                      if (_showBiWeekly) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Switch(
-                              value: isBiWeekly,
-                              onChanged: (v) {
-                                setState(() => isBiWeekly = v);
-                                _calculate();
-                              },
-                            ),
-                            Text(l10n.biWeeklyToggle),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // ── Side-by-side scenarios ──────────────────────────────────────
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: _ScenarioCard(
-                          label: '${l10n.scenario} A',
-                          rate: rateA,
-                          term: termA,
-                          isBetter: _resA != null && _resB != null && aBetter,
-                          betterLabel: l10n.betterDeal,
-                          onRateChanged: (v) {
-                            setState(() => rateA = v);
-                            _calculate();
-                          },
-                          onTermChanged: (v) {
-                            setState(() => termA = v);
-                            _calculate();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ScenarioCard(
-                          label: '${l10n.scenario} B',
-                          rate: rateB,
-                          term: termB,
-                          isBetter: _resA != null && _resB != null && !aBetter,
-                          betterLabel: l10n.betterDeal,
-                          onRateChanged: (v) {
-                            setState(() => rateB = v);
-                            _calculate();
-                          },
-                          onTermChanged: (v) {
-                            setState(() => termB = v);
-                            _calculate();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // ── Quick comparison summary (calcwise_core ComparisonView) ─────
-                  if (_resA != null && _resB != null)
-                    ComparisonView(
-                      title: l10n.compareLoans,
-                      winnerIndex: aBetter ? 0 : 1,
-                      scenarios: [
-                        ComparisonScenario(
-                          label: '${l10n.scenario} A',
-                          metrics: {
-                            (isBiWeekly && _showBiWeekly
-                                ? l10n.biWeeklyPayment
-                                : l10n.monthlyPayment): fmt.format(
-                              isBiWeekly && _showBiWeekly
-                                  ? _resA!.biWeeklyPayment
-                                  : _resA!.monthlyPayment,
-                            ),
-                            l10n.totalInterest: fmt.format(
-                              _resA!.totalInterest,
-                            ),
-                            l10n.totalCost: fmt.format(_resA!.totalCost),
-                          },
-                        ),
-                        ComparisonScenario(
-                          label: '${l10n.scenario} B',
-                          metrics: {
-                            (isBiWeekly && _showBiWeekly
-                                ? l10n.biWeeklyPayment
-                                : l10n.monthlyPayment): fmt.format(
-                              isBiWeekly && _showBiWeekly
-                                  ? _resB!.biWeeklyPayment
-                                  : _resB!.monthlyPayment,
-                            ),
-                            l10n.totalInterest: fmt.format(
-                              _resB!.totalInterest,
-                            ),
-                            l10n.totalCost: fmt.format(_resB!.totalCost),
-                          },
-                        ),
-                      ],
-                    ),
-
-                  const SizedBox(height: 8),
-
-                  // ── Results side-by-side ────────────────────────────────────────
-                  if (_resA != null && _resB != null)
-                    _GatedCompareResults(
-                      resA: _resA!,
-                      resB: _resB!,
-                      savings: savings,
-                      aBetter: aBetter,
-                      fmt: fmt,
-                      isBiWeekly: isBiWeekly && _showBiWeekly,
-                      l10n: l10n,
-                      flavor: widget.flavor,
-                    ),
-                ],
-              ),
-            ),
-          ),
+          Expanded(child: listView),
           const CalcwiseAdFooter(),
         ],
       ),
@@ -349,22 +358,29 @@ class _ScenarioCard extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             // Rate input
-            TextFormField(
-              key: ValueKey('rate_$label'),
-              initialValue: rate.toStringAsFixed(1),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+            Semantics(
+              label: 'Interest rate for $label',
+              textField: true,
+              child: TextFormField(
+                key: ValueKey('rate_$label'),
+                initialValue: rate.toStringAsFixed(1),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: '% Rate',
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  suffixText: '%',
+                ),
+                onChanged: (v) {
+                  final val = double.tryParse(v);
+                  if (val != null && val >= 0 && val <= 30) onRateChanged(val);
+                },
               ),
-              decoration: InputDecoration(
-                labelText: '% Rate',
-                border: const OutlineInputBorder(),
-                isDense: true,
-                suffixText: '%',
-              ),
-              onChanged: (v) {
-                final val = double.tryParse(v);
-                if (val != null && val >= 0 && val <= 30) onRateChanged(val);
-              },
             ),
             const SizedBox(height: 8),
             // Term chips (compact)
@@ -372,20 +388,24 @@ class _ScenarioCard extends StatelessWidget {
               builder: (context) {
                 final yr = AppLocalizations.of(context)!.year;
                 return Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
                   children: [24, 36, 48, 60, 72, 84]
                       .map(
-                        (t) => ChoiceChip(
-                          label: Text(
-                            '${t ~/ 12}$yr',
-                            style: const TextStyle(fontSize: AppTextSize.xs),
+                        (t) => Semantics(
+                          label:
+                              '${t ~/ 12} $yr loan term${term == t ? ", selected" : ""}',
+                          child: ChoiceChip(
+                            label: Text(
+                              '${t ~/ 12}$yr',
+                              style: const TextStyle(fontSize: AppTextSize.xs),
+                            ),
+                            selected: term == t,
+                            onSelected: (_) => onTermChanged(t),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                           ),
-                          selected: term == t,
-                          onSelected: (_) => onTermChanged(t),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
                       )
                       .toList(),
@@ -428,7 +448,7 @@ class _GatedCompareResults extends StatelessWidget {
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
@@ -542,23 +562,27 @@ class _CompareResults extends StatelessWidget {
               bold: true,
             ),
             const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.savings_rounded,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${l10n.totalSavings}: ${fmt.format(savings)}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            Semantics(
+              label:
+                  '${l10n.totalSavings}: ${fmt.format(savings)} — ${aBetter ? "Scenario A" : "Scenario B"} is the better deal',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.savings_rounded,
+                    size: 18,
                     color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    '${l10n.totalSavings}: ${fmt.format(savings)}',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -589,27 +613,31 @@ class _ResultRow extends StatelessWidget {
       fontWeight: FontWeight.bold,
     );
 
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ),
-        Expanded(
-          child: Text(
-            valA,
-            textAlign: TextAlign.center,
-            style: aHighlight ? highlightStyle : style,
+    return Semantics(
+      label:
+          '$label: Scenario A $valA${aHighlight ? " (better)" : ""}, Scenario B $valB${bHighlight ? " (better)" : ""}',
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
           ),
-        ),
-        Expanded(
-          child: Text(
-            valB,
-            textAlign: TextAlign.center,
-            style: bHighlight ? highlightStyle : style,
+          Expanded(
+            child: Text(
+              valA,
+              textAlign: TextAlign.center,
+              style: aHighlight ? highlightStyle : style,
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              valB,
+              textAlign: TextAlign.center,
+              style: bHighlight ? highlightStyle : style,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

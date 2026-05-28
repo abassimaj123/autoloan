@@ -10,12 +10,113 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../core/freemium/freemium_service.dart';
 import '../../widgets/premium_gate.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   final String country;
-  const HistoryScreen({super.key, required this.country});
+  final bool showAppBar;
+  final VoidCallback? onClear;
+  const HistoryScreen({
+    super.key,
+    required this.country,
+    this.showAppBar = true,
+    this.onClear,
+  });
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+// ── Skeleton shimmer ─────────────────────────────────────────────────────────
+
+class _HistorySkeleton extends StatelessWidget {
+  const _HistorySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        children: List.generate(
+          3,
+          (i) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.smPlus),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _ShimmerBox(
+                          width: 120,
+                          height: 26,
+                          radius: AppRadius.md,
+                        ),
+                        const Spacer(),
+                        _ShimmerBox(
+                          width: 70,
+                          height: 22,
+                          radius: AppRadius.sm,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    ...List.generate(
+                      4,
+                      (_) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _ShimmerBox(width: 100, height: 13, radius: 4),
+                            _ShimmerBox(width: 70, height: 13, radius: 4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ShimmerBox extends StatelessWidget {
+  final double width, height, radius;
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  bool _loading = true;
+  List<Map<String, dynamic>> _all = [];
 
   String get _flag {
-    switch (country) {
+    switch (widget.country) {
       case 'uk':
         return '🇬🇧';
       case 'us':
@@ -25,19 +126,50 @@ class HistoryScreen extends StatelessWidget {
     }
   }
 
-  String get _currency => country == 'uk' ? '£' : '\$';
+  String get _currency => widget.country == 'uk' ? '£' : '\$';
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_load);
+  }
+
+  void _load() {
+    if (!mounted) return;
+    final history = context.read<HistoryService>();
+    final all = history
+        .getAll()
+        .where((e) => e['country'] == widget.country)
+        .toList();
+    setState(() {
+      _all = all;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final history = context.read<HistoryService>();
     final adService = context.read<CalcwiseAdService>();
     final l10n = AppLocalizations.of(context)!;
 
-    final all = history.getAll().where((e) => e['country'] == country).toList();
+    final history = context.read<HistoryService>();
+
+    if (_loading) {
+      if (widget.showAppBar) {
+        return Scaffold(
+          appBar: AppBar(title: Text('$_flag ${l10n.history}')),
+          body: const _HistorySkeleton(),
+          bottomNavigationBar: const CalcwiseAdFooter(),
+        );
+      }
+      return const _HistorySkeleton();
+    }
+
+    final all = _all;
 
     return ListenableBuilder(
       listenable: Listenable.merge([
-        freemiumService.isPremiumNotifier,
+        freemiumService.hasFullAccessNotifier,
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
@@ -47,6 +179,19 @@ class HistoryScreen extends StatelessWidget {
             ? all
             : all.take(freemiumService.historyLimit).toList();
         final locked = all.length - shown.length;
+
+        if (!widget.showAppBar) {
+          return _buildBody(
+            context,
+            l10n,
+            adService,
+            history,
+            all,
+            shown,
+            locked,
+            hasFull,
+          );
+        }
         return _buildScaffold(
           context,
           l10n,
@@ -58,6 +203,205 @@ class HistoryScreen extends StatelessWidget {
           hasFull,
         );
       },
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    AppLocalizations l10n,
+    CalcwiseAdService adService,
+    HistoryService history,
+    List<Map<String, dynamic>> all,
+    List<Map<String, dynamic>> shown,
+    int locked,
+    bool hasFull,
+  ) {
+    if (all.isEmpty) {
+      return CalcwiseEmptyState(
+        icon: Icons.history_rounded,
+        title: l10n.noHistory,
+        body: 'Your saved calculations will appear here.',
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text(l10n.clearHistory),
+                      content: Text(
+                        'Clear all ${all.length} calculation${all.length == 1 ? "" : "s"}? This cannot be undone.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Clear'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await history.clear();
+                    widget.onClear?.call();
+                    _load();
+                  }
+                },
+                icon: const Icon(Icons.delete_outline, size: 16),
+                label: Text(l10n.clearHistory),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _buildListView(
+            context,
+            l10n,
+            adService,
+            history,
+            all,
+            shown,
+            locked,
+            hasFull,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListView(
+    BuildContext context,
+    AppLocalizations l10n,
+    CalcwiseAdService adService,
+    HistoryService history,
+    List<Map<String, dynamic>> all,
+    List<Map<String, dynamic>> shown,
+    int locked,
+    bool hasFull,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        // ── Approaching-limit nudge ──
+        if (!hasFull &&
+            locked == 0 &&
+            shown.length >= freemiumService.historyLimit)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'History limit reached (${freemiumService.historyLimit}). '
+                      'Upgrade to keep all future calculations.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        // ── Locked banner ──
+        if (!hasFull && locked > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: PremiumGate(
+              adService: adService,
+              flavor: widget.country,
+              onUnlocked: () => Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) =>
+                      HistoryScreen(country: widget.country),
+                  transitionsBuilder: (_, anim, __, child) =>
+                      FadeTransition(opacity: anim, child: child),
+                  transitionDuration: AppDuration.base,
+                ),
+              ),
+            ),
+          ),
+
+        // ── Entry cards ──
+        ...shown.map(
+          (e) => _HistoryCard(
+            entry: e,
+            currency: _currency,
+            country: widget.country,
+          ),
+        ),
+
+        // ── Locked tail ──
+        if (!hasFull && locked > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
+                  child: Text(
+                    '$locked older record${locked > 1 ? 's' : ''} locked',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -102,6 +446,7 @@ class HistoryScreen extends StatelessWidget {
                 );
                 if (confirm == true) {
                   await history.clear();
+                  _load();
                   if (context.mounted) Navigator.pop(context);
                 }
               },
@@ -109,138 +454,20 @@ class HistoryScreen extends StatelessWidget {
         ],
       ),
       body: all.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.history,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.noHistory,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+          ? CalcwiseEmptyState(
+              icon: Icons.history_rounded,
+              title: l10n.noHistory,
+              body: 'Your saved calculations will appear here.',
             )
-          : ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                // ── Approaching-limit nudge (shown at exactly the limit, no locked yet) ──
-                if (!hasFull &&
-                    locked == 0 &&
-                    shown.length >= freemiumService.historyLimit)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      0,
-                      AppSpacing.md,
-                      AppSpacing.sm,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 16,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSecondaryContainer,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'History limit reached (${freemiumService.historyLimit}). '
-                              'Upgrade to keep all future calculations.',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSecondaryContainer,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // ── Locked banner ─────────────────────────────────────
-                if (!hasFull && locked > 0)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      0,
-                      AppSpacing.md,
-                      AppSpacing.sm,
-                    ),
-                    child: PremiumGate(
-                      adService: adService,
-                      flavor: country,
-                      onUnlocked: () => Navigator.pushReplacement(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) =>
-                              HistoryScreen(country: country),
-                          transitionsBuilder: (_, anim, __, child) =>
-                              FadeTransition(opacity: anim, child: child),
-                          transitionDuration: AppDuration.base,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // ── Entry cards ───────────────────────────────────────
-                ...shown.map(
-                  (e) => _HistoryCard(
-                    entry: e,
-                    currency: _currency,
-                    country: country,
-                  ),
-                ),
-
-                // ── Locked tail ───────────────────────────────────────
-                if (!hasFull && locked > 0)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            '$locked older record${locked > 1 ? 's' : ''} locked',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                  ),
-
-                const SizedBox(height: 16),
-              ],
+          : _buildListView(
+              context,
+              l10n,
+              adService,
+              history,
+              all,
+              shown,
+              locked,
+              hasFull,
             ),
     );
   }
