@@ -20,6 +20,8 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
 import '../../features/lease_vs_buy/lease_vs_buy_screen.dart';
+import '../../screens/total_cost_screen.dart';
+import '../../screens/loan_comparison_screen.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
@@ -572,15 +574,19 @@ class _CAQuickToolsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     return Column(
       children: [
         // ── Reverse Affordability ──────────────────────────────────────
         const SizedBox(height: AppSpacing.md),
         ReverseSolveCard(
-          title: 'What vehicle price can I afford?',
-          targetLabel: 'Target monthly payment',
-          resultLabel: 'Max vehicle price',
-          prefix: '\$',
+          title: isFr
+              ? 'Quel prix de véhicule puis-je me permettre?'
+              : 'What vehicle price can I afford?',
+          targetLabel: isFr ? 'Paiement mensuel cible' : 'Target monthly payment',
+          resultLabel: isFr ? 'Prix max du véhicule' : 'Max vehicle price',
+          prefix: 'C\$',
           minBound: 5000,
           maxBound: 200000,
           targetValue: 0,
@@ -618,6 +624,42 @@ class _CAQuickToolsSection extends StatelessWidget {
           label: const Text('Cash-Back vs Low-APR'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        // ── True Cost of Ownership ─────────────────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        _ProToolButton(
+          icon: Icons.directions_car_filled_rounded,
+          label: l10n.trueCostOfOwnership,
+          onTap: () => Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) => TotalCostScreen(
+                flavor: 'ca',
+                monthlyPayment: p.result?.monthlyPayment,
+                termMonths: p.result?.termMonths,
+                vehiclePrice: p.result?.vehiclePrice,
+              ),
+              transitionsBuilder: (_, anim, __, child) =>
+                  FadeTransition(opacity: anim, child: child),
+              transitionDuration: AppDuration.base,
+            ),
+          ),
+        ),
+        // ── Compare 3 Loans ────────────────────────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        _ProToolButton(
+          icon: Icons.compare_arrows_rounded,
+          label: l10n.compare3Loans,
+          onTap: () => Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) =>
+                  const LoanComparisonScreen(flavor: 'ca'),
+              transitionsBuilder: (_, anim, __, child) =>
+                  FadeTransition(opacity: anim, child: child),
+              transitionDuration: AppDuration.base,
+            ),
           ),
         ),
       ],
@@ -1648,7 +1690,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
             min: 0,
             max: 30000,
             step: 500,
-            symbol: '\$',
+            symbol: 'C\$',
             onChanged: (v) => setState(() => _tradeInValue = v),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1658,7 +1700,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
             min: 0,
             max: 30000,
             step: 500,
-            symbol: '\$',
+            symbol: 'C\$',
             onChanged: (v) => setState(() => _remaining = v),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1891,6 +1933,73 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
           ],
         ],
       ],
+    );
+  }
+}
+
+// ── PRO tool button ────────────────────────────────────────────────────────────
+// Shared by CA / UK / US quick-tools sections.
+// Shows a PRO badge when the user is not premium.
+
+class _ProToolButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ProToolButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.hasFullAccessNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
+        return OutlinedButton.icon(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          icon: Icon(icon),
+          label: Row(
+            children: [
+              Expanded(child: Text(label)),
+              if (!hasFull) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    'PRO',
+                    style: TextStyle(
+                      color: cs.onPrimary,
+                      fontSize: AppTextSize.xs,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        );
+      },
     );
   }
 }

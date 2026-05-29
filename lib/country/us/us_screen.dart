@@ -20,6 +20,8 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
 import '../../features/early_payoff/early_payoff_screen.dart';
 import '../../features/lease_vs_buy/lease_vs_buy_screen.dart';
+import '../../screens/total_cost_screen.dart';
+import '../../screens/loan_comparison_screen.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
@@ -581,6 +583,42 @@ class _USQuickToolsSection extends StatelessWidget {
           ),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
+          ),
+        ),
+        // ── True Cost of Ownership ─────────────────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        _USProToolButton(
+          icon: Icons.directions_car_filled_rounded,
+          label: isSpanish ? 'Costo Real de Propiedad' : 'True Cost of Ownership',
+          onTap: () => Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) => TotalCostScreen(
+                flavor: 'us',
+                monthlyPayment: p.result?.monthlyPayment,
+                termMonths: p.result?.termMonths,
+                vehiclePrice: p.result?.vehiclePrice,
+              ),
+              transitionsBuilder: (_, anim, __, child) =>
+                  FadeTransition(opacity: anim, child: child),
+              transitionDuration: AppDuration.base,
+            ),
+          ),
+        ),
+        // ── Compare 3 Loans ────────────────────────────────────────────
+        const SizedBox(height: AppSpacing.md),
+        _USProToolButton(
+          icon: Icons.compare_arrows_rounded,
+          label: isSpanish ? 'Comparar 3 Préstamos' : 'Compare 3 Loans',
+          onTap: () => Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (_, __, ___) =>
+                  const LoanComparisonScreen(flavor: 'us'),
+              transitionsBuilder: (_, anim, __, child) =>
+                  FadeTransition(opacity: anim, child: child),
+              transitionDuration: AppDuration.base,
+            ),
           ),
         ),
       ],
@@ -2089,6 +2127,71 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
           ],
         ],
       ],
+    );
+  }
+}
+
+// ── PRO tool button (US) ───────────────────────────────────────────────────────
+
+class _USProToolButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _USProToolButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.hasFullAccessNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
+        return OutlinedButton.icon(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
+          icon: Icon(icon),
+          label: Row(
+            children: [
+              Expanded(child: Text(label)),
+              if (!hasFull) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    'PRO',
+                    style: TextStyle(
+                      color: cs.onPrimary,
+                      fontSize: AppTextSize.xs,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
+        );
+      },
     );
   }
 }

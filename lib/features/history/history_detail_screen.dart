@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../../l10n/app_localizations.dart';
 import '../../core/freemium/freemium_service.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
-import '../../widgets/premium_gate.dart';
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
+import '../../widgets/paywall_hard.dart';
 
 class HistoryDetailScreen extends StatelessWidget {
   final Map<String, dynamic> entry;
   const HistoryDetailScreen({super.key, required this.entry});
 
   String get _country => (entry['country'] as String? ?? '').toUpperCase();
-  String get _flavor => (entry['country'] as String? ?? 'ca');
   String get _currency => _country == 'UK' ? '£' : '\$';
 
   NumberFormat get _fmt =>
@@ -191,9 +187,6 @@ class HistoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final adService = context.read<CalcwiseAdService>();
-
     final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
 
@@ -210,12 +203,11 @@ class HistoryDetailScreen extends StatelessWidget {
             title: Text('$_country Loan Detail'),
             centerTitle: false,
             actions: [
-              if (hasFull)
-                IconButton(
-                  icon: const Icon(Icons.share_rounded),
-                  tooltip: 'Share',
-                  onPressed: _shareSummary,
-                ),
+              IconButton(
+                icon: const Icon(Icons.share_rounded),
+                tooltip: 'Share',
+                onPressed: _shareSummary,
+              ),
             ],
           ),
           body: ListView(
@@ -277,42 +269,35 @@ class HistoryDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ── Share / PDF or PremiumGate ────────────────────────────
-              if (hasFull)
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _shareSummary,
-                        icon: const Icon(Icons.share_rounded),
-                        label: const Text('Share'),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
+              // ── Share / PDF ───────────────────────────────────────────
+              // Share is always free. PDF is always visible — gated for free users.
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _shareSummary,
+                      icon: const Icon(Icons.share_rounded),
+                      label: const Text('Share'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _exportPdf,
-                        icon: const Icon(Icons.picture_as_pdf_rounded),
-                        label: const Text('Export PDF'),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: hasFull
+                          ? _exportPdf
+                          : () => PaywallHard.show(context),
+                      icon: const Icon(Icons.picture_as_pdf_rounded),
+                      label: Text(hasFull ? 'Export PDF' : 'Export PDF — PRO'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
                       ),
                     ),
-                  ],
-                )
-              else
-                PremiumGate(
-                  adService: adService,
-                  flavor: _flavor,
-                  onUnlocked: () {
-                    // ListenableBuilder already rebuilds when isPremiumNotifier fires;
-                    // no navigation needed — just let the listenable re-render.
-                  },
-                ),
+                  ),
+                ],
+              ),
             ],
           ),
         );

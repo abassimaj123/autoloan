@@ -175,5 +175,29 @@
       "amount": {"type": "String"},
       "months": {"type": "int"}
     }
-  }
+  },
+  "loan1": "Loan 1",
+  "loan2": "Loan 2",
+  "loan3": "Loan 3",
+  "compare3Loans": "Compare 3 Loans",
+  "bestDeal": "Best Deal",
+  "lowestTotalCost": "Lowest Total Cost",
+  "trueCostOfOwnership": "True Cost of Ownership",
+  "ownershipPeriod": "Ownership Period",
+  "insurancePerMonth": "Insurance (per month)",
+  "maintenancePerMonth": "Maintenance (per month)",
+  "depreciationRate": "Depreciation Rate",
+  "costBreakdown": "Cost Breakdown",
+  "monthlyTrueCost": "Monthly True Cost",
+  "totalCostOfOwnership": "Total Cost of Ownership",
+  "totalLoanCost": "Total Loan Cost",
+  "totalFuel": "Total Fuel",
+  "totalMaintenance": "Total Maintenance",
+  "depreciationLoss": "Depreciation Loss",
+  "totalInsurance": "Total Insurance",
+  "runningCosts": "Running Costs",
+  "gasPerMonth": "Gas (per month)",
+  "loanInputAmount": "Amount",
+  "loanInputRate": "Rate",
+  "loanInputTerm": "Term"
 }

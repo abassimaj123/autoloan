@@ -497,4 +497,76 @@ class AppLocalizationsFr extends AppLocalizations {
   String buyingSaves(String amount, int months) {
     return 'L\'achat économise $amount sur $months mois';
   }
+
+  @override
+  String get loan1 => 'Prêt 1';
+
+  @override
+  String get loan2 => 'Prêt 2';
+
+  @override
+  String get loan3 => 'Prêt 3';
+
+  @override
+  String get compare3Loans => 'Comparer 3 Prêts';
+
+  @override
+  String get bestDeal => 'Meilleure Offre';
+
+  @override
+  String get lowestTotalCost => 'Coût Total le Plus Bas';
+
+  @override
+  String get trueCostOfOwnership => 'Coût Réel de Possession';
+
+  @override
+  String get ownershipPeriod => 'Période de Possession';
+
+  @override
+  String get insurancePerMonth => 'Assurance (par mois)';
+
+  @override
+  String get maintenancePerMonth => 'Entretien (par mois)';
+
+  @override
+  String get depreciationRate => 'Taux de Dépréciation';
+
+  @override
+  String get costBreakdown => 'Répartition des Coûts';
+
+  @override
+  String get monthlyTrueCost => 'Coût Réel Mensuel';
+
+  @override
+  String get totalCostOfOwnership => 'Coût Total de Possession';
+
+  @override
+  String get totalLoanCost => 'Coût Total du Prêt';
+
+  @override
+  String get totalFuel => 'Carburant Total';
+
+  @override
+  String get totalMaintenance => 'Entretien Total';
+
+  @override
+  String get depreciationLoss => 'Perte en Dépréciation';
+
+  @override
+  String get totalInsurance => 'Assurance Totale';
+
+  @override
+  String get runningCosts => 'Coûts de Fonctionnement';
+
+  @override
+  String get gasPerMonth => 'Carburant (par mois)';
+
+  @override
+  String get loanInputAmount => 'Montant';
+
+  @override
+  String get loanInputRate => 'Taux';
+
+  @override
+  String get loanInputTerm => 'Durée';
 }

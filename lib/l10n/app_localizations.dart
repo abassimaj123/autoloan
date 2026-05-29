@@ -1017,6 +1017,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buying saves {amount} over {months} months'**
   String buyingSaves(String amount, int months);
+
+  /// No description provided for @loan1.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan 1'**
+  String get loan1;
+
+  /// No description provided for @loan2.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan 2'**
+  String get loan2;
+
+  /// No description provided for @loan3.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan 3'**
+  String get loan3;
+
+  /// No description provided for @compare3Loans.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare 3 Loans'**
+  String get compare3Loans;
+
+  /// No description provided for @bestDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Deal'**
+  String get bestDeal;
+
+  /// No description provided for @lowestTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest Total Cost'**
+  String get lowestTotalCost;
+
+  /// No description provided for @trueCostOfOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'True Cost of Ownership'**
+  String get trueCostOfOwnership;
+
+  /// No description provided for @ownershipPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Ownership Period'**
+  String get ownershipPeriod;
+
+  /// No description provided for @insurancePerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance (per month)'**
+  String get insurancePerMonth;
+
+  /// No description provided for @maintenancePerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance (per month)'**
+  String get maintenancePerMonth;
+
+  /// No description provided for @depreciationRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Depreciation Rate'**
+  String get depreciationRate;
+
+  /// No description provided for @costBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Breakdown'**
+  String get costBreakdown;
+
+  /// No description provided for @monthlyTrueCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly True Cost'**
+  String get monthlyTrueCost;
+
+  /// No description provided for @totalCostOfOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cost of Ownership'**
+  String get totalCostOfOwnership;
+
+  /// No description provided for @totalLoanCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Loan Cost'**
+  String get totalLoanCost;
+
+  /// No description provided for @totalFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Fuel'**
+  String get totalFuel;
+
+  /// No description provided for @totalMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Maintenance'**
+  String get totalMaintenance;
+
+  /// No description provided for @depreciationLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Depreciation Loss'**
+  String get depreciationLoss;
+
+  /// No description provided for @totalInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Insurance'**
+  String get totalInsurance;
+
+  /// No description provided for @runningCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Running Costs'**
+  String get runningCosts;
+
+  /// No description provided for @gasPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas (per month)'**
+  String get gasPerMonth;
+
+  /// No description provided for @loanInputAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get loanInputAmount;
+
+  /// No description provided for @loanInputRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get loanInputRate;
+
+  /// No description provided for @loanInputTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Term'**
+  String get loanInputTerm;
 }
 
 class _AppLocalizationsDelegate
