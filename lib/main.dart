@@ -194,7 +194,8 @@ class AutoLoanApp extends StatelessWidget {
                       : Brightness.dark,
                 ),
               );
-              if (!MediaQuery.of(context).disableAnimations) return child!;
+              final wrapped = _IapErrorWrapper(child: child!);
+              if (!MediaQuery.of(context).disableAnimations) return wrapped;
               return Theme(
                 data: Theme.of(context).copyWith(
                   pageTransitionsTheme: const PageTransitionsTheme(
@@ -204,7 +205,7 @@ class AutoLoanApp extends StatelessWidget {
                     },
                   ),
                 ),
-                child: child!,
+                child: wrapped,
               );
             },
             home: const SplashScreen(),

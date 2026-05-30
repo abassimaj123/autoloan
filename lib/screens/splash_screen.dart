@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
-import '../core/theme/app_theme.dart';
+import '../core/theme/theme_ca.dart';
+import '../core/theme/theme_uk.dart';
+import '../core/theme/theme_us.dart';
 import '../country/ca/ca_screen.dart';
 import '../country/uk/uk_screen.dart';
 import '../country/us/us_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 
 const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'CA');
+
+/// Per-flavor splash background — must match the native Android splash color
+/// (CA green, UK red, US navy) to avoid a color flash on launch.
+Color get _flavorPrimary => switch (_flavor.toLowerCase()) {
+  'uk' => ThemeUK.primary,
+  'us' => ThemeUS.primary,
+  _ => ThemeCA.primary,
+};
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     chips: ['Monthly Payment', 'Total Interest', 'Trade-In'],
     badgeSymbol: r'A%',
     badgeIcon: Icons.directions_car_rounded,
-    backgroundColor: AppTheme.primary,
+    backgroundColor: _flavorPrimary,
     onComplete: () async {
       if (!mounted) return;
 

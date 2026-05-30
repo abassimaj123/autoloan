@@ -1396,11 +1396,12 @@ class _UKCostOfCreditSection extends StatelessWidget {
             vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border(
               left: BorderSide(
-                color: AppTheme.accent.withValues(alpha: 0.7),
+                color: Theme.of(context).colorScheme.secondary
+                    .withValues(alpha: 0.7),
                 width: 3,
               ),
             ),

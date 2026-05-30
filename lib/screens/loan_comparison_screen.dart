@@ -1,0 +1,678 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:calcwise_core/calcwise_core.dart'
+    show
+        CalcwiseAdService,
+        CalcwiseAdFooter,
+        AppSpacing,
+        AppRadius,
+        AppTextSize;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../l10n/app_localizations.dart';
+import '../widgets/premium_gate.dart';
+import '../widgets/paywall_soft.dart';
+import '../core/freemium/freemium_service.dart';
+
+/// Multi-Loan Comparison — compare 3 loan offers side-by-side.
+/// Premium-gated screen, works for all 3 flavors.
+class LoanComparisonScreen extends StatefulWidget {
+  final String flavor; // 'ca', 'uk', 'us'
+
+  const LoanComparisonScreen({super.key, required this.flavor});
+
+  @override
+  State<LoanComparisonScreen> createState() => _LoanComparisonScreenState();
+}
+
+class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
+  // ── Loan 1 ─────────────────────────────────────────────────────────────────
+  double _amount1 = 25000;
+  double _rate1 = 5.9;
+  int _term1 = 60;
+
+  // ── Loan 2 ─────────────────────────────────────────────────────────────────
+  double _amount2 = 25000;
+  double _rate2 = 7.4;
+  int _term2 = 72;
+
+  // ── Loan 3 ─────────────────────────────────────────────────────────────────
+  double _amount3 = 25000;
+  double _rate3 = 4.9;
+  int _term3 = 48;
+
+  // ── Computed ───────────────────────────────────────────────────────────────
+  late _LoanResult _r1;
+  late _LoanResult _r2;
+  late _LoanResult _r3;
+
+  String get _sym {
+    switch (widget.flavor) {
+      case 'uk':
+        return '£';
+      case 'ca':
+        return 'C\$';
+      default:
+        return '\$';
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _recalc();
+  }
+
+  void _recalc() {
+    _r1 = _LoanResult.compute(_amount1, _rate1, _term1);
+    _r2 = _LoanResult.compute(_amount2, _rate2, _term2);
+    _r3 = _LoanResult.compute(_amount3, _rate3, _term3);
+  }
+
+  /// Index (0,1,2) of the loan with lowest totalCost.
+  int get _winnerIndex {
+    final costs = [_r1.totalCost, _r2.totalCost, _r3.totalCost];
+    double best = costs[0];
+    int idx = 0;
+    for (int i = 1; i < costs.length; i++) {
+      if (costs[i] < best) {
+        best = costs[i];
+        idx = i;
+      }
+    }
+    return idx;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final adService = context.read<CalcwiseAdService>();
+    final fmt = NumberFormat.currency(symbol: _sym, decimalDigits: 2);
+
+    final isUk = widget.flavor == 'uk';
+
+    final winner = _winnerIndex;
+    // UK car finance uses "Deal" terminology (HP/PCP deals), not "Loan"
+    final labels = isUk
+        ? ['Deal 1', 'Deal 2', 'Deal 3']
+        : [l10n.loan1, l10n.loan2, l10n.loan3];
+    final amounts = [_amount1, _amount2, _amount3];
+    final rates = [_rate1, _rate2, _rate3];
+    final terms = [_term1, _term2, _term3];
+    final results = [_r1, _r2, _r3];
+
+    // UK: "Compare 3 Finance Deals"; CA/US: "Compare 3 Loans"
+    final screenTitle = isUk ? 'Compare 3 Finance Deals' : l10n.compare3Loans;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(screenTitle)),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.xxl,
+              ),
+              children: [
+                // ── 3 loan input cards (vertical, full-width each) ───────────
+                for (int i = 0; i < 3; i++) ...[
+                  _LoanInputCard(
+                    label: labels[i],
+                    amount: amounts[i],
+                    rate: rates[i],
+                    term: terms[i],
+                    isWinner: winner == i,
+                    winnerLabel: l10n.bestDeal,
+                    sym: _sym,
+                    isUk: isUk,
+                    onAmountChanged: (v) {
+                      setState(() {
+                        if (i == 0) _amount1 = v;
+                        if (i == 1) _amount2 = v;
+                        if (i == 2) _amount3 = v;
+                        _recalc();
+                      });
+                    },
+                    onRateChanged: (v) {
+                      setState(() {
+                        if (i == 0) _rate1 = v;
+                        if (i == 1) _rate2 = v;
+                        if (i == 2) _rate3 = v;
+                        _recalc();
+                      });
+                    },
+                    onTermChanged: (v) {
+                      setState(() {
+                        if (i == 0) _term1 = v;
+                        if (i == 1) _term2 = v;
+                        if (i == 2) _term3 = v;
+                        _recalc();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+
+                const SizedBox(height: AppSpacing.sm),
+
+                // ── Results — premium gated ──────────────────────────────────
+                _GatedComparisonResults(
+                  results: results,
+                  labels: labels,
+                  winner: winner,
+                  fmt: fmt,
+                  l10n: l10n,
+                  adService: adService,
+                  flavor: widget.flavor,
+                ),
+
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'For informational purposes only. Rates and fees vary by lender.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: AppTextSize.xs,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const CalcwiseAdFooter(),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Loan input card ────────────────────────────────────────────────────────────
+
+class _LoanInputCard extends StatelessWidget {
+  final String label;
+  final double amount;
+  final double rate;
+  final int term;
+  final bool isWinner;
+  final String winnerLabel;
+  final String sym;
+  final bool isUk;
+  final ValueChanged<double> onAmountChanged;
+  final ValueChanged<double> onRateChanged;
+  final ValueChanged<int> onTermChanged;
+
+  const _LoanInputCard({
+    required this.label,
+    required this.amount,
+    required this.rate,
+    required this.term,
+    required this.isWinner,
+    required this.winnerLabel,
+    required this.sym,
+    required this.isUk,
+    required this.onAmountChanged,
+    required this.onRateChanged,
+    required this.onTermChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      elevation: isWinner ? 4 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: isWinner
+            ? BorderSide(color: cs.primary, width: 2)
+            : BorderSide.none,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Label + winner badge row
+            Row(
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                if (isWinner) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.emoji_events_rounded,
+                          size: 12,
+                          color: cs.onPrimaryContainer,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          winnerLabel,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: cs.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Amount + Rate row (side by side on full-width card)
+            Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    label: isUk ? 'Finance amount for $label' : 'Loan amount for $label',
+                    textField: true,
+                    child: TextFormField(
+                      key: ValueKey('amount_$label'),
+                      initialValue: amount.toStringAsFixed(0),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9.,]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: isUk
+                            ? 'Finance Amount'
+                            : AppLocalizations.of(context)!.loanInputAmount,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
+                        prefixText: sym,
+                        isDense: true,
+                      ),
+                      onChanged: (v) {
+                        final val = double.tryParse(v.replaceAll(',', ''));
+                        if (val != null && val > 0) onAmountChanged(val);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Semantics(
+                    label: 'Interest rate for $label',
+                    textField: true,
+                    child: TextFormField(
+                      key: ValueKey('rate_$label'),
+                      initialValue: rate.toStringAsFixed(1),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      textInputAction: TextInputAction.done,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9.]')),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.loanInputRate,
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
+                        suffixText: '%',
+                        isDense: true,
+                      ),
+                      onChanged: (v) {
+                        final val = double.tryParse(v);
+                        if (val != null && val >= 0 && val <= 30)
+                          onRateChanged(val);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Term chips
+            Text(
+              AppLocalizations.of(context)!.loanInputTerm,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [24, 36, 48, 60, 72, 84]
+                  .map(
+                    (t) => Semantics(
+                      label:
+                          '${t ~/ 12} year term${term == t ? ", selected" : ""}',
+                      child: ChoiceChip(
+                        label: Text(
+                          '${t ~/ 12} ${AppLocalizations.of(context)!.year}',
+                          style: const TextStyle(fontSize: AppTextSize.xs),
+                        ),
+                        selected: term == t,
+                        onSelected: (_) => onTermChanged(t),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Gated results ──────────────────────────────────────────────────────────────
+
+class _GatedComparisonResults extends StatelessWidget {
+  final List<_LoanResult> results;
+  final List<String> labels;
+  final int winner;
+  final NumberFormat fmt;
+  final AppLocalizations l10n;
+  final CalcwiseAdService adService;
+  final String flavor;
+
+  const _GatedComparisonResults({
+    required this.results,
+    required this.labels,
+    required this.winner,
+    required this.fmt,
+    required this.l10n,
+    required this.adService,
+    required this.flavor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final priceLabel = flavor == 'uk'
+        ? '£2.99'
+        : (flavor == 'us' ? r'$2.99' : r'$3.99 CAD');
+
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.hasFullAccessNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
+        if (!hasFull) {
+          final isFr = Localizations.localeOf(context).languageCode == 'fr';
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.lock_outline,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isFr
+                            ? 'Débloquez pour voir les résultats'
+                            : 'Unlock to see comparison results',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  PremiumGate(adService: adService, flavor: flavor),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () =>
+                        PaywallSoft.show(context, priceLabel: priceLabel),
+                    child: Text(
+                      flavor == 'ca'
+                          ? l10n.getPremiumCA
+                          : flavor == 'uk'
+                              ? l10n.getPremiumUK
+                              : l10n.getPremiumUS,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return _ComparisonResults(
+          results: results,
+          labels: labels,
+          winner: winner,
+          fmt: fmt,
+          l10n: l10n,
+        );
+      },
+    );
+  }
+}
+
+// ── Results table ──────────────────────────────────────────────────────────────
+
+class _ComparisonResults extends StatelessWidget {
+  final List<_LoanResult> results;
+  final List<String> labels;
+  final int winner;
+  final NumberFormat fmt;
+  final AppLocalizations l10n;
+
+  const _ComparisonResults({
+    required this.results,
+    required this.labels,
+    required this.winner,
+    required this.fmt,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    // Best deal banner
+    return Column(
+      children: [
+        // ── Winner banner ─────────────────────────────────────────────────
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: cs.primaryContainer,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.emoji_events_rounded, color: cs.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${l10n.bestDeal}: ${labels[winner]} — ${l10n.lowestTotalCost}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: cs.onPrimaryContainer,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+
+        // ── Comparison table card ─────────────────────────────────────────
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                // Header row
+                _TableRow(
+                  label: '',
+                  values: labels,
+                  isHeader: true,
+                  winner: winner,
+                  context: context,
+                ),
+                const Divider(height: 12),
+                _TableRow(
+                  label: l10n.monthlyPayment,
+                  values: results
+                      .map((r) => fmt.format(r.monthlyPayment))
+                      .toList(),
+                  winner: winner,
+                  context: context,
+                ),
+                const SizedBox(height: 6),
+                _TableRow(
+                  label: l10n.totalInterest,
+                  values: results
+                      .map((r) => fmt.format(r.totalInterest))
+                      .toList(),
+                  winner: winner,
+                  context: context,
+                ),
+                const Divider(height: 12),
+                _TableRow(
+                  label: l10n.totalCost,
+                  values:
+                      results.map((r) => fmt.format(r.totalCost)).toList(),
+                  winner: winner,
+                  context: context,
+                  bold: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TableRow extends StatelessWidget {
+  final String label;
+  final List<String> values;
+  final bool isHeader;
+  final bool bold;
+  final int winner;
+  final BuildContext context;
+
+  const _TableRow({
+    required this.label,
+    required this.values,
+    required this.winner,
+    required this.context,
+    this.isHeader = false,
+    this.bold = false,
+  });
+
+  @override
+  Widget build(BuildContext ctx) {
+    final cs = Theme.of(ctx).colorScheme;
+    final baseStyle = isHeader
+        ? Theme.of(ctx).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            )
+        : Theme.of(ctx).textTheme.bodySmall?.copyWith(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            );
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+          ),
+        ),
+        for (int i = 0; i < values.length; i++)
+          Expanded(
+            child: Text(
+              values[i],
+              textAlign: TextAlign.center,
+              style: (i == winner && !isHeader)
+                  ? baseStyle?.copyWith(
+                      color: cs.primary,
+                      fontWeight: FontWeight.bold,
+                    )
+                  : baseStyle,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Pure loan math ─────────────────────────────────────────────────────────────
+
+class _LoanResult {
+  final double monthlyPayment;
+  final double totalInterest;
+  final double totalCost;
+
+  const _LoanResult({
+    required this.monthlyPayment,
+    required this.totalInterest,
+    required this.totalCost,
+  });
+
+  static _LoanResult compute(double principal, double annualRate, int termMonths) {
+    double monthly;
+    if (annualRate <= 0 || termMonths <= 0) {
+      monthly = termMonths > 0 ? principal / termMonths : 0;
+    } else {
+      final r = annualRate / 100 / 12;
+      final powN = pow(1 + r, termMonths).toDouble();
+      monthly = principal * (r * powN) / (powN - 1);
+    }
+    final totalCost = monthly * termMonths;
+    final totalInterest = (totalCost - principal).clamp(0.0, double.infinity);
+    return _LoanResult(
+      monthlyPayment: monthly,
+      totalInterest: totalInterest,
+      totalCost: totalCost,
+    );
+  }
+}

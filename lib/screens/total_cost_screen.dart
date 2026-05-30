@@ -1,0 +1,646 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:calcwise_core/calcwise_core.dart'
+    show
+        CalcwiseAdService,
+        CalcwiseAdFooter,
+        AppSpacing,
+        AppRadius,
+        AppTextSize;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../l10n/app_localizations.dart';
+import '../widgets/shared_inputs.dart';
+import '../widgets/premium_gate.dart';
+import '../widgets/paywall_soft.dart';
+import '../core/freemium/freemium_service.dart';
+
+/// Total Cost of Ownership Calculator — premium-gated full screen.
+/// Works for all 3 flavors: CA (CAD, km), UK (GBP, miles), US (USD, miles).
+class TotalCostScreen extends StatefulWidget {
+  /// Flavor: 'ca', 'uk', or 'us'
+  final String flavor;
+
+  /// Optional pre-filled monthly payment from the main calculator.
+  final double? monthlyPayment;
+
+  /// Optional loan term in months for pre-fill.
+  final int? termMonths;
+
+  /// Optional vehicle price for pre-fill.
+  final double? vehiclePrice;
+
+  const TotalCostScreen({
+    super.key,
+    required this.flavor,
+    this.monthlyPayment,
+    this.termMonths,
+    this.vehiclePrice,
+  });
+
+  @override
+  State<TotalCostScreen> createState() => _TotalCostScreenState();
+}
+
+class _TotalCostScreenState extends State<TotalCostScreen> {
+  // ── Inputs ─────────────────────────────────────────────────────────────────
+  late double _vehiclePrice;
+  late double _monthlyPayment;
+  late int _ownershipYears;
+  double _insurance = 120; // default; overridden per flavor in initState
+  double _fuel = 150;      // default; overridden per flavor in initState
+  double _maintenance = 80; // default; overridden per flavor in initState
+  double _depreciationRate = 15; // % per year
+
+  // ── Derived ────────────────────────────────────────────────────────────────
+  _TcoResult? _result;
+
+  /// Currency symbol: C$ for CA, £ for UK, $ for US.
+  String get _sym {
+    switch (widget.flavor) {
+      case 'uk':
+        return '£';
+      case 'ca':
+        return 'C\$';
+      default:
+        return '\$';
+    }
+  }
+
+  String _fuelLabel(AppLocalizations l10n) {
+    if (widget.flavor == 'uk') return 'Petrol (${l10n.month})';
+    return l10n.gasPerMonth;
+  }
+
+  String get _distUnit => widget.flavor == 'ca' ? 'km' : 'miles';
+
+  @override
+  void initState() {
+    super.initState();
+    _vehiclePrice = widget.vehiclePrice ?? 25000;
+    _monthlyPayment = widget.monthlyPayment ?? 450;
+    _ownershipYears = widget.termMonths != null
+        ? (widget.termMonths! / 12).round().clamp(1, 10)
+        : 5;
+    // Per-flavor defaults
+    if (widget.flavor == 'uk') {
+      _insurance = 120;
+      _fuel = 180;
+      _maintenance = 70;
+    } else if (widget.flavor == 'ca') {
+      // CA market: slightly higher insurance (~$120 CAD/mo is correct)
+      _insurance = 120;
+      _fuel = 150;
+      _maintenance = 80;
+    }
+    _calculate();
+  }
+
+  void _calculate() {
+    final termMonths = _ownershipYears * 12;
+    final totalLoan = _monthlyPayment * termMonths;
+    final totalInsurance = _insurance * termMonths;
+    final totalFuel = _fuel * termMonths;
+    final totalMaintenance = _maintenance * termMonths;
+    final depLoss =
+        _vehiclePrice * (1 - pow(1 - _depreciationRate / 100, _ownershipYears)).toDouble();
+    final total =
+        totalLoan + totalInsurance + totalFuel + totalMaintenance + depLoss;
+    final costPerMonth = termMonths > 0 ? total / termMonths : 0.0;
+
+    setState(() {
+      _result = _TcoResult(
+        totalLoan: totalLoan,
+        totalInsurance: totalInsurance,
+        totalFuel: totalFuel,
+        totalMaintenance: totalMaintenance,
+        depreciationLoss: depLoss,
+        grandTotal: total,
+        costPerMonth: costPerMonth,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final adService = context.read<CalcwiseAdService>();
+    final fmt = NumberFormat.currency(symbol: _sym, decimalDigits: 0);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.trueCostOfOwnership)),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.xxl,
+              ),
+              children: [
+                // ── Vehicle & loan inputs ───────────────────────────────────
+                SectionCard(
+                  title: l10n.vehicle,
+                  children: [
+                    CurrencySliderInput(
+                      label: l10n.vehiclePrice,
+                      value: _vehiclePrice,
+                      min: 3000,
+                      max: 200000,
+                      step: 1000,
+                      symbol: _sym,
+                      onChanged: (v) {
+                        setState(() => _vehiclePrice = v);
+                        _calculate();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    CurrencySliderInput(
+                      label: l10n.monthlyPayment,
+                      value: _monthlyPayment,
+                      min: 100,
+                      max: 3000,
+                      step: 25,
+                      symbol: _sym,
+                      onChanged: (v) {
+                        setState(() => _monthlyPayment = v);
+                        _calculate();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _YearChips(
+                      label: l10n.ownershipPeriod,
+                      selected: _ownershipYears,
+                      onSelected: (y) {
+                        setState(() => _ownershipYears = y);
+                        _calculate();
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.sm),
+
+                // ── Running costs ───────────────────────────────────────────
+                SectionCard(
+                  title: l10n.runningCosts,
+                  children: [
+                    CurrencySliderInput(
+                      label: l10n.insurancePerMonth,
+                      value: _insurance,
+                      min: 0,
+                      max: 1000,
+                      step: 10,
+                      symbol: _sym,
+                      onChanged: (v) {
+                        setState(() => _insurance = v);
+                        _calculate();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    CurrencySliderInput(
+                      label: _fuelLabel(l10n),
+                      value: _fuel,
+                      min: 0,
+                      max: 1000,
+                      step: 10,
+                      symbol: _sym,
+                      onChanged: (v) {
+                        setState(() => _fuel = v);
+                        _calculate();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    CurrencySliderInput(
+                      label: l10n.maintenancePerMonth,
+                      value: _maintenance,
+                      min: 0,
+                      max: 500,
+                      step: 10,
+                      symbol: _sym,
+                      onChanged: (v) {
+                        setState(() => _maintenance = v);
+                        _calculate();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _DepreciationSlider(
+                      label: l10n.depreciationRate,
+                      value: _depreciationRate,
+                      onChanged: (v) {
+                        setState(() => _depreciationRate = v);
+                        _calculate();
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.sm),
+
+                // ── Results — premium gated ─────────────────────────────────
+                if (_result != null)
+                  _GatedTcoResults(
+                    result: _result!,
+                    fmt: fmt,
+                    l10n: l10n,
+                    adService: adService,
+                    flavor: widget.flavor,
+                    ownershipYears: _ownershipYears,
+                  ),
+
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'For informational purposes only. Depreciation estimates vary by '
+                  'vehicle make, model, and $_distUnit driven.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: AppTextSize.xs,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const CalcwiseAdFooter(),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Year chips ─────────────────────────────────────────────────────────────────
+
+class _YearChips extends StatelessWidget {
+  final String label;
+  final int selected;
+  final ValueChanged<int> onSelected;
+
+  const _YearChips({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          children: [1, 2, 3, 4, 5, 6, 7, 8]
+              .map(
+                (y) => ChoiceChip(
+                  label: Text(
+                    '$y ${AppLocalizations.of(context)!.year}',
+                  ),
+                  selected: selected == y,
+                  onSelected: (_) => onSelected(y),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Depreciation slider ────────────────────────────────────────────────────────
+
+class _DepreciationSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _DepreciationSlider({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child:
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Text(
+              '${value.toStringAsFixed(0)}% / yr',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: 5,
+          max: 30,
+          divisions: 25,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+// ── Gated results ──────────────────────────────────────────────────────────────
+
+class _GatedTcoResults extends StatelessWidget {
+  final _TcoResult result;
+  final NumberFormat fmt;
+  final AppLocalizations l10n;
+  final CalcwiseAdService adService;
+  final String flavor;
+  final int ownershipYears;
+
+  const _GatedTcoResults({
+    required this.result,
+    required this.fmt,
+    required this.l10n,
+    required this.adService,
+    required this.flavor,
+    required this.ownershipYears,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final priceLabel = flavor == 'uk'
+        ? '£2.99'
+        : (flavor == 'us' ? r'$2.99' : r'$3.99 CAD');
+
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.hasFullAccessNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
+        if (!hasFull) {
+          final l10n = AppLocalizations.of(context)!;
+          final isFr = Localizations.localeOf(context).languageCode == 'fr';
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.lock_outline,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isFr
+                            ? 'Débloquez la répartition complète des coûts'
+                            : 'Unlock to see full cost breakdown',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  PremiumGate(adService: adService, flavor: flavor),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () =>
+                        PaywallSoft.show(context, priceLabel: priceLabel),
+                    child: Text(
+                      flavor == 'ca'
+                          ? l10n.getPremiumCA
+                          : flavor == 'uk'
+                              ? l10n.getPremiumUK
+                              : l10n.getPremiumUS,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return _TcoResults(
+          result: result,
+          fmt: fmt,
+          l10n: l10n,
+          ownershipYears: ownershipYears,
+        );
+      },
+    );
+  }
+}
+
+// ── Results card ───────────────────────────────────────────────────────────────
+
+class _TcoResults extends StatelessWidget {
+  final _TcoResult result;
+  final NumberFormat fmt;
+  final AppLocalizations l10n;
+  final int ownershipYears;
+
+  const _TcoResults({
+    required this.result,
+    required this.fmt,
+    required this.l10n,
+    required this.ownershipYears,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final grand = result.grandTotal;
+
+    // Percentage of each component for bar chart
+    double pct(double v) => grand > 0 ? v / grand : 0;
+
+    return Column(
+      children: [
+        // ── Summary ──────────────────────────────────────────────────────
+        SectionCard(
+          title: l10n.results,
+          children: [
+            ResultTile(
+              label: l10n.totalLoanCost,
+              value: fmt.format(result.totalLoan),
+            ),
+            ResultTile(
+              label: l10n.totalInsurance,
+              value: fmt.format(result.totalInsurance),
+            ),
+            ResultTile(
+              label: l10n.totalFuel,
+              value: fmt.format(result.totalFuel),
+            ),
+            ResultTile(
+              label: l10n.totalMaintenance,
+              value: fmt.format(result.totalMaintenance),
+            ),
+            ResultTile(
+              label: l10n.depreciationLoss,
+              value: fmt.format(result.depreciationLoss),
+            ),
+            const Divider(height: 16),
+            ResultTile(
+              label: '${l10n.totalCostOfOwnership} ($ownershipYears ${l10n.year})',
+              value: fmt.format(grand),
+              isHighlight: true,
+            ),
+            ResultTile(
+              label: l10n.monthlyTrueCost,
+              value: '${fmt.format(result.costPerMonth)}/${l10n.month}',
+              isHighlight: true,
+            ),
+          ],
+        ),
+
+        const SizedBox(height: AppSpacing.sm),
+
+        // ── Visual breakdown ─────────────────────────────────────────────
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.costBreakdown,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _BarRow(
+                  label: l10n.totalLoanCost,
+                  pct: pct(result.totalLoan),
+                  color: cs.primary,
+                  context: context,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                _BarRow(
+                  label: l10n.depreciationLoss,
+                  pct: pct(result.depreciationLoss),
+                  color: cs.error,
+                  context: context,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                _BarRow(
+                  label: l10n.totalInsurance,
+                  pct: pct(result.totalInsurance),
+                  color: cs.tertiary,
+                  context: context,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                _BarRow(
+                  label: l10n.totalFuel,
+                  pct: pct(result.totalFuel),
+                  color: cs.secondary,
+                  context: context,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                _BarRow(
+                  label: l10n.totalMaintenance,
+                  pct: pct(result.totalMaintenance),
+                  color: cs.onSurfaceVariant,
+                  context: context,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BarRow extends StatelessWidget {
+  final String label;
+  final double pct;
+  final Color color;
+  final BuildContext context;
+
+  const _BarRow({
+    required this.label,
+    required this.pct,
+    required this.color,
+    required this.context,
+  });
+
+  @override
+  Widget build(BuildContext ctx) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 110,
+          child: Text(
+            label,
+            style: Theme.of(ctx).textTheme.bodySmall,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: LinearProgressIndicator(
+              value: pct.clamp(0.0, 1.0),
+              minHeight: 12,
+              backgroundColor:
+                  Theme.of(ctx).colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '${(pct * 100).toStringAsFixed(0)}%',
+          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Pure data model ────────────────────────────────────────────────────────────
+
+class _TcoResult {
+  final double totalLoan;
+  final double totalInsurance;
+  final double totalFuel;
+  final double totalMaintenance;
+  final double depreciationLoss;
+  final double grandTotal;
+  final double costPerMonth;
+
+  const _TcoResult({
+    required this.totalLoan,
+    required this.totalInsurance,
+    required this.totalFuel,
+    required this.totalMaintenance,
+    required this.depreciationLoss,
+    required this.grandTotal,
+    required this.costPerMonth,
+  });
+}
