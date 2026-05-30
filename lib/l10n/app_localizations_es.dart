@@ -39,6 +39,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get biWeeklyPayment => 'Pago quincenal';
 
   @override
+  String get weeklyPayment => 'Pago semanal';
+
+  @override
+  String get paymentFrequency => 'Frecuencia de pago';
+
+  @override
+  String get frequencyMonthly => 'Mensual';
+
+  @override
+  String get frequencyBiWeekly => 'Quincenal';
+
+  @override
+  String get frequencyWeekly => 'Semanal';
+
+  @override
   String get totalInterest => 'Interés total';
 
   @override

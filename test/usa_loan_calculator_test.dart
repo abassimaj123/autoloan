@@ -6,6 +6,7 @@
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/us/us_logic.dart';
 import 'package:auto_loan/features/amortization/amortization_screen.dart';
 
@@ -628,7 +629,7 @@ void main() {
         annualRate: 6.9,
         termMonths: termMonths,
         creditScore: CreditScore.fair,
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
       ),
     );
 
@@ -690,13 +691,86 @@ void main() {
         annualRate: 0,
         termMonths: 60,
         creditScore: CreditScore.fair,
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
       );
       expect(
         r0.biWeeklyPayment,
         closeTo(27000.0 / (5 * 26), 0.01),
         reason: '[US-9f] 0% → 27000 / 130',
       );
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // US — WEEKLY (CAS US-9W)
+  // ═══════════════════════════════════════════════════════════════════
+  group('US — Weekly', () {
+    // Référence : financed=$29,900 | effectiveRate=6.9% (Fair) | 60 mois = 5 ans
+    // Weekly: r=6.9%/52/100, n=5×52=260
+    const financed = 29900.0;
+    const effectiveRate = 6.9;
+    const termMonths = 60;
+    const termYears = termMonths / 12; // 5
+    final rWk = effectiveRate / 52 / 100;
+    final nWk = (termYears * 52).round(); // 260
+
+    late USCalculation r;
+    setUpAll(
+      () => r = USCalculation.calculate(
+        vehiclePrice: 30000,
+        tradeInValue: 0,
+        downPayment: 3000,
+        dealerFees: 500,
+        salesTaxPercent: 8.0,
+        annualRate: 6.9,
+        termMonths: termMonths,
+        creditScore: CreditScore.fair,
+        frequency: PaymentFrequency.weekly,
+      ),
+    );
+
+    test('[US-9Wa] weeklyPayment = PMT(financed, 6.9%/52, 260)', () {
+      final expected = _pmt(financed, rWk, nWk);
+      expect(r.weeklyPayment, closeTo(expected, 0.01));
+    });
+
+    test('[US-9Wb] displayPayment = weeklyPayment quand frequency=weekly', () {
+      expect(r.displayPayment, closeTo(r.weeklyPayment, 0.001));
+    });
+
+    test('[US-9Wc] weekly < bi-weekly < monthly (par paiement)', () {
+      expect(r.weeklyPayment, lessThan(r.biWeeklyPayment));
+      expect(r.biWeeklyPayment, lessThan(r.monthlyPayment));
+    });
+
+    test('[US-9Wd] Total intérêts weekly < bi-weekly (plus accéléré)', () {
+      final bi = USCalculation.calculate(
+        vehiclePrice: 30000,
+        tradeInValue: 0,
+        downPayment: 3000,
+        dealerFees: 500,
+        salesTaxPercent: 8.0,
+        annualRate: 6.9,
+        termMonths: termMonths,
+        creditScore: CreditScore.fair,
+        frequency: PaymentFrequency.biWeekly,
+      );
+      expect(r.totalInterest, lessThan(bi.totalInterest));
+    });
+
+    test('[US-9We] Taux 0% weekly = financed / (years×52)', () {
+      final r0 = USCalculation.calculate(
+        vehiclePrice: 30000,
+        tradeInValue: 0,
+        downPayment: 3000,
+        dealerFees: 0,
+        salesTaxPercent: 0,
+        annualRate: 0,
+        termMonths: 60,
+        creditScore: CreditScore.fair,
+        frequency: PaymentFrequency.weekly,
+      );
+      expect(r0.weeklyPayment, closeTo(27000.0 / (5 * 52), 0.01));
     });
   });
 

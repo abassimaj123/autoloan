@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
+import '../core/payment_frequency.dart';
 
 /// Parses a numeric string that may use either `.` or `,` as decimal separator.
 double? parseNumericInput(String v) {
@@ -536,6 +537,74 @@ class ResultTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Payment frequency label helper ─────────────────────────────────────────────
+
+/// Returns the localized payment label for [freq]
+/// (e.g. "Monthly Payment" / "Bi-weekly Payment" / "Weekly Payment").
+String paymentLabelFor(AppLocalizations l10n, PaymentFrequency freq) {
+  switch (freq) {
+    case PaymentFrequency.monthly:
+      return l10n.monthlyPayment;
+    case PaymentFrequency.biWeekly:
+      return l10n.biWeeklyPayment;
+    case PaymentFrequency.weekly:
+      return l10n.weeklyPayment;
+  }
+}
+
+// ── Payment frequency selector (Monthly / Bi-weekly / Weekly) ──────────────────
+
+/// 3-way payment frequency toggle shared by CA / UK / US screens.
+class PaymentFrequencySelector extends StatelessWidget {
+  final PaymentFrequency value;
+  final ValueChanged<PaymentFrequency> onChanged;
+
+  const PaymentFrequencySelector({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.paymentFrequency,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<PaymentFrequency>(
+            segments: [
+              ButtonSegment(
+                value: PaymentFrequency.monthly,
+                label: Text(l10n.frequencyMonthly),
+              ),
+              ButtonSegment(
+                value: PaymentFrequency.biWeekly,
+                label: Text(l10n.frequencyBiWeekly),
+              ),
+              ButtonSegment(
+                value: PaymentFrequency.weekly,
+                label: Text(l10n.frequencyWeekly),
+              ),
+            ],
+            selected: {value},
+            showSelectedIcon: false,
+            onSelectionChanged: (s) => onChanged(s.first),
+          ),
+        ),
+      ],
     );
   }
 }

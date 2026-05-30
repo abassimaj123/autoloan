@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ca_logic.dart';
+import '../../core/payment_frequency.dart';
 import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
@@ -31,8 +32,10 @@ class CAProvider extends ChangeNotifier {
   bool dpIsPercent = false;
   double annualRate = 7.9;
   int termMonths = 60;
-  bool isBiWeekly = false;
+  PaymentFrequency frequency = PaymentFrequency.monthly;
   late String provinceCode;
+
+  bool get isBiWeekly => frequency == PaymentFrequency.biWeekly;
   final InsuranceOptions insurance = InsuranceOptions();
 
   CACalculation? _result;
@@ -71,8 +74,8 @@ class CAProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setIsBiWeekly(bool v) {
-    isBiWeekly = v;
+  void setFrequency(PaymentFrequency v) {
+    frequency = v;
     notifyListeners();
   }
 
@@ -114,7 +117,7 @@ class CAProvider extends ChangeNotifier {
       annualRate: annualRate,
       termMonths: termMonths,
       provinceCode: provinceCode,
-      isBiWeekly: isBiWeekly,
+      frequency: frequency,
       insuranceMonthly: insurance.monthlyTotal(termMonths),
     );
     AnalyticsService.instance.logCalculation(
@@ -133,8 +136,12 @@ class CAProvider extends ChangeNotifier {
       'timestamp': DateTime.now().toIso8601String(),
       'vehiclePrice': vehiclePrice,
       'monthlyPayment': _result!.monthlyPayment,
-      if (isBiWeekly) 'biWeeklyPayment': _result!.biWeeklyPayment,
+      if (frequency == PaymentFrequency.biWeekly)
+        'biWeeklyPayment': _result!.biWeeklyPayment,
+      if (frequency == PaymentFrequency.weekly)
+        'weeklyPayment': _result!.weeklyPayment,
       'isBiWeekly': isBiWeekly,
+      'frequency': frequency.name,
       'totalCost': _result!.totalCost,
       'totalInterest': _result!.totalInterest,
       'termMonths': termMonths,

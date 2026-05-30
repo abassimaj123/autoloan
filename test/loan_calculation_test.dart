@@ -4,6 +4,7 @@
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/ca/ca_logic.dart';
 import 'package:auto_loan/country/us/us_logic.dart';
 import 'package:auto_loan/country/uk/uk_logic.dart';
@@ -32,7 +33,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     expect(r.taxAmount, closeTo(3900.0, 0.01), reason: 'ON tax = 13% × 30000');
@@ -47,7 +48,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     // Formula: P × r(1+r)^n / ((1+r)^n - 1)
@@ -75,7 +76,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     // totalInterest = (baseMonthly × 60) - loanAmount
@@ -96,7 +97,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
       insuranceMonthly: caInsuranceMonthly,
     );
 
@@ -116,7 +117,7 @@ void main() {
         annualRate: caAnnualRate,
         termMonths: caTermMonths,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: caInsuranceMonthly,
       );
 
@@ -150,7 +151,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
       insuranceMonthly: caInsuranceMonthly,
     );
 
@@ -175,7 +176,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: true,
+      frequency: PaymentFrequency.biWeekly,
     );
 
     // Verify nBiPeriods = round(60/12 × 26) = 130
@@ -214,7 +215,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: true,
+      frequency: PaymentFrequency.biWeekly,
       insuranceMonthly: insMonthly,
     );
 
@@ -240,7 +241,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
       insuranceMonthly: insMonthly,
     );
 
@@ -261,7 +262,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     const monthlyIncome = 5000.0;
@@ -278,7 +279,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     // Verify: monthlyPayment to 2 decimal places matches double-to-2dp
@@ -304,7 +305,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     final rate = caAnnualRate / 12 / 100;
@@ -337,7 +338,7 @@ void main() {
       annualRate: caAnnualRate,
       termMonths: caTermMonths,
       provinceCode: 'ON',
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     // Simulate amortization to last payment
@@ -368,7 +369,7 @@ void main() {
         annualRate: caAnnualRate,
         termMonths: caTermMonths,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.loanAmount, closeTo(caVehiclePrice * 1.13, 0.01));
     });
@@ -380,7 +381,7 @@ void main() {
         annualRate: 0,
         termMonths: 24,
         provinceCode: 'AB', // 5% GST only
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.totalInterest, 0);
       expect(r.monthlyPayment, closeTo(r.loanAmount / 24, 0.01));
@@ -393,7 +394,7 @@ void main() {
         annualRate: 5.0,
         termMonths: 12,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.monthlyPayment, greaterThan(0));
       expect(r.loanAmount, greaterThan(0));
@@ -406,7 +407,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.loanAmount, 0);
     });
@@ -418,7 +419,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.loanAmount, 0);
       expect(r.monthlyPayment, 0);

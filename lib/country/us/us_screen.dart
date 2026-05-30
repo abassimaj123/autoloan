@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
+import '../../core/payment_frequency.dart';
 import '../../widgets/premium_gate.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession;
@@ -491,30 +492,12 @@ class _USLoanTermsSection extends StatelessWidget {
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Switch(
-              value: p.isBiWeekly,
-              onChanged: (v) {
-                p.setIsBiWeekly(v);
-                onCalculate();
-              },
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.biWeeklyToggle),
-                  Text(
-                    l10n.biWeeklySubtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        PaymentFrequencySelector(
+          value: p.frequency,
+          onChanged: (v) {
+            p.setFrequency(v);
+            onCalculate();
+          },
         ),
       ],
     );
@@ -657,9 +640,9 @@ class _USResults extends StatelessWidget {
   ) {
     return SectionCard(
       children: [
-        // ── Hero monthly payment ──────────────────────────────────────────
+        // ── Hero payment ──────────────────────────────────────────────────
         CalcwiseHeroCard(
-          label: p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
+          label: paymentLabelFor(l10n, p.frequency),
           value: AmountFormatter.ui(r.displayPayment, 'USD'),
           secondary: 'Principal & Interest',
           stats: [
@@ -667,7 +650,7 @@ class _USResults extends StatelessWidget {
             (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'USD')),
           ],
         ),
-        if (p.isBiWeekly)
+        if (!p.frequency.isMonthly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
             value: AmountFormatter.ui(r.monthlyPayment, 'USD'),
@@ -716,9 +699,8 @@ class _USResults extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () async {
             HapticFeedback.lightImpact();
-            final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${AmountFormatter.ui(r.biWeeklyPayment, 'USD')}'
-                : 'Monthly: ${AmountFormatter.ui(r.monthlyPayment, 'USD')}';
+            final payment =
+                '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'USD')}';
             final isSpanishShare =
                 Localizations.localeOf(context).languageCode == 'es';
             try {
@@ -839,10 +821,10 @@ class _USResults extends StatelessWidget {
                     ),
                     MapEntry(l10n.termMonths, '${r.termMonths} mo'),
                     MapEntry(
-                      p.isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment,
+                      paymentLabelFor(l10n, p.frequency),
                       AmountFormatter.ui(r.displayPayment, 'USD'),
                     ),
-                    if (p.isBiWeekly)
+                    if (!p.frequency.isMonthly)
                       MapEntry(
                         '${l10n.monthlyPayment} (equiv.)',
                         AmountFormatter.ui(r.monthlyPayment, 'USD'),

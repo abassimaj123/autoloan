@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
+import '../../core/payment_frequency.dart';
 import '../../widgets/premium_gate.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession;
@@ -386,30 +387,12 @@ class _UKLoanTermsSection extends StatelessWidget {
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Switch(
-              value: p.isBiWeekly,
-              onChanged: (v) {
-                p.setIsBiWeekly(v);
-                onCalculate();
-              },
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.biWeeklyToggle),
-                  Text(
-                    l10n.biWeeklySubtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        PaymentFrequencySelector(
+          value: p.frequency,
+          onChanged: (v) {
+            p.setFrequency(v);
+            onCalculate();
+          },
         ),
       ],
     );
@@ -862,17 +845,11 @@ class _UKResults extends StatelessWidget {
       children: [
         // ── Hero monthly payment ──────────────────────────────────────────
         CalcwiseHeroCard(
-          label: p.isBiWeekly
-              ? (r.isPcp
-                    ? l10n.pcpPayment
-                    : p.financingType == UKFinancingType.hp
-                    ? 'HP Bi-Weekly Payment'
-                    : l10n.biWeeklyPayment)
-              : (r.isPcp
-                    ? l10n.pcpPayment
-                    : p.financingType == UKFinancingType.hp
-                    ? 'HP Monthly Payment'
-                    : l10n.monthlyPayment),
+          label: r.isPcp
+              ? l10n.pcpPayment
+              : p.financingType == UKFinancingType.hp
+              ? 'HP ${paymentLabelFor(l10n, p.frequency)}'
+              : paymentLabelFor(l10n, p.frequency),
           value: AmountFormatter.ui(r.displayPayment, 'GBP'),
           secondary: p.financingType == UKFinancingType.hp
               ? 'Hire Purchase — you own the car at end'
@@ -882,20 +859,32 @@ class _UKResults extends StatelessWidget {
             (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'GBP')),
           ],
         ),
-        if (p.isBiWeekly)
+        if (!p.frequency.isMonthly)
           ResultTile(
             label: '${l10n.monthlyPayment} (equiv.)',
             value: AmountFormatter.ui(r.monthlyPayment, 'GBP'),
           ),
         if (r.vedMonthly > 0) ...[
           ResultTile(
-            label: '  ${l10n.roadTax} /${p.isBiWeekly ? "2wk" : "mo"}',
-            value: AmountFormatter.ui(p.isBiWeekly ? r.vedBiWeekly : r.vedMonthly, 'GBP'),
+            label:
+                '  ${l10n.roadTax} /${p.frequency.isWeekly ? "wk" : p.frequency.isBiWeekly ? "2wk" : "mo"}',
+            value: AmountFormatter.ui(
+              p.frequency.isWeekly
+                  ? r.vedWeekly
+                  : p.frequency.isBiWeekly
+                  ? r.vedBiWeekly
+                  : r.vedMonthly,
+              'GBP',
+            ),
           ),
           ResultTile(
             label: '  ${l10n.loanOnly}',
             value: AmountFormatter.ui(
-              p.isBiWeekly ? r.biWeeklyLoanPayment : r.baseLoanPayment,
+              p.frequency.isWeekly
+                  ? r.weeklyLoanPayment
+                  : p.frequency.isBiWeekly
+                  ? r.biWeeklyLoanPayment
+                  : r.baseLoanPayment,
               'GBP',
             ),
           ),
@@ -945,9 +934,9 @@ class _UKResults extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () async {
             HapticFeedback.lightImpact();
-            final payment = p.isBiWeekly
-                ? 'Bi-weekly: ${AmountFormatter.ui(r.biWeeklyPayment, 'GBP')}'
-                : '${r.isPcp ? "PCP payment" : "Monthly"}: ${AmountFormatter.ui(r.monthlyPayment, 'GBP')}';
+            final payment = r.isPcp && p.frequency.isMonthly
+                ? 'PCP payment: ${AmountFormatter.ui(r.monthlyPayment, 'GBP')}'
+                : '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'GBP')}';
             try {
               await Share.share(
                 'Auto Loan UK\n'
@@ -1054,10 +1043,15 @@ class _UKResults extends StatelessWidget {
                       r.isPcp ? l10n.pcpPayment : l10n.monthlyPayment,
                       AmountFormatter.ui(r.monthlyPayment, 'GBP'),
                     ),
-                    if (p.isBiWeekly)
+                    if (p.frequency == PaymentFrequency.biWeekly)
                       MapEntry(
                         l10n.biWeeklyPayment,
                         AmountFormatter.ui(r.biWeeklyPayment, 'GBP'),
+                      ),
+                    if (p.frequency == PaymentFrequency.weekly)
+                      MapEntry(
+                        l10n.weeklyPayment,
+                        AmountFormatter.ui(r.weeklyPayment, 'GBP'),
                       ),
                     if (r.vedMonthly > 0) ...[
                       MapEntry(
@@ -1166,7 +1160,7 @@ class _UKPcpHpSection extends StatelessWidget {
       vehicleType: p.vehicleType,
       customVedAnnual: p.customVedAnnual,
       isPcp: false,
-      isBiWeekly: p.isBiWeekly,
+      frequency: p.frequency,
     );
 
     final pcpMonthly = r.displayPayment;
@@ -1659,7 +1653,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
       vehicleType: p.vehicleType,
       customVedAnnual: p.customVedAnnual,
       isPcp: false,
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     // PCP calculation with local GMFV slider
@@ -1673,7 +1667,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
       customVedAnnual: p.customVedAnnual,
       isPcp: true,
       gmfvPercent: _gmfvPercent,
-      isBiWeekly: false,
+      frequency: PaymentFrequency.monthly,
     );
 
     final hpMonthly = hp.baseLoanPayment;

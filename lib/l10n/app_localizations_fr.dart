@@ -39,6 +39,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get biWeeklyPayment => 'Paiement aux 2 semaines';
 
   @override
+  String get weeklyPayment => 'Paiement hebdomadaire';
+
+  @override
+  String get paymentFrequency => 'Fréquence de paiement';
+
+  @override
+  String get frequencyMonthly => 'Mensuel';
+
+  @override
+  String get frequencyBiWeekly => 'Aux 2 semaines';
+
+  @override
+  String get frequencyWeekly => 'Hebdomadaire';
+
+  @override
   String get totalInterest => 'Intérêts totaux';
 
   @override

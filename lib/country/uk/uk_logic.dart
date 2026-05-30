@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../core/payment_frequency.dart';
 
 /// UK financing type
 enum UKFinancingType {
@@ -105,7 +106,8 @@ extension VehicleTypeExt on VehicleType {
 class UKCalculation {
   final double vehiclePrice, downPayment, annualRate;
   final int termMonths;
-  final bool includeRoadTax, isBiWeekly;
+  final bool includeRoadTax;
+  final PaymentFrequency frequency;
   final VehicleType vehicleType;
 
   /// Amount borrowed (VAT already included in UK vehicle price)
@@ -117,20 +119,40 @@ class UKCalculation {
   /// Bi-weekly loan payment (without VED)
   final double biWeeklyLoanPayment;
 
+  /// Weekly loan payment (without VED)
+  final double weeklyLoanPayment;
+
   /// Total monthly payment = baseLoanPayment + vedMonthly
   final double monthlyPayment;
 
   /// Total bi-weekly payment = biWeeklyLoanPayment + vedBiWeekly
   final double biWeeklyPayment;
 
-  /// Display payment depending on isBiWeekly
-  double get displayPayment => isBiWeekly ? biWeeklyPayment : monthlyPayment;
+  /// Total weekly payment = weeklyLoanPayment + vedWeekly
+  final double weeklyPayment;
+
+  bool get isBiWeekly => frequency == PaymentFrequency.biWeekly;
+
+  /// Display payment depending on frequency
+  double get displayPayment {
+    switch (frequency) {
+      case PaymentFrequency.monthly:
+        return monthlyPayment;
+      case PaymentFrequency.biWeekly:
+        return biWeeklyPayment;
+      case PaymentFrequency.weekly:
+        return weeklyPayment;
+    }
+  }
 
   /// VED monthly instalment (vedAnnual / 12), 0 if not included
   final double vedMonthly;
 
   /// VED bi-weekly instalment (vedAnnual / 26), 0 if not included
   double get vedBiWeekly => vedMonthly * 12 / 26;
+
+  /// VED weekly instalment (vedAnnual / 52), 0 if not included
+  double get vedWeekly => vedMonthly * 12 / 52;
 
   /// Total VED over loan term (vedAnnual × termMonths / 12)
   final double vedTotal;
@@ -156,11 +178,13 @@ class UKCalculation {
     required this.monthlyPayment,
     required this.biWeeklyLoanPayment,
     required this.biWeeklyPayment,
+    required this.weeklyLoanPayment,
+    required this.weeklyPayment,
     required this.vedMonthly,
     required this.vedTotal,
     required this.totalInterest,
     required this.totalCost,
-    this.isBiWeekly = false,
+    this.frequency = PaymentFrequency.monthly,
     this.isPcp = false,
     this.gmfvAmount = 0,
     this.gmfvPercent = 0,
@@ -177,7 +201,7 @@ class UKCalculation {
     double customVedAnnual = 0.0,
     bool isPcp = false,
     double gmfvPercent = 30.0,
-    bool isBiWeekly = false,
+    PaymentFrequency frequency = PaymentFrequency.monthly,
   }) {
     // UK: VAT already included in advertised price — no separate tax to add
     final loanAmount = (vehiclePrice - downPayment).clamp(0.0, double.infinity);
@@ -232,6 +256,29 @@ class UKCalculation {
       }
     }
 
+    // Weekly loan payment
+    final nWk = (termMonths / 12 * 52).round();
+    double weeklyLoanPayment;
+    if (!isPcp) {
+      if (annualRate <= 0) {
+        weeklyLoanPayment = nWk > 0 ? loanAmount / nWk : 0;
+      } else {
+        final rWk = annualRate / 52 / 100;
+        final powWk = pow(1 + rWk, nWk).toDouble();
+        weeklyLoanPayment = loanAmount * (rWk * powWk) / (powWk - 1);
+      }
+    } else {
+      if (annualRate <= 0) {
+        weeklyLoanPayment = nWk > 0 ? (loanAmount - gmfvAmount) / nWk : 0;
+      } else {
+        final rWk = annualRate / 52 / 100;
+        final powWk = pow(1 + rWk, nWk).toDouble();
+        final pvGmfv =
+            gmfvAmount / pow(1 + annualRate / 12 / 100, termMonths).toDouble();
+        weeklyLoanPayment = (loanAmount - pvGmfv) * (rWk * powWk) / (powWk - 1);
+      }
+    }
+
     final vedAnnual = includeRoadTax
         ? (vehicleType == VehicleType.custom
               ? customVedAnnual
@@ -239,9 +286,11 @@ class UKCalculation {
         : 0.0;
     final vedMonthly = vedAnnual / 12;
     final vedBiWeekly = vedAnnual / 26;
+    final vedWeekly = vedAnnual / 52;
     final vedTotal = vedAnnual * termMonths / 12;
     final monthlyPayment = baseLoanPayment + vedMonthly;
     final biWeeklyPayment = biWeeklyLoanPayment + vedBiWeekly;
+    final weeklyPayment = weeklyLoanPayment + vedWeekly;
     final totalInterest = isPcp
         ? (baseLoanPayment * termMonths + gmfvAmount - loanAmount).clamp(
             0.0,
@@ -272,11 +321,13 @@ class UKCalculation {
       monthlyPayment: monthlyPayment,
       biWeeklyLoanPayment: biWeeklyLoanPayment,
       biWeeklyPayment: biWeeklyPayment,
+      weeklyLoanPayment: weeklyLoanPayment,
+      weeklyPayment: weeklyPayment,
       vedMonthly: vedMonthly,
       vedTotal: vedTotal,
       totalInterest: totalInterest,
       totalCost: totalCost,
-      isBiWeekly: isBiWeekly,
+      frequency: frequency,
       isPcp: isPcp,
       gmfvAmount: gmfvAmount,
       gmfvPercent: gmfvPercent,

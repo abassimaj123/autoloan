@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/ca/ca_logic.dart';
 import 'package:auto_loan/country/us/us_logic.dart';
 import 'package:auto_loan/country/uk/uk_logic.dart';
@@ -93,7 +94,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.monthlyPayment, closeTo(587, 5.0));
     });
@@ -105,7 +106,7 @@ void main() {
         annualRate: 5.0,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.taxAmount, closeTo(3900, 0.01));
     });
@@ -117,7 +118,7 @@ void main() {
         annualRate: 5.0,
         termMonths: 60,
         provinceCode: 'QC',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.taxAmount, closeTo(4492.50, 1.0));
     });
@@ -134,7 +135,7 @@ void main() {
         annualRate: 6.5,
         termMonths: 60,
         creditScore: CreditScore.excellent,
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.monthlyPayment, closeTo(377.42, 1.0));
     });
@@ -147,7 +148,7 @@ void main() {
         downPayment: 3000,
         annualRate: 8.9,
         termMonths: 48,
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.monthlyPayment, closeTo(295, 10.0));
     });

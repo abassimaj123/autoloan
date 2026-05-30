@@ -4,6 +4,7 @@
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/uk/uk_logic.dart';
 import 'package:auto_loan/features/amortization/amortization_screen.dart';
 
@@ -737,7 +738,7 @@ void main() {
         annualRate: rate,
         termMonths: term,
         includeRoadTax: false,
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
       );
       rMon = UKCalculation.calculate(
         vehiclePrice: 25000,
@@ -745,7 +746,7 @@ void main() {
         annualRate: rate,
         termMonths: term,
         includeRoadTax: false,
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
     });
 
@@ -795,7 +796,7 @@ void main() {
           termMonths: term,
           includeRoadTax: true,
           vehicleType: VehicleType.petrolLarge,
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         // vedAnnual = 280, vedBiWeekly = 280/26
         expect(
@@ -817,7 +818,7 @@ void main() {
           includeRoadTax: false,
           isPcp: true,
           gmfvPercent: 30.0,
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         final rPcpMon = UKCalculation.calculate(
           vehiclePrice: 25000,
@@ -827,7 +828,7 @@ void main() {
           includeRoadTax: false,
           isPcp: true,
           gmfvPercent: 30.0,
-          isBiWeekly: false,
+          frequency: PaymentFrequency.monthly,
         );
         expect(
           rPcpBi.biWeeklyLoanPayment,

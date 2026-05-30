@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'us_logic.dart';
+import '../../core/payment_frequency.dart';
 import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
@@ -16,7 +17,9 @@ class USProvider extends ChangeNotifier {
   double annualRate = 7.5;
   int termMonths = 60;
   CreditScore creditScore = CreditScore.good;
-  bool isBiWeekly = false;
+  PaymentFrequency frequency = PaymentFrequency.monthly;
+
+  bool get isBiWeekly => frequency == PaymentFrequency.biWeekly;
 
   USCalculation? _result;
   USCalculation? get result => _result;
@@ -63,8 +66,8 @@ class USProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setIsBiWeekly(bool v) {
-    isBiWeekly = v;
+  void setFrequency(PaymentFrequency v) {
+    frequency = v;
     notifyListeners();
   }
 
@@ -78,7 +81,7 @@ class USProvider extends ChangeNotifier {
       annualRate: annualRate,
       termMonths: termMonths,
       creditScore: creditScore,
-      isBiWeekly: isBiWeekly,
+      frequency: frequency,
     );
     AnalyticsService.instance.logCalculation(
       flavor: 'us',
@@ -97,8 +100,12 @@ class USProvider extends ChangeNotifier {
       'vehiclePrice': vehiclePrice,
       'tradeInValue': tradeInValue,
       'monthlyPayment': _result!.monthlyPayment,
-      if (isBiWeekly) 'biWeeklyPayment': _result!.biWeeklyPayment,
+      if (frequency == PaymentFrequency.biWeekly)
+        'biWeeklyPayment': _result!.biWeeklyPayment,
+      if (frequency == PaymentFrequency.weekly)
+        'weeklyPayment': _result!.weeklyPayment,
       'isBiWeekly': isBiWeekly,
+      'frequency': frequency.name,
       'effectiveRate': _result!.effectiveRate,
       'totalCost': _result!.totalCost,
       'totalInterest': _result!.totalInterest,

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'ca_taxes.dart';
+import '../../core/payment_frequency.dart';
 
 // ── CA Trade-In Result ─────────────────────────────────────────────────────────
 
@@ -169,7 +170,7 @@ class CACalculation {
   final double vehiclePrice, downPayment, annualRate;
   final int termMonths;
   final String provinceCode;
-  final bool isBiWeekly;
+  final PaymentFrequency frequency;
   final double insuranceMonthly;
   final double taxAmount, loanAmount;
 
@@ -184,6 +185,12 @@ class CACalculation {
   final double insuranceBiWeekly; // insuranceMonthly × 12/26
   final double biWeeklyPayment; // baseLoanBiWeekly + insuranceBiWeekly
 
+  // ── Weekly (r = annualRate/52/100, n = years×52) ─────────────────────────
+  final int nWeeklyPeriods; // = round(termMonths / 12 * 52), e.g. 260 for 5 yr
+  final double baseLoanWeekly; // pure loan weekly payment
+  final double insuranceWeekly; // insuranceMonthly × 12/52
+  final double weeklyPayment; // baseLoanWeekly + insuranceWeekly
+
   final double totalInterest, insuranceTotal, totalCost;
 
   const CACalculation({
@@ -192,7 +199,7 @@ class CACalculation {
     required this.annualRate,
     required this.termMonths,
     required this.provinceCode,
-    required this.isBiWeekly,
+    required this.frequency,
     required this.insuranceMonthly,
     required this.taxAmount,
     required this.loanAmount,
@@ -202,12 +209,28 @@ class CACalculation {
     required this.baseLoanBiWeekly,
     required this.insuranceBiWeekly,
     required this.biWeeklyPayment,
+    required this.nWeeklyPeriods,
+    required this.baseLoanWeekly,
+    required this.insuranceWeekly,
+    required this.weeklyPayment,
     required this.totalInterest,
     required this.insuranceTotal,
     required this.totalCost,
   });
 
-  double get displayPayment => isBiWeekly ? biWeeklyPayment : monthlyPayment;
+  bool get isBiWeekly => frequency == PaymentFrequency.biWeekly;
+
+  double get displayPayment {
+    switch (frequency) {
+      case PaymentFrequency.monthly:
+        return monthlyPayment;
+      case PaymentFrequency.biWeekly:
+        return biWeeklyPayment;
+      case PaymentFrequency.weekly:
+        return weeklyPayment;
+    }
+  }
+
   double get priceWithTax => vehiclePrice + taxAmount;
 
   static CACalculation calculate({
@@ -216,7 +239,7 @@ class CACalculation {
     required double annualRate,
     required int termMonths,
     required String provinceCode,
-    required bool isBiWeekly,
+    required PaymentFrequency frequency,
     double insuranceMonthly = 0,
   }) {
     final province = caProvinceByCode(provinceCode);
@@ -255,14 +278,39 @@ class CACalculation {
     final insuranceBiWeekly = insuranceMonthly * 12 / 26;
     final biWeeklyPayment = baseLoanBiWeekly + insuranceBiWeekly;
 
+    // ── Weekly formula ─────────────────────────────────────────────────────
+    // Proper amortization with r = annualRate/52/100, n = years×52
+    final nWeeklyPeriods = ((termMonths / 12) * 52).round(); // e.g. 260 for 5 yr
+    double baseLoanWeekly;
+    if (annualRate <= 0 || nWeeklyPeriods <= 0) {
+      baseLoanWeekly = nWeeklyPeriods > 0 ? loanAmount / nWeeklyPeriods : 0;
+    } else {
+      final rWk = annualRate / 52 / 100;
+      final powN = pow(1 + rWk, nWeeklyPeriods).toDouble();
+      baseLoanWeekly = loanAmount * (rWk * powN) / (powN - 1);
+    }
+    final insuranceWeekly = insuranceMonthly * 12 / 52;
+    final weeklyPayment = baseLoanWeekly + insuranceWeekly;
+
     // ── Totals ────────────────────────────────────────────────────────────
     final monthlyTotalInterest = (baseLoanMonthly * termMonths - loanAmount)
         .clamp(0.0, double.infinity);
     final biWeeklyTotalInterest = (baseLoanBiWeekly * nBiPeriods - loanAmount)
         .clamp(0.0, double.infinity);
-    final totalInterest = isBiWeekly
-        ? biWeeklyTotalInterest
-        : monthlyTotalInterest;
+    final weeklyTotalInterest = (baseLoanWeekly * nWeeklyPeriods - loanAmount)
+        .clamp(0.0, double.infinity);
+    final double totalInterest;
+    switch (frequency) {
+      case PaymentFrequency.biWeekly:
+        totalInterest = biWeeklyTotalInterest;
+        break;
+      case PaymentFrequency.weekly:
+        totalInterest = weeklyTotalInterest;
+        break;
+      case PaymentFrequency.monthly:
+        totalInterest = monthlyTotalInterest;
+        break;
+    }
     final insuranceTotal = insuranceMonthly * termMonths;
     final totalCost = vehiclePrice + taxAmount + totalInterest + insuranceTotal;
 
@@ -272,7 +320,7 @@ class CACalculation {
       annualRate: annualRate,
       termMonths: termMonths,
       provinceCode: provinceCode,
-      isBiWeekly: isBiWeekly,
+      frequency: frequency,
       insuranceMonthly: insuranceMonthly,
       taxAmount: taxAmount,
       loanAmount: loanAmount,
@@ -282,6 +330,10 @@ class CACalculation {
       baseLoanBiWeekly: baseLoanBiWeekly,
       insuranceBiWeekly: insuranceBiWeekly,
       biWeeklyPayment: biWeeklyPayment,
+      nWeeklyPeriods: nWeeklyPeriods,
+      baseLoanWeekly: baseLoanWeekly,
+      insuranceWeekly: insuranceWeekly,
+      weeklyPayment: weeklyPayment,
       totalInterest: totalInterest,
       insuranceTotal: insuranceTotal,
       totalCost: totalCost,

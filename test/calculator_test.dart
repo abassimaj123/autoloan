@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/ca/ca_logic.dart';
 import 'package:auto_loan/country/uk/uk_logic.dart';
 import 'package:auto_loan/country/us/us_logic.dart';
@@ -14,7 +15,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       // Ontario HST = 13%
       expect(r.taxAmount, closeTo(30000 * 0.13, 0.01));
@@ -36,7 +37,7 @@ void main() {
           annualRate: 6.5,
           termMonths: 48,
           provinceCode: 'QC',
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         // nBiPeriods = round(48/12 × 26) = 104
         expect(r.nBiPeriods, 104);
@@ -60,7 +61,7 @@ void main() {
         annualRate: 0,
         termMonths: 36,
         provinceCode: 'AB', // GST only = 5%
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       // AB GST = 5%, loan = 20000*1.05 - 2000 = 19000
       expect(r.loanAmount, closeTo(19000, 0.01));
@@ -75,7 +76,7 @@ void main() {
         annualRate: 5.0,
         termMonths: 60,
         provinceCode: 'QC',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.taxAmount, closeTo(40000 * 0.14975, 0.01));
     });
@@ -87,7 +88,7 @@ void main() {
         annualRate: 7.0,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       final with_ = CACalculation.calculate(
         vehiclePrice: 25000,
@@ -95,7 +96,7 @@ void main() {
         annualRate: 7.0,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: 20,
       );
       expect(with_.monthlyPayment - without.monthlyPayment, closeTo(20, 0.001));
@@ -108,7 +109,7 @@ void main() {
         annualRate: 5.0,
         termMonths: 36,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.loanAmount, 0);
     });

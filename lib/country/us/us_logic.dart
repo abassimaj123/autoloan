@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../core/payment_frequency.dart';
 
 enum CreditScore { excellent, good, fair, poor }
 
@@ -36,10 +37,21 @@ class USCalculation {
   final int termMonths;
   final CreditScore creditScore;
   final double taxAmount, financedAmount, effectiveRate;
-  final double monthlyPayment, biWeeklyPayment, totalInterest, totalCost;
-  final bool isBiWeekly;
+  final double monthlyPayment, biWeeklyPayment, weeklyPayment, totalInterest, totalCost;
+  final PaymentFrequency frequency;
 
-  double get displayPayment => isBiWeekly ? biWeeklyPayment : monthlyPayment;
+  bool get isBiWeekly => frequency == PaymentFrequency.biWeekly;
+
+  double get displayPayment {
+    switch (frequency) {
+      case PaymentFrequency.monthly:
+        return monthlyPayment;
+      case PaymentFrequency.biWeekly:
+        return biWeeklyPayment;
+      case PaymentFrequency.weekly:
+        return weeklyPayment;
+    }
+  }
 
   const USCalculation({
     required this.vehiclePrice,
@@ -55,9 +67,10 @@ class USCalculation {
     required this.effectiveRate,
     required this.monthlyPayment,
     required this.biWeeklyPayment,
+    required this.weeklyPayment,
     required this.totalInterest,
     required this.totalCost,
-    this.isBiWeekly = false,
+    this.frequency = PaymentFrequency.monthly,
   });
 
   static USCalculation calculate({
@@ -69,7 +82,7 @@ class USCalculation {
     required double annualRate,
     required int termMonths,
     required CreditScore creditScore,
-    bool isBiWeekly = false,
+    PaymentFrequency frequency = PaymentFrequency.monthly,
   }) {
     final effectiveRate = (annualRate + creditScore.rateAdjustment).clamp(
       0.0,
@@ -91,25 +104,48 @@ class USCalculation {
 
     // Bi-weekly: independent formula — r = effectiveRate/26/100, n = years×26
     final termYears = termMonths / 12;
+    final nBi = (termYears * 26).round();
     double biWeeklyPayment;
     if (effectiveRate <= 0) {
-      biWeeklyPayment = financedAmount / (termYears * 26);
+      biWeeklyPayment = nBi > 0 ? financedAmount / nBi : 0;
     } else {
       final rBi = effectiveRate / 26 / 100;
-      final nBi = (termYears * 26).round();
       final powBi = pow(1 + rBi, nBi).toDouble();
       biWeeklyPayment = financedAmount * (rBi * powBi) / (powBi - 1);
     }
 
-    final totalInterest = isBiWeekly
-        ? (biWeeklyPayment * (termYears * 26).round() - financedAmount).clamp(
-            0.0,
-            double.infinity,
-          )
-        : (monthlyPayment * termMonths - financedAmount).clamp(
-            0.0,
-            double.infinity,
-          );
+    // Weekly: independent formula — r = effectiveRate/52/100, n = years×52
+    final nWk = (termYears * 52).round();
+    double weeklyPayment;
+    if (effectiveRate <= 0) {
+      weeklyPayment = nWk > 0 ? financedAmount / nWk : 0;
+    } else {
+      final rWk = effectiveRate / 52 / 100;
+      final powWk = pow(1 + rWk, nWk).toDouble();
+      weeklyPayment = financedAmount * (rWk * powWk) / (powWk - 1);
+    }
+
+    final double totalInterest;
+    switch (frequency) {
+      case PaymentFrequency.biWeekly:
+        totalInterest = (biWeeklyPayment * nBi - financedAmount).clamp(
+          0.0,
+          double.infinity,
+        );
+        break;
+      case PaymentFrequency.weekly:
+        totalInterest = (weeklyPayment * nWk - financedAmount).clamp(
+          0.0,
+          double.infinity,
+        );
+        break;
+      case PaymentFrequency.monthly:
+        totalInterest = (monthlyPayment * termMonths - financedAmount).clamp(
+          0.0,
+          double.infinity,
+        );
+        break;
+    }
     final totalCost =
         vehiclePrice + taxAmount + dealerFees + totalInterest - tradeInValue;
 
@@ -127,9 +163,10 @@ class USCalculation {
       effectiveRate: effectiveRate,
       monthlyPayment: monthlyPayment,
       biWeeklyPayment: biWeeklyPayment,
+      weeklyPayment: weeklyPayment,
       totalInterest: totalInterest,
       totalCost: totalCost,
-      isBiWeekly: isBiWeekly,
+      frequency: frequency,
     );
   }
 }

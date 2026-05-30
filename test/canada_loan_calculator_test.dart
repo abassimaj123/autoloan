@@ -6,6 +6,7 @@
 
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_loan/core/payment_frequency.dart';
 import 'package:auto_loan/country/ca/ca_logic.dart';
 import 'package:auto_loan/country/ca/ca_taxes.dart';
 import 'package:auto_loan/features/amortization/amortization_screen.dart';
@@ -32,7 +33,7 @@ void main() {
         annualRate: rate,
         termMonths: term,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       ),
     );
 
@@ -153,7 +154,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: insMonthly,
       );
       expect(
@@ -170,7 +171,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: insMonthly,
       );
       expect(
@@ -187,7 +188,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: insMonthly,
       );
       final expected =
@@ -211,7 +212,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
         insuranceMonthly: insMonthly,
       );
       expect(
@@ -237,7 +238,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
       );
       expect(
         r.nBiPeriods,
@@ -262,7 +263,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
       );
       final rBi = 7.9 / 26 / 100;
       final powN = pow(1 + rBi, 130).toDouble();
@@ -290,7 +291,7 @@ void main() {
           annualRate: 7.9,
           termMonths: 60,
           provinceCode: 'ON',
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         final converted = r.baseLoanMonthly * 12 / 26;
         expect(
@@ -310,7 +311,7 @@ void main() {
           annualRate: 7.9,
           termMonths: 60,
           provinceCode: 'ON',
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         // Avec formules indépendantes, les annualisations diffèrent légèrement
         final annualBi = r.baseLoanBiWeekly * 26;
@@ -332,7 +333,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: true,
+        frequency: PaymentFrequency.biWeekly,
         insuranceMonthly: ins,
       );
       expect(
@@ -351,7 +352,7 @@ void main() {
           annualRate: 7.9,
           termMonths: 60,
           provinceCode: 'ON',
-          isBiWeekly: false,
+          frequency: PaymentFrequency.monthly,
         );
         final rBi = CACalculation.calculate(
           vehiclePrice: 30000,
@@ -359,7 +360,7 @@ void main() {
           annualRate: 7.9,
           termMonths: 60,
           provinceCode: 'ON',
-          isBiWeekly: true,
+          frequency: PaymentFrequency.biWeekly,
         );
         expect(
           rBi.totalInterest,
@@ -388,7 +389,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'QC',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       ),
     );
 
@@ -464,7 +465,7 @@ void main() {
             annualRate: 0,
             termMonths: 12,
             provinceCode: code,
-            isBiWeekly: false,
+            frequency: PaymentFrequency.monthly,
           );
           expect(
             r.taxAmount,
@@ -507,7 +508,7 @@ void main() {
         annualRate: rate,
         termMonths: term,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       rows = buildSchedule(loanAmount: P, annualRate: rate, termMonths: term);
     });
@@ -604,7 +605,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r.downPayment,
@@ -620,7 +621,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r.loanAmount,
@@ -636,7 +637,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r.loanAmount,
@@ -652,7 +653,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 24,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       final expected = _pmt(28900.0, 7.9 / 12 / 100, 24);
       expect(
@@ -669,7 +670,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 84,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       final r24 = CACalculation.calculate(
         vehiclePrice: 30000,
@@ -677,7 +678,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 24,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r84.monthlyPayment,
@@ -698,7 +699,7 @@ void main() {
         annualRate: 0.99,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r.totalInterest,
@@ -719,7 +720,7 @@ void main() {
         annualRate: 19.99,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(
         r.monthlyPayment,
@@ -740,7 +741,7 @@ void main() {
         annualRate: 7.9,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.loanAmount, 0.0, reason: '[CA-8g] loanAmount clampé à 0');
       expect(r.monthlyPayment, 0.0, reason: '[CA-8g] pmt = 0 si loan = 0');
@@ -753,7 +754,7 @@ void main() {
         annualRate: 0,
         termMonths: 60,
         provinceCode: 'ON',
-        isBiWeekly: false,
+        frequency: PaymentFrequency.monthly,
       );
       expect(r.totalInterest, 0.0, reason: '[CA-8h] Pas d\'intérêt à 0%');
       expect(

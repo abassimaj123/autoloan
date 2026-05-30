@@ -160,6 +160,36 @@ abstract class AppLocalizations {
   /// **'Bi-weekly Payment'**
   String get biWeeklyPayment;
 
+  /// No description provided for @weeklyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Payment'**
+  String get weeklyPayment;
+
+  /// No description provided for @paymentFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Frequency'**
+  String get paymentFrequency;
+
+  /// No description provided for @frequencyMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get frequencyMonthly;
+
+  /// No description provided for @frequencyBiWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Bi-weekly'**
+  String get frequencyBiWeekly;
+
+  /// No description provided for @frequencyWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get frequencyWeekly;
+
   /// No description provided for @totalInterest.
   ///
   /// In en, this message translates to:
