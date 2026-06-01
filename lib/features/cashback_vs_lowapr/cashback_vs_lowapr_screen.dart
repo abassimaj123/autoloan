@@ -2,9 +2,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
+import '../../country/ca/ca_provider.dart';
+import '../../country/uk/uk_provider.dart';
+import '../../country/us/us_provider.dart';
 
 /// Cash-Back vs Low-APR comparator.
 ///
@@ -35,6 +39,42 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
   double _rateB = 0.0;
 
   String get _currencySymbol => widget.flavor == 'uk' ? '£' : '\$';
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill from the main calculator provider so the user sees their own
+    // values instead of hardcoded defaults when this screen opens.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (widget.flavor) {
+        case 'ca':
+          final p = context.read<CAProvider>();
+          setState(() {
+            _vehiclePrice = p.vehiclePrice;
+            _downPayment = p.dpAmount;
+            _termMonths = p.termMonths;
+            _rateA = p.annualRate;
+          });
+        case 'uk':
+          final p = context.read<UKProvider>();
+          setState(() {
+            _vehiclePrice = p.vehiclePrice;
+            _downPayment = p.downPayment;
+            _termMonths = p.termMonths;
+            _rateA = p.annualRate;
+          });
+        case 'us':
+          final p = context.read<USProvider>();
+          setState(() {
+            _vehiclePrice = p.vehiclePrice;
+            _downPayment = p.downPayment;
+            _termMonths = p.termMonths;
+            _rateA = p.annualRate;
+          });
+      }
+    });
+  }
 
   _Result _compute(double loan, double aprPct, int n) {
     if (loan <= 0 || n <= 0) {

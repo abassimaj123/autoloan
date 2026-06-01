@@ -7,6 +7,9 @@ import '../../widgets/shared_inputs.dart';
 import '../../widgets/premium_gate.dart';
 import '../../widgets/paywall_soft.dart';
 import '../../core/freemium/freemium_service.dart';
+import '../../country/ca/ca_provider.dart';
+import '../../country/uk/uk_provider.dart';
+import '../../country/us/us_provider.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show
         CalcwiseAdService,
@@ -68,6 +71,39 @@ class _CompareScreenState extends State<CompareScreen> {
   @override
   void initState() {
     super.initState();
+    // Pre-fill from the main calculator provider so the user sees their own
+    // values instead of hardcoded defaults when switching to this tab.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (widget.flavor) {
+        case 'ca':
+          final p = context.read<CAProvider>();
+          setState(() {
+            vehiclePrice = p.vehiclePrice;
+            downPayment = p.dpAmount;
+            rateA = p.annualRate;
+            termA = p.termMonths;
+          });
+        case 'uk':
+          final p = context.read<UKProvider>();
+          setState(() {
+            vehiclePrice = p.vehiclePrice;
+            downPayment = p.downPayment;
+            rateA = p.annualRate;
+            termA = p.termMonths;
+          });
+        case 'us':
+          final p = context.read<USProvider>();
+          setState(() {
+            vehiclePrice = p.vehiclePrice;
+            downPayment = p.downPayment;
+            salesTaxPct = p.salesTaxPercent;
+            rateA = p.annualRate;
+            termA = p.termMonths;
+          });
+      }
+      _calculate();
+    });
     _calculate();
   }
 

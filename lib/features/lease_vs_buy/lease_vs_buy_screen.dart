@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
@@ -10,6 +11,9 @@ import '../../widgets/paywall_soft.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession;
 import '../../services/analytics_service.dart';
+import '../../country/ca/ca_provider.dart';
+import '../../country/uk/uk_provider.dart';
+import '../../country/us/us_provider.dart';
 
 class LeaseVsBuyScreen extends StatefulWidget {
   final String flavor; // 'us' | 'ca' | 'uk'
@@ -52,9 +56,38 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
   void initState() {
     super.initState();
     AnalyticsService.instance.logScreenView('lease_vs_buy');
-    // Auto-calculate on first open so result is visible immediately
+    // Pre-fill from the main calculator provider so the user sees their own
+    // values instead of hardcoded defaults when switching to this tab.
+    // Auto-calculate on first open so result is visible immediately.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _calculate();
+      if (!mounted) return;
+      switch (widget.flavor) {
+        case 'ca':
+          final p = context.read<CAProvider>();
+          setState(() {
+            _msrp = p.vehiclePrice;
+            _buyDown = p.dpAmount;
+            _buyApr = p.annualRate;
+            _buyTerm = p.termMonths;
+          });
+        case 'uk':
+          final p = context.read<UKProvider>();
+          setState(() {
+            _msrp = p.vehiclePrice;
+            _buyDown = p.downPayment;
+            _buyApr = p.annualRate;
+            _buyTerm = p.termMonths;
+          });
+        case 'us':
+          final p = context.read<USProvider>();
+          setState(() {
+            _msrp = p.vehiclePrice;
+            _buyDown = p.downPayment;
+            _buyApr = p.annualRate;
+            _buyTerm = p.termMonths;
+          });
+      }
+      _calculate();
     });
   }
 
