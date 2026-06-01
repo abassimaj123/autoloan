@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -196,6 +197,7 @@ class HistoryDetailScreen extends StatelessWidget {
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
+        final l10n = AppLocalizations.of(context)!;
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         return Scaffold(
@@ -205,7 +207,7 @@ class HistoryDetailScreen extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.share_rounded),
-                tooltip: 'Share',
+                tooltip: l10n.share,
                 onPressed: _shareSummary,
               ),
             ],
@@ -277,7 +279,7 @@ class HistoryDetailScreen extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: _shareSummary,
                       icon: const Icon(Icons.share_rounded),
-                      label: const Text('Share'),
+                      label: Text(l10n.share),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                       ),
@@ -290,7 +292,7 @@ class HistoryDetailScreen extends StatelessWidget {
                           ? _exportPdf
                           : () => PaywallHard.show(context),
                       icon: const Icon(Icons.picture_as_pdf_rounded),
-                      label: Text(hasFull ? 'Export PDF' : 'Export PDF — PRO'),
+                      label: Text(hasFull ? l10n.exportPdf : l10n.exportPdfPro),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                       ),

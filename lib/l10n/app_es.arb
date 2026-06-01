@@ -204,5 +204,9 @@
   "gasPerMonth": "Gasolina (por mes)",
   "loanInputAmount": "Monto",
   "loanInputRate": "Tasa",
-  "loanInputTerm": "Plazo"
+  "loanInputTerm": "Plazo",
+  "share": "Compartir",
+  "exportPdf": "Exportar PDF",
+  "exportPdfPro": "Exportar PDF — PRO",
+  "cashBackVsLowApr": "Reembolso vs Tasa Baja"
 }

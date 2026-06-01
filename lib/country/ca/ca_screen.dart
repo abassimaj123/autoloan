@@ -604,7 +604,7 @@ class _CAQuickToolsSection extends StatelessWidget {
             );
           },
           icon: const Icon(Icons.local_offer_rounded),
-          label: const Text('Cash-Back vs Low-APR'),
+          label: Text(l10n.cashBackVsLowApr),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
           ),
@@ -801,7 +801,7 @@ class _CAResults extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.share_rounded),
-          label: const Text('Share'),
+          label: Text(l10n.share),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (hasFull) ...[
@@ -913,7 +913,7 @@ class _CAResults extends StatelessWidget {
               }
             },
             icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('Export PDF'),
+            label: Text(l10n.exportPdf),
           ),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
@@ -934,7 +934,7 @@ class _CAResults extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.rocket_launch_rounded),
-            label: const Text('Early Payoff'),
+            label: Text(l10n.earlyPayoff),
           ),
         ] else ...[
           PremiumGate(adService: adService, flavor: 'ca'),

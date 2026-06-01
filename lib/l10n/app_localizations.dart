@@ -1191,6 +1191,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Term'**
   String get loanInputTerm;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportPdfPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF — PRO'**
+  String get exportPdfPro;
+
+  /// No description provided for @cashBackVsLowApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash-Back vs Low-APR'**
+  String get cashBackVsLowApr;
 }
 
 class _AppLocalizationsDelegate

@@ -204,5 +204,9 @@
   "gasPerMonth": "Carburant (par mois)",
   "loanInputAmount": "Montant",
   "loanInputRate": "Taux",
-  "loanInputTerm": "Durée"
+  "loanInputTerm": "Durée",
+  "share": "Partager",
+  "exportPdf": "Exporter PDF",
+  "exportPdfPro": "Exporter PDF — PRO",
+  "cashBackVsLowApr": "Remise vs Taux Bas"
 }

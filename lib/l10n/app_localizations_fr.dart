@@ -584,4 +584,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loanInputTerm => 'Durée';
+
+  @override
+  String get share => 'Partager';
+
+  @override
+  String get exportPdf => 'Exporter PDF';
+
+  @override
+  String get exportPdfPro => 'Exporter PDF — PRO';
+
+  @override
+  String get cashBackVsLowApr => 'Remise vs Taux Bas';
 }

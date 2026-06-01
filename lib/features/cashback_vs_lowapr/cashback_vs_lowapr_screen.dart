@@ -98,8 +98,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Touch l10n so localization gen stays referenced even if unused locally.
-    AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isSpanish = Localizations.localeOf(context).languageCode == 'es';
     final fmt = NumberFormat.currency(
       symbol: _currencySymbol,
@@ -125,9 +124,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          isSpanish ? 'Reembolso vs Tasa Baja' : 'Cash-Back vs Low-APR',
-        ),
+        title: Text(l10n.cashBackVsLowApr),
       ),
       body: SafeArea(
         top: false,

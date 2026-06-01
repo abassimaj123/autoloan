@@ -513,6 +513,7 @@ class _USQuickToolsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSpanish = Localizations.localeOf(context).languageCode == 'es';
     return Column(
       children: [
@@ -561,9 +562,7 @@ class _USQuickToolsSection extends StatelessWidget {
             );
           },
           icon: const Icon(Icons.local_offer_rounded),
-          label: Text(
-            isSpanish ? 'Reembolso vs Tasa Baja' : 'Cash-Back vs Low-APR',
-          ),
+          label: Text(l10n.cashBackVsLowApr),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
           ),
@@ -742,7 +741,7 @@ class _USResults extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.share_rounded),
-          label: const Text('Share'),
+          label: Text(l10n.share),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (hasFull) ...[
@@ -853,7 +852,7 @@ class _USResults extends StatelessWidget {
               }
             },
             icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('Export PDF'),
+            label: Text(l10n.exportPdf),
           ),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
@@ -874,7 +873,7 @@ class _USResults extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.rocket_launch_rounded),
-            label: const Text('Early Payoff'),
+            label: Text(l10n.earlyPayoff),
           ),
         ] else ...[
           PremiumGate(adService: adService, flavor: 'us'),

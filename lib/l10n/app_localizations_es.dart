@@ -584,4 +584,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get loanInputTerm => 'Plazo';
+
+  @override
+  String get share => 'Compartir';
+
+  @override
+  String get exportPdf => 'Exportar PDF';
+
+  @override
+  String get exportPdfPro => 'Exportar PDF — PRO';
+
+  @override
+  String get cashBackVsLowApr => 'Reembolso vs Tasa Baja';
 }
