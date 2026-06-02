@@ -447,6 +447,12 @@ class _PayoffChart extends StatelessWidget {
         FlSpot(rows[i].period.toDouble(), rows[i].balance),
     ];
 
+    final interestSpots = <FlSpot>[
+      FlSpot(0, rows.first.interest),
+      for (int i = 0; i < rows.length; i += step)
+        FlSpot(rows[i].period.toDouble(), rows[i].interest),
+    ];
+
     final fmt = NumberFormat.compactCurrency(
       symbol: currencySymbol,
       decimalDigits: 0,
@@ -490,6 +496,25 @@ class _PayoffChart extends StatelessWidget {
                           .withValues(alpha: 0.7),
                     ),
               ),
+              const SizedBox(width: 16),
+              Container(
+                width: 14,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Interest',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -501,6 +526,7 @@ class _PayoffChart extends StatelessWidget {
                   'Final balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(rows.last.balance)}.',
               excludeSemantics: true,
               child: LineChart(
+                duration: const Duration(milliseconds: 350),
                 LineChartData(
                   minY: 0,
                   maxY: maxBalance * 1.05,
@@ -573,6 +599,14 @@ class _PayoffChart extends StatelessWidget {
                         show: true,
                         color: primary.withValues(alpha: 0.12),
                       ),
+                    ),
+                    LineChartBarData(
+                      spots: interestSpots,
+                      isCurved: true,
+                      color: Theme.of(context).colorScheme.tertiary,
+                      barWidth: 2,
+                      dashArray: [6, 3],
+                      dotData: const FlDotData(show: false),
                     ),
                   ],
                 ),
