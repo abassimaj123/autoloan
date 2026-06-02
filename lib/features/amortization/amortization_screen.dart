@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../l10n/app_localizations.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdFooter, AppSpacing, AppRadius;
+    show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens;
 
 class AmortizationRow {
   final int period;
@@ -469,6 +469,29 @@ class _PayoffChart extends StatelessWidget {
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                width: 14,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Remaining Balance',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: Semantics(
@@ -499,7 +522,9 @@ class _PayoffChart extends StatelessWidget {
                         reservedSize: 56,
                         getTitlesWidget: (value, meta) => Text(
                           fmt.format(value),
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontSize: CalcwiseChartTokens.axisFontSize,
+                              ),
                           textAlign: TextAlign.right,
                         ),
                       ),
@@ -510,7 +535,9 @@ class _PayoffChart extends StatelessWidget {
                         reservedSize: 24,
                         getTitlesWidget: (value, meta) => Text(
                           '${value.toInt()} $periodLabel',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontSize: CalcwiseChartTokens.axisFontSize,
+                              ),
                         ),
                       ),
                     ),
@@ -526,9 +553,11 @@ class _PayoffChart extends StatelessWidget {
                       getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
                         return LineTooltipItem(
                           '$periodLabel ${s.x.toInt()}\n${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(s.y)}',
-                          Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(color: Colors.white),
+                          Theme.of(context).textTheme.bodySmall!.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onInverseSurface,
+                              ),
                         );
                       }).toList(),
                     ),

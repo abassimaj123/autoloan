@@ -8,7 +8,8 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdFooter,
         AppSpacing,
         AppRadius,
-        AppTextSize;
+        AppTextSize,
+        CalcwiseChartTokens;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../l10n/app_localizations.dart';
 import '../widgets/shared_inputs.dart';
@@ -532,36 +533,41 @@ class _TcoResults extends StatelessWidget {
                 _BarRow(
                   label: l10n.totalLoanCost,
                   pct: pct(result.totalLoan),
+                  value: result.totalLoan,
+                  fmt: fmt,
                   color: cs.primary,
-                  context: context,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 _BarRow(
                   label: l10n.depreciationLoss,
                   pct: pct(result.depreciationLoss),
+                  value: result.depreciationLoss,
+                  fmt: fmt,
                   color: cs.error,
-                  context: context,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 _BarRow(
                   label: l10n.totalInsurance,
                   pct: pct(result.totalInsurance),
+                  value: result.totalInsurance,
+                  fmt: fmt,
                   color: cs.tertiary,
-                  context: context,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 _BarRow(
                   label: l10n.totalFuel,
                   pct: pct(result.totalFuel),
+                  value: result.totalFuel,
+                  fmt: fmt,
                   color: cs.secondary,
-                  context: context,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 _BarRow(
                   label: l10n.totalMaintenance,
                   pct: pct(result.totalMaintenance),
+                  value: result.totalMaintenance,
+                  fmt: fmt,
                   color: cs.onSurfaceVariant,
-                  context: context,
                 ),
               ],
             ),
@@ -575,50 +581,68 @@ class _TcoResults extends StatelessWidget {
 class _BarRow extends StatelessWidget {
   final String label;
   final double pct;
+  final double value;
+  final NumberFormat fmt;
   final Color color;
-  final BuildContext context;
 
   const _BarRow({
     required this.label,
     required this.pct,
+    required this.value,
+    required this.fmt,
     required this.color,
-    required this.context,
   });
 
   @override
-  Widget build(BuildContext ctx) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 110,
-          child: Text(
-            label,
-            style: Theme.of(ctx).textTheme.bodySmall,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: LinearProgressIndicator(
-              value: pct.clamp(0.0, 1.0),
-              minHeight: 12,
-              backgroundColor:
-                  Theme.of(ctx).colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 2),
+            content: Text(
+              '$label: ${fmt.format(value)} '
+              '(${(pct * 100).toStringAsFixed(0)}%)',
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${(pct * 100).toStringAsFixed(0)}%',
-          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+        );
+      },
+      child: Row(
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              child: LinearProgressIndicator(
+                value: pct.clamp(0.0, 1.0),
+                minHeight: CalcwiseChartTokens.barWidth,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
-        ),
-      ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${(pct * 100).toStringAsFixed(0)}%',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
