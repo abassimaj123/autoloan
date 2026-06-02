@@ -79,9 +79,9 @@ class _CAScreenState extends State<CAScreen> {
       AnalyticsService.instance.logTabChanged('compare');
       AnalyticsService.instance.logCompareUsed('ca');
     } else if (i == 2) {
-      AnalyticsService.instance.logTabChanged('history');
-    } else if (i == 3) {
       AnalyticsService.instance.logTabChanged('lease_vs_buy');
+    } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
@@ -94,7 +94,7 @@ class _CAScreenState extends State<CAScreen> {
     }
     setState(() {
       _selectedTab = i;
-      if (i == 2) _historyRefreshKey++;
+      if (i == 3) _historyRefreshKey++;
     });
   }
 
@@ -155,14 +155,14 @@ class _CAScreenState extends State<CAScreen> {
             label: l10n.compareLoans,
           ),
           NavigationDestination(
+            icon: const Icon(Icons.balance_outlined),
+            selectedIcon: const Icon(Icons.balance_rounded),
+            label: l10n.leaseVsBuy,
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.history_outlined),
             selectedIcon: const Icon(Icons.history_rounded),
             label: l10n.history,
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.balance_outlined),
-            selectedIcon: Icon(Icons.balance_rounded),
-            label: 'Lease vs Buy',
           ),
         ],
       ),
@@ -180,15 +180,15 @@ class _CAScreenState extends State<CAScreen> {
                 ),
                 // Tab 1: Compare
                 CompareScreen(flavor: 'ca', showAppBar: false),
-                // Tab 2: History
+                // Tab 2: Lease vs Buy
+                const LeaseVsBuyScreen(flavor: 'ca', showAppBar: false),
+                // Tab 3: History
                 HistoryScreen(
                   key: ValueKey(_historyRefreshKey),
                   country: 'ca',
                   showAppBar: false,
                   onClear: () => setState(() => _historyRefreshKey++),
                 ),
-                // Tab 3: Lease vs Buy
-                const LeaseVsBuyScreen(flavor: 'ca', showAppBar: false),
               ],
             ),
           ),
