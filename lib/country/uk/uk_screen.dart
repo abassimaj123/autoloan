@@ -685,7 +685,7 @@ class _UKRoadTaxSection extends StatelessWidget {
               preferBelow: true,
               message:
                   'VED Annual Rates\n'
-                  'Electric:            £0\n'
+                  'Electric:            £10\n'
                   'Petrol <1000cc:  £180\n'
                   'Diesel / Hybrid:  £190\n'
                   'Petrol >1000cc:  £280\n'
@@ -1320,12 +1320,14 @@ class _UKCostOfCreditSection extends StatelessWidget {
     final r = p.result!;
 
     // Total amount payable = all monthly payments + balloon if PCP
+    // Note: totalPayable uses monthly-equivalent base payments for display consistency.
+    // Weekly/bi-weekly users' actual total may differ slightly.
     final totalPayable = r.isPcp
         ? r.baseLoanPayment * r.termMonths +
               r.gmfvAmount +
               r.downPayment +
               r.vedTotal
-        : r.monthlyPayment * r.termMonths + r.downPayment;
+        : r.baseLoanPayment * r.termMonths + r.downPayment + r.vedTotal;
     final costOfCredit = totalPayable - p.vehiclePrice;
 
     // APR flat-rate warning: if rate looks like a flat rate (typically < 5%)
@@ -1909,7 +1911,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
     final settlementFigure =
         remainingPrincipal + (totalInterest * (n * (n + 1)) / (N * (N + 1)));
 
-    final totalCostPaid = r.displayPayment * _monthsPaid + widget.p.downPayment;
+    final totalCostPaid = r.baseLoanPayment * _monthsPaid + widget.p.downPayment + (r.vedMonthly * _monthsPaid);
     final pctPaid = totalCostPaid / r.totalCost * 100;
 
     setState(() {
@@ -2170,6 +2172,10 @@ class _UKProToolButton extends StatelessWidget {
         return OutlinedButton.icon(
           onPressed: () {
             HapticFeedback.lightImpact();
+            if (!hasFull) {
+              PaywallSoft.show(context);
+              return;
+            }
             onTap();
           },
           icon: Icon(icon),

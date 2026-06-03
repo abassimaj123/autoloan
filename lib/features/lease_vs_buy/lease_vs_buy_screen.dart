@@ -89,6 +89,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       }
       _calculate();
     });
+    _calculate(); // Compute immediately so results are visible on first frame
   }
 
   void _calculate() {
@@ -164,7 +165,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           value: _msrp,
                           symbol: _sym,
                           helperText: 'e.g. 35 000',
-                          onChanged: (v) => setState(() => _msrp = v),
+                          onChanged: (v) {
+                            setState(() => _msrp = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         CurrencySliderInput(
@@ -174,20 +178,29 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: _msrp * 0.5,
                           step: 500,
                           symbol: _sym,
-                          onChanged: (v) => setState(() => _buyDown = v),
+                          onChanged: (v) {
+                            setState(() => _buyDown = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         DurationChips(
                           label: l10n.termMonths,
                           options: const [24, 36, 48, 60, 72, 84],
                           selected: _buyTerm,
-                          onSelected: (v) => setState(() => _buyTerm = v),
+                          onSelected: (v) {
+                            setState(() => _buyTerm = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         RateInputField(
                           label: l10n.interestRateApr,
                           value: _buyApr,
-                          onChanged: (v) => setState(() => _buyApr = v),
+                          onChanged: (v) {
+                            setState(() => _buyApr = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         PercentSliderInput(
@@ -197,8 +210,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: 70,
                           step: 1,
                           decimals: 0,
-                          onChanged: (v) =>
-                              setState(() => _residualPercent = v),
+                          onChanged: (v) {
+                            setState(() => _residualPercent = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         CurrencySliderInput(
@@ -208,8 +223,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: 6000,
                           step: 100,
                           symbol: _sym,
-                          onChanged: (v) =>
-                              setState(() => _annualInsurance = v),
+                          onChanged: (v) {
+                            setState(() => _annualInsurance = v);
+                            _calculate();
+                          },
                         ),
                       ],
                     ),
@@ -223,14 +240,20 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           value: _leaseMonthly,
                           symbol: _sym,
                           helperText: 'e.g. 399',
-                          onChanged: (v) => setState(() => _leaseMonthly = v),
+                          onChanged: (v) {
+                            setState(() => _leaseMonthly = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         DurationChips(
                           label: l10n.lvbLeaseTerm,
                           options: const [24, 36, 48],
                           selected: _leaseTerm,
-                          onSelected: (v) => setState(() => _leaseTerm = v),
+                          onSelected: (v) {
+                            setState(() => _leaseTerm = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         CurrencySliderInput(
@@ -240,7 +263,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: 10000,
                           step: 250,
                           symbol: _sym,
-                          onChanged: (v) => setState(() => _leaseDown = v),
+                          onChanged: (v) {
+                            setState(() => _leaseDown = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         CurrencySliderInput(
@@ -250,7 +276,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: 2000,
                           step: 50,
                           symbol: _sym,
-                          onChanged: (v) => setState(() => _acquisitionFee = v),
+                          onChanged: (v) {
+                            setState(() => _acquisitionFee = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         CurrencySliderInput(
@@ -260,14 +289,20 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           max: 1000,
                           step: 25,
                           symbol: _sym,
-                          onChanged: (v) => setState(() => _dispositionFee = v),
+                          onChanged: (v) {
+                            setState(() => _dispositionFee = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         _NumericField(
                           label: '${l10n.mileageLimitPerYear} ($_distLabel)',
                           value: _mileageLimit,
                           suffix: _distLabel,
-                          onChanged: (v) => setState(() => _mileageLimit = v),
+                          onChanged: (v) {
+                            setState(() => _mileageLimit = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         _NumericField(
@@ -275,15 +310,20 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                           value: _overageCostPerMile,
                           prefix: '$_sym ',
                           decimals: 3,
-                          onChanged: (v) =>
-                              setState(() => _overageCostPerMile = v),
+                          onChanged: (v) {
+                            setState(() => _overageCostPerMile = v);
+                            _calculate();
+                          },
                         ),
                         const SizedBox(height: 12),
                         _NumericField(
                           label: '${l10n.estimatedAnnualDriven} ($_distLabel)',
                           value: _estimatedMiles,
                           suffix: _distLabel,
-                          onChanged: (v) => setState(() => _estimatedMiles = v),
+                          onChanged: (v) {
+                            setState(() => _estimatedMiles = v);
+                            _calculate();
+                          },
                         ),
                       ],
                     ),

@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:calcwise_core/calcwise_core.dart'
-    show isOnboardingComplete, markOnboardingComplete;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
-import '../../l10n/app_localizations.dart';
+import 'package:calcwise_core/calcwise_core.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-class OnboardingScreen extends StatefulWidget {
-  /// The screen to navigate to after onboarding completes.
-  /// [OnboardingScreen] will do a fade-replacement to this widget.
+class OnboardingScreen extends StatelessWidget {
   final Widget nextScreen;
-  final String flavor; // 'ca', 'uk', 'us'
+  final String flavor;
 
   const OnboardingScreen({
     super.key,
@@ -19,565 +12,54 @@ class OnboardingScreen extends StatefulWidget {
   });
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _pageCtrl = PageController();
-  int _page = 0;
-
-  void _next() {
-    if (_page < 2) {
-      _pageCtrl.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      _finish();
-    }
-  }
-
-  void _back() {
-    _pageCtrl.previousPage(
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  Future<void> _finish() async {
-    await markOnboardingComplete('autoloan');
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => widget.nextScreen,
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: AppDuration.base,
-        reverseTransitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Page indicator dots ──────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
-                  return AnimatedContainer(
-                    duration: AppDuration.page,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _page == i ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _page == i
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(AppRadius.xs),
-                    ),
-                  );
-                }),
-              ),
-            ),
-
-            // ── Pages ────────────────────────────────────────────────────
-            Expanded(
-              child: PageView(
-                controller: _pageCtrl,
-                onPageChanged: (i) => setState(() => _page = i),
-                children: [
-                  _Page1(l10n: l10n, flavor: widget.flavor),
-                  _Page2(l10n: l10n),
-                  _Page3(l10n: l10n),
-                ],
-              ),
-            ),
-
-            // ── Navigation buttons ───────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xxl,
-                0,
-                AppSpacing.xxl,
-                AppSpacing.xxxl,
-              ),
-              child: Row(
-                children: [
-                  // Back button — visible on pages 2 and 3
-                  if (_page > 0) ...[
-                    SizedBox(
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: _back,
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: colorScheme.outline),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.xl),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_rounded,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-
-                  // Next / Get started button
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _next,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.xl),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          _page == 2
-                              ? l10n.onboardingStart
-                              : l10n.onboardingNext,
-                          style: const TextStyle(
-                            fontSize: AppTextSize.bodyLg,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return CalcwiseOnboarding(
+      appKey: 'autoloan',
+      nextScreen: nextScreen,
+      pages: _buildPages(flavor),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Page 1 — Calculate your auto loan
-// ─────────────────────────────────────────────────────────────────────────────
+List<OnboardingPage> _buildPages(String flavor) {
+  final pills1 = switch (flavor) {
+    'uk' => const ['PCP Calculator', 'HP Finance UK', 'VED 2025/26', 'Rule of 78'],
+    'ca' => const ['Km Overage Calc', 'Lease vs Finance', 'Province Tax', 'Français/English'],
+    _ => const ['Car Affordability', 'Lease vs Finance', 'Credit Score Rates', '50 State Tax'],
+  };
 
-class _Page1 extends StatelessWidget {
-  final AppLocalizations l10n;
-  final String flavor;
-  const _Page1({required this.l10n, required this.flavor});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: Icon(
-              Icons.directions_car_rounded,
-              size: 60,
-              color: colorScheme.onPrimary,
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          Text(
-            l10n.onboardingTitle1,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.display,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-              height: 1.2,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            l10n.onboardingSubtitle1,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.bodyLg,
-              color: colorScheme.onSurfaceVariant,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Feature pills — flavor-specific differentiators (ASO-optimised keywords)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: switch (flavor) {
-              'uk' => const [
-                _FeaturePill(label: 'PCP Calculator'),
-                _FeaturePill(label: 'HP Finance UK'),
-                _FeaturePill(label: 'VED 2025/26'),
-                _FeaturePill(label: 'Rule of 78'),
-              ],
-              'ca' => const [
-                _FeaturePill(label: 'Km Overage Calc'),
-                _FeaturePill(label: 'Lease vs Finance'),
-                _FeaturePill(label: 'Province Tax'),
-                _FeaturePill(label: 'Français/English'),
-              ],
-              _ => const [
-                _FeaturePill(label: 'Car Affordability'),
-                _FeaturePill(label: 'Lease vs Finance'),
-                _FeaturePill(label: 'Credit Score Rates'),
-                _FeaturePill(label: '50 State Tax'),
-              ],
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Page 2 — Compare scenarios
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Page2 extends StatelessWidget {
-  final AppLocalizations l10n;
-  const _Page2({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: colorScheme.secondary,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: Icon(
-              Icons.compare_arrows_rounded,
-              size: 60,
-              color: colorScheme.onSecondary,
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          Text(
-            l10n.onboardingTitle2,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.display,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-              height: 1.2,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            l10n.onboardingSubtitle2,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.bodyLg,
-              color: colorScheme.onSurfaceVariant,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Comparison visual
-          _CompareCard(colorScheme: colorScheme, l10n: l10n),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompareCard extends StatelessWidget {
-  final ColorScheme colorScheme;
-  final AppLocalizations l10n;
-  const _CompareCard({required this.colorScheme, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _ScenarioColumn(
-              label: '${l10n.scenario} A',
-              detail: '60 mo · 6.5%',
-              colorScheme: colorScheme,
-              highlight: false,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              'vs',
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Expanded(
-            child: _ScenarioColumn(
-              label: '${l10n.scenario} B',
-              detail: '48 mo · 5.9%',
-              colorScheme: colorScheme,
-              highlight: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScenarioColumn extends StatelessWidget {
-  final String label;
-  final String detail;
-  final ColorScheme colorScheme;
-  final bool highlight;
-  const _ScenarioColumn({
-    required this.label,
-    required this.detail,
-    required this.colorScheme,
-    required this.highlight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      decoration: BoxDecoration(
-        color: highlight ? colorScheme.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.mdPlus),
-        border: highlight
-            ? Border.all(color: colorScheme.primary, width: 1.5)
-            : null,
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: AppTextSize.sm,
-              color: highlight
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            detail,
-            style: TextStyle(
-              fontSize: AppTextSize.xs,
-              color: highlight
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Page 3 — Save & track results
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Page3 extends StatelessWidget {
-  final AppLocalizations l10n;
-  const _Page3({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: colorScheme.tertiary,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: Icon(
-              Icons.history_rounded,
-              size: 60,
-              color: colorScheme.onTertiary,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          Text(
-            l10n.onboardingTitle3,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.display,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-              height: 1.2,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            l10n.onboardingSubtitle3,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: AppTextSize.bodyLg,
-              color: colorScheme.onSurfaceVariant,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(color: colorScheme.outlineVariant),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _BulletRow(
-                  label: l10n.onboardingPremiumBullet1,
-                  colorScheme: colorScheme,
-                ),
-                const SizedBox(height: 12),
-                _BulletRow(
-                  label: l10n.onboardingPremiumBullet2,
-                  colorScheme: colorScheme,
-                ),
-                const SizedBox(height: 12),
-                _BulletRow(
-                  label: l10n.onboardingPremiumBullet3,
-                  colorScheme: colorScheme,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BulletRow extends StatelessWidget {
-  final String label;
-  final ColorScheme colorScheme;
-  const _BulletRow({required this.label, required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.check_circle_rounded, color: colorScheme.primary, size: 20),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontSize: AppTextSize.body,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared: feature pill chip
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _FeaturePill extends StatelessWidget {
-  final String label;
-  const _FeaturePill({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: colorScheme.onSurface,
-          fontSize: AppTextSize.md,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
+  return [
+    OnboardingPage(
+      icon: Icons.directions_car_rounded,
+      title: 'Calculate Your\nAuto Loan',
+      subtitle:
+          'Monthly payment, total interest and full loan cost — all calculated instantly.',
+      titleFr: 'Calculez votre\nprêt auto',
+      subtitleFr:
+          'Paiement mensuel, intérêts totaux et coût total — tout calculé instantanément.',
+      pills: pills1,
+    ),
+    const OnboardingPage(
+      icon: Icons.compare_arrows_rounded,
+      title: 'Compare Scenarios',
+      subtitle:
+          'Different terms, rates or down payments — see which deal saves you the most.',
+      titleFr: 'Comparez les scénarios',
+      subtitleFr:
+          'Durées, taux ou mises de fonds différents — voyez quelle offre vous fait économiser le plus.',
+      pills: ['60 mo · 6.5%', '48 mo · 5.9%', 'Lease vs Finance'],
+      pillsFr: ['60 mois · 6,5 %', '48 mois · 5,9 %', 'Location vs Achat'],
+    ),
+    const OnboardingPage(
+      icon: Icons.history_rounded,
+      title: 'Save Your\nCalculations',
+      subtitle:
+          'Your loan calculations are saved automatically. Revisit and compare anytime.',
+      titleFr: 'Sauvegardez vos\ncalculs',
+      subtitleFr:
+          'Vos calculs de prêt sont sauvegardés automatiquement. Comparez vos scénarios en tout temps.',
+      pills: ['History', 'PDF Export', 'Amortization'],
+      pillsFr: ['Historique', 'Export PDF', 'Amortissement'],
+    ),
+  ];
 }

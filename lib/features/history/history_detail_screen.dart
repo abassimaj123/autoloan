@@ -41,6 +41,20 @@ class HistoryDetailScreen extends StatelessWidget {
           : null,
     );
     add(
+      'Down Payment',
+      (_amt('downPayment') ?? 0) > 0
+          ? _fmt.format(_amt('downPayment')!)
+          : null,
+    );
+    add(
+      'Loan Amount',
+      _amt('loanAmount') != null
+          ? _fmt.format(_amt('loanAmount')!)
+          : (_amt('financedAmount') != null
+              ? _fmt.format(_amt('financedAmount')!)
+              : null),
+    );
+    add(
       'Loan Term',
       entry['termMonths'] != null ? '${entry['termMonths']} months' : null,
     );
@@ -70,14 +84,14 @@ class HistoryDetailScreen extends StatelessWidget {
           : null,
     );
     add(
-      'Total Vehicle Cost',
-      _amt('totalCost') != null ? _fmt.format(_amt('totalCost')!) : null,
-    );
-    add(
       'Total Interest',
       _amt('totalInterest') != null
           ? _fmt.format(_amt('totalInterest')!)
           : null,
+    );
+    add(
+      'Total Cost of Loan',
+      _amt('totalCost') != null ? _fmt.format(_amt('totalCost')!) : null,
     );
     return rows;
   }

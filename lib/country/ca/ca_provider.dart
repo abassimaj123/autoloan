@@ -135,6 +135,8 @@ class CAProvider extends ChangeNotifier {
     _history.add('ca', {
       'timestamp': DateTime.now().toIso8601String(),
       'vehiclePrice': vehiclePrice,
+      'downPayment': _result!.downPayment,
+      'loanAmount': _result!.loanAmount,
       'monthlyPayment': _result!.monthlyPayment,
       if (frequency == PaymentFrequency.biWeekly)
         'biWeeklyPayment': _result!.biWeeklyPayment,

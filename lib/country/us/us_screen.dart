@@ -2139,6 +2139,10 @@ class _USProToolButton extends StatelessWidget {
         return OutlinedButton.icon(
           onPressed: () {
             HapticFeedback.lightImpact();
+            if (!hasFull) {
+              PaywallSoft.show(context);
+              return;
+            }
             onTap();
           },
           icon: Icon(icon),

@@ -99,6 +99,8 @@ class USProvider extends ChangeNotifier {
       'timestamp': DateTime.now().toIso8601String(),
       'vehiclePrice': vehiclePrice,
       'tradeInValue': tradeInValue,
+      'downPayment': _result!.downPayment,
+      'financedAmount': _result!.financedAmount,
       'monthlyPayment': _result!.monthlyPayment,
       if (frequency == PaymentFrequency.biWeekly)
         'biWeeklyPayment': _result!.biWeeklyPayment,

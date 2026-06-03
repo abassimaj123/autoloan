@@ -132,6 +132,8 @@ class UKProvider extends ChangeNotifier {
     _history.add('uk', {
       'timestamp': DateTime.now().toIso8601String(),
       'vehiclePrice': vehiclePrice,
+      'downPayment': _result!.downPayment,
+      'loanAmount': _result!.loanAmount,
       'monthlyPayment': _result!.monthlyPayment,
       if (frequency == PaymentFrequency.biWeekly)
         'biWeeklyPayment': _result!.biWeeklyPayment,
@@ -140,6 +142,7 @@ class UKProvider extends ChangeNotifier {
       'isBiWeekly': isBiWeekly,
       'frequency': frequency.name,
       'totalCost': _result!.totalCost,
+      'totalInterest': _result!.totalInterest,
       'termMonths': termMonths,
       'annualRate': annualRate,
     });
