@@ -225,13 +225,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalVed => 'Total Road Tax';
 
   @override
-  String get getPremiumUS => 'Get Premium — \$2.99';
+  String get getPremiumUS => 'Get Premium';
 
   @override
-  String get getPremiumUK => 'Get Premium — £2.99';
+  String get getPremiumUK => 'Get Premium';
 
   @override
-  String get getPremiumCA => 'Get Premium — \$3.99 CAD';
+  String get getPremiumCA => 'Get Premium';
 
   @override
   String get restorePurchase => 'Restore purchase';

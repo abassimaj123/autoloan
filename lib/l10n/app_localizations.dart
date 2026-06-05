@@ -511,19 +511,19 @@ abstract class AppLocalizations {
   /// No description provided for @getPremiumUS.
   ///
   /// In en, this message translates to:
-  /// **'Get Premium — \$2.99'**
+  /// **'Get Premium'**
   String get getPremiumUS;
 
   /// No description provided for @getPremiumUK.
   ///
   /// In en, this message translates to:
-  /// **'Get Premium — £2.99'**
+  /// **'Get Premium'**
   String get getPremiumUK;
 
   /// No description provided for @getPremiumCA.
   ///
   /// In en, this message translates to:
-  /// **'Get Premium — \$3.99 CAD'**
+  /// **'Get Premium'**
   String get getPremiumCA;
 
   /// No description provided for @restorePurchase.

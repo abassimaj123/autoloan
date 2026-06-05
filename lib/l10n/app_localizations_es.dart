@@ -231,13 +231,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get totalVed => 'Total impuesto de circulación';
 
   @override
-  String get getPremiumUS => 'Obtener Premium — \$2.99';
+  String get getPremiumUS => 'Obtener Premium';
 
   @override
-  String get getPremiumUK => 'Obtener Premium — £2.99';
+  String get getPremiumUK => 'Obtener Premium';
 
   @override
-  String get getPremiumCA => 'Obtener Premium — \$3.99 CAD';
+  String get getPremiumCA => 'Obtener Premium';
 
   @override
   String get restorePurchase => 'Restaurar compra';
