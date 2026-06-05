@@ -267,12 +267,13 @@ class _CACalculatorTab extends StatelessWidget {
                           onCalculate: onCalculate,
                         ),
                         _CAInsuranceSection(p: p, onCalculate: onCalculate),
-                        // ── Extra tools ───────────────────────────────────
+                        // ── Quick Tools (visible immediately after inputs) ──
+                        _CAQuickToolsSection(p: p),
+                        // ── Extra sections ────────────────────────────────
                         if (p.result != null) _CATcoSection(p: p),
                         _CALeaseSection(p: p),
                         _CATradeInSection(p: p),
                         _CAAffordabilitySection(p: p),
-                        _CAQuickToolsSection(p: p),
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),

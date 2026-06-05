@@ -283,13 +283,14 @@ class _USCalculatorTab extends StatelessWidget {
                           rateAdjLabel: rateAdjLabel,
                         ),
                         _USLoanTermsSection(p: p, onCalculate: onCalculate),
-                        // ── Extra tools ───────────────────────────────────
+                        // ── Quick Tools (visible immediately after inputs) ──
+                        _USQuickToolsSection(p: p),
+                        // ── Extra sections ────────────────────────────────
                         _USLeaseSection(p: p),
                         if (p.result != null) _USRefiSection(p: p),
                         if (p.result != null) _USTcoSection(p: p),
                         _USAffordabilityReverseSolverSection(p: p),
                         _USAffordabilitySection(p: p),
-                        _USQuickToolsSection(p: p),
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),

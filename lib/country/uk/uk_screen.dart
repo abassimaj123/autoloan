@@ -259,7 +259,9 @@ class _UKCalculatorTab extends StatelessWidget {
                         ),
                         _UKFinancingTypeSection(p: p, onCalculate: onCalculate),
                         _UKRoadTaxSection(p: p, onCalculate: onCalculate),
-                        // ── Extra tools ───────────────────────────────────
+                        // ── Quick Tools (visible immediately after inputs) ──
+                        _UKQuickToolsSection(p: p),
+                        // ── Extra sections ────────────────────────────────
                         if (p.result != null &&
                             p.financingType == UKFinancingType.pcp)
                           _UKPcpHpSection(p: p),
@@ -268,7 +270,6 @@ class _UKCalculatorTab extends StatelessWidget {
                         if (p.result != null) _UKTcoSection(p: p),
                         if (p.result != null) _UKHpVsPcpSection(p: p),
                         _UKAffordabilitySection(p: p),
-                        _UKQuickToolsSection(p: p),
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),
