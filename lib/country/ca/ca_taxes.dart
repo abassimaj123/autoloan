@@ -51,7 +51,7 @@ const kCAProvinces = [
     code: 'NS',
     nameEn: 'Nova Scotia',
     nameFr: 'Nouvelle-Écosse',
-    hst: 0.14, // Reduced from 15% to 14% effective April 2025
+    hst: 0.14, // 14% depuis avril 2025 (était 15% avant)
     usesHST: true,
   ),
   CAProvince(
