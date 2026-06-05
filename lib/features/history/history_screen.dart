@@ -8,7 +8,8 @@ import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, CalcwiseAdFooter;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../core/freemium/freemium_service.dart';
-import '../../widgets/premium_gate.dart';
+import '../../widgets/paywall_soft.dart';
+import '../../core/freemium/iap_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   final String country;
@@ -349,19 +350,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
               AppSpacing.md,
               AppSpacing.sm,
             ),
-            child: PremiumGate(
-              adService: adService,
-              flavor: widget.country,
-              onUnlocked: () => Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (_, __, ___) =>
-                      HistoryScreen(country: widget.country),
-                  transitionsBuilder: (_, anim, __, child) =>
-                      FadeTransition(opacity: anim, child: child),
-                  transitionDuration: AppDuration.base,
-                ),
-              ),
+            child: CalcwisePremiumGate(
+              title: l10n.history,
+              description: l10n.unlockFull,
+              price: IAPService.instance.localizedPrice,
+              onUnlock: () => PaywallSoft.show(context),
             ),
           ),
 

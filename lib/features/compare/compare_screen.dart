@@ -4,9 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
-import '../../widgets/premium_gate.dart';
 import '../../widgets/paywall_soft.dart';
 import '../../core/freemium/freemium_service.dart';
+import '../../core/freemium/iap_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
@@ -491,38 +491,14 @@ class _GatedCompareResults extends StatelessWidget {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         if (!hasFull) {
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.lock_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Unlock to see full comparison',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  PremiumGate(adService: adService, flavor: flavor),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () =>
-                        PaywallSoft.show(context, priceLabel: priceLabel),
-                    child: Text('Get Premium — $priceLabel'),
-                  ),
-                ],
-              ),
+          final l10n = AppLocalizations.of(context)!;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: CalcwisePremiumGate(
+              title: l10n.compareLoans,
+              description: l10n.unlockFull,
+              price: IAPService.instance.localizedPrice,
+              onUnlock: () => PaywallSoft.show(context),
             ),
           );
         }

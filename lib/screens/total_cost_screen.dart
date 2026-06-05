@@ -13,9 +13,9 @@ import 'package:calcwise_core/calcwise_core.dart'
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../l10n/app_localizations.dart';
 import '../widgets/shared_inputs.dart';
-import '../widgets/premium_gate.dart';
 import '../widgets/paywall_soft.dart';
 import '../core/freemium/freemium_service.dart';
+import '../core/freemium/iap_service.dart';
 
 /// Total Cost of Ownership Calculator — premium-gated full screen.
 /// Works for all 3 flavors: CA (CAD, km), UK (GBP, miles), US (USD, miles).
@@ -396,48 +396,11 @@ class _GatedTcoResults extends StatelessWidget {
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         if (!hasFull) {
           final l10n = AppLocalizations.of(context)!;
-          final isFr = Localizations.localeOf(context).languageCode == 'fr';
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.lock_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isFr
-                            ? 'Débloquez la répartition complète des coûts'
-                            : 'Unlock to see full cost breakdown',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  PremiumGate(adService: adService, flavor: flavor),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () =>
-                        PaywallSoft.show(context, priceLabel: priceLabel),
-                    child: Text(
-                      flavor == 'ca'
-                          ? l10n.getPremiumCA
-                          : flavor == 'uk'
-                              ? l10n.getPremiumUK
-                              : l10n.getPremiumUS,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return CalcwisePremiumGate(
+            title: l10n.trueCostOfOwnership,
+            description: l10n.unlockFull,
+            price: IAPService.instance.localizedPrice,
+            onUnlock: () => PaywallSoft.show(context, priceLabel: priceLabel),
           );
         }
         return _TcoResults(

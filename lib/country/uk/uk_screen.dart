@@ -6,8 +6,8 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, 
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../core/payment_frequency.dart';
-import '../../widgets/premium_gate.dart';
 import '../../core/freemium/freemium_service.dart';
+import '../../core/freemium/iap_service.dart';
 import '../../main.dart' show paywallSession;
 import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
@@ -27,6 +27,7 @@ import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
+import '../../widgets/loan_charts.dart';
 import 'uk_provider.dart';
 import 'uk_logic.dart';
 
@@ -153,15 +154,15 @@ class _UKScreenState extends State<UKScreen> {
             selectedIcon: const Icon(Icons.compare_arrows_rounded),
             label: l10n.compareLoans,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.history_outlined),
-            selectedIcon: const Icon(Icons.history_rounded),
-            label: l10n.history,
-          ),
           const NavigationDestination(
             icon: Icon(Icons.balance_outlined),
             selectedIcon: Icon(Icons.balance_rounded),
             label: 'Lease vs Buy',
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.history_outlined),
+            selectedIcon: const Icon(Icons.history_rounded),
+            label: l10n.history,
           ),
         ],
       ),
@@ -179,15 +180,15 @@ class _UKScreenState extends State<UKScreen> {
                 ),
                 // Tab 1: Compare
                 CompareScreen(flavor: 'uk', showAppBar: false),
-                // Tab 2: History
+                // Tab 2: Lease vs Buy
+                const LeaseVsBuyScreen(flavor: 'uk', showAppBar: false),
+                // Tab 3: History (always last)
                 HistoryScreen(
                   key: ValueKey(_historyRefreshKey),
                   country: 'uk',
                   showAppBar: false,
                   onClear: () => setState(() => _historyRefreshKey++),
                 ),
-                // Tab 3: Lease vs Buy
-                const LeaseVsBuyScreen(flavor: 'uk', showAppBar: false),
               ],
             ),
           ),
@@ -245,6 +246,26 @@ class _UKCalculatorTab extends StatelessWidget {
                             title: 'No results yet',
                             body:
                                 'Enter the vehicle price to see your analysis.',
+                          ),
+                        // ── Cost Breakdown Chart ─────────────────────────
+                        if (p.result != null)
+                          Builder(
+                            builder: (context) {
+                              final principal = p.result!.loanAmount;
+                              final interest = p.result!.totalInterest;
+                              final cs = Theme.of(context).colorScheme;
+                              return SectionCard(
+                                title: 'Cost Breakdown',
+                                children: [
+                                  LoanDonutChart(
+                                    principal: principal,
+                                    totalInterest: interest,
+                                    primaryColor: cs.primary,
+                                    accentColor: cs.secondary,
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         // ── Input sections ────────────────────────────────
                         _UKVehicleSection(
@@ -422,7 +443,10 @@ class _UKFinancingTypeSection extends StatelessWidget {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   backgroundColor: ft == UKFinancingType.standardLoan
-                      ? Theme.of(context).colorScheme.primaryContainer
+                      ? Theme.of(context).colorScheme.secondary
+                      : null,
+                  foregroundColor: ft == UKFinancingType.standardLoan
+                      ? Colors.white
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
@@ -438,7 +462,10 @@ class _UKFinancingTypeSection extends StatelessWidget {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   backgroundColor: ft == UKFinancingType.hp
-                      ? Theme.of(context).colorScheme.primaryContainer
+                      ? Theme.of(context).colorScheme.secondary
+                      : null,
+                  foregroundColor: ft == UKFinancingType.hp
+                      ? Colors.white
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
@@ -454,7 +481,10 @@ class _UKFinancingTypeSection extends StatelessWidget {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   backgroundColor: ft == UKFinancingType.pcp
-                      ? Theme.of(context).colorScheme.primaryContainer
+                      ? Theme.of(context).colorScheme.secondary
+                      : null,
+                  foregroundColor: ft == UKFinancingType.pcp
+                      ? Colors.white
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
@@ -774,9 +804,10 @@ class _UKQuickToolsSection extends StatelessWidget {
         ),
         // ── True Cost of Ownership ─────────────────────────────────────
         const SizedBox(height: AppSpacing.md),
-        _UKProToolButton(
+        _PremiumToolCard(
           icon: Icons.directions_car_filled_rounded,
           label: 'True Cost of Ownership',
+          description: 'Analyse the true total cost of your vehicle',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -794,9 +825,10 @@ class _UKQuickToolsSection extends StatelessWidget {
         ),
         // ── Compare 3 Loans ────────────────────────────────────────────
         const SizedBox(height: AppSpacing.md),
-        _UKProToolButton(
+        _PremiumToolCard(
           icon: Icons.compare_arrows_rounded,
           label: 'Compare 3 Finance Deals',
+          description: 'Compare up to 3 finance offers side by side',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -1124,7 +1156,12 @@ class _UKResults extends StatelessWidget {
             label: Text(l10n.earlyPayoff),
           ),
         ] else ...[
-          PremiumGate(adService: adService, flavor: 'uk'),
+          CalcwisePremiumGate(
+            title: l10n.results,
+            description: l10n.unlockFull,
+            price: IAPService.instance.localizedPrice,
+            onUnlock: () => PaywallSoft.show(context),
+          ),
         ],
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -2146,16 +2183,20 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
   }
 }
 
-// ── PRO tool button (UK) ───────────────────────────────────────────────────────
+// Premium-gated tool card with gradient banner (locked) or clean card (unlocked).
+// Locked: gradient bg, lock icon, tool name, description, chevron -> PaywallSoft.
+// Unlocked: tool icon, tool name, description, chevron -> navigates to tool.
 
-class _UKProToolButton extends StatelessWidget {
+class _PremiumToolCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String description;
   final VoidCallback onTap;
 
-  const _UKProToolButton({
+  const _PremiumToolCard({
     required this.icon,
     required this.label,
+    required this.description,
     required this.onTap,
   });
 
@@ -2170,47 +2211,82 @@ class _UKProToolButton extends StatelessWidget {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        return OutlinedButton.icon(
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            if (!hasFull) {
-              PaywallSoft.show(context);
-              return;
-            }
-            onTap();
-          },
-          icon: Icon(icon),
-          label: Row(
+        return hasFull
+            ? _buildUnlockedCard(context, cs)
+            : CalcwisePremiumGate(
+                title: label,
+                description: description,
+                price: IAPService.instance.localizedPrice,
+                onUnlock: () => PaywallSoft.show(context),
+              );
+      },
+    );
+  }
+
+  Widget _buildUnlockedCard(BuildContext context, ColorScheme cs) {
+    return Card(
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(color: cs.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.mdPlus,
+          ),
+          child: Row(
             children: [
-              Expanded(child: Text(label)),
-              if (!hasFull) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: cs.primary,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    'PRO',
-                    style: TextStyle(
-                      color: cs.onPrimary,
-                      fontSize: AppTextSize.xs,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              // Tool icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-              ],
+                child: Icon(icon, color: cs.primary, size: 22),
+              ),
+              const SizedBox(width: AppSpacing.smPlus),
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: cs.onSurfaceVariant,
+                size: 22,
+              ),
             ],
           ),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

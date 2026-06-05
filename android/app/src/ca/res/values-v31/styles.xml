@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- CA — Android 12+ splash: Forest Green + launcher icon -->
+    <!-- CA — Android 12+ splash: Blue matching app icon -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/animated_splash_dots</item>
-        <item name="android:windowSplashScreenBackground">#1B5E20</item>
-        <!-- icon circle bg matches launcher icon green → no white ring -->
-        
-        <item name="android:windowSplashScreenIconBackgroundColor">#1B5E20</item>
+        <item name="android:windowSplashScreenBackground">#0D47A1</item>
+
+        <item name="android:windowSplashScreenIconBackgroundColor">#0D47A1</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@color/splash_bg</item>

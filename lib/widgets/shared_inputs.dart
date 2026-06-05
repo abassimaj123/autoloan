@@ -290,7 +290,7 @@ class _DurationChipsState extends State<DurationChips> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final primary = Theme.of(context).colorScheme.primary;
+    final primary = Theme.of(context).colorScheme.secondary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -328,18 +328,18 @@ class _DurationChipsState extends State<DurationChips> {
               label: const Text('Custom'),
               selected: _isCustomSelected,
               backgroundColor: Colors.transparent,
-              selectedColor: Theme.of(context).colorScheme.primary,
+              selectedColor: primary,
               labelStyle: TextStyle(
                 color: _isCustomSelected
                     ? Colors.white
-                    : Theme.of(context).colorScheme.primary,
+                    : primary,
                 fontWeight: _isCustomSelected
                     ? FontWeight.bold
                     : FontWeight.normal,
               ),
               side: _isCustomSelected
                   ? BorderSide.none
-                  : BorderSide(color: Theme.of(context).colorScheme.primary),
+                  : BorderSide(color: primary),
               onSelected: (_) => setState(() => _showCustom = true),
             ),
           ],

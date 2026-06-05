@@ -12,9 +12,9 @@ import 'package:calcwise_core/calcwise_core.dart'
         AppTextSize;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../l10n/app_localizations.dart';
-import '../widgets/premium_gate.dart';
 import '../widgets/paywall_soft.dart';
 import '../core/freemium/freemium_service.dart';
+import '../core/freemium/iap_service.dart';
 
 /// Multi-Loan Comparison — compare 3 loan offers side-by-side.
 /// Premium-gated screen, works for all 3 flavors.
@@ -429,48 +429,11 @@ class _GatedComparisonResults extends StatelessWidget {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         if (!hasFull) {
-          final isFr = Localizations.localeOf(context).languageCode == 'fr';
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.lock_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isFr
-                            ? 'Débloquez pour voir les résultats'
-                            : 'Unlock to see comparison results',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  PremiumGate(adService: adService, flavor: flavor),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () =>
-                        PaywallSoft.show(context, priceLabel: priceLabel),
-                    child: Text(
-                      flavor == 'ca'
-                          ? l10n.getPremiumCA
-                          : flavor == 'uk'
-                              ? l10n.getPremiumUK
-                              : l10n.getPremiumUS,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          return CalcwisePremiumGate(
+            title: l10n.compare3Loans,
+            description: l10n.unlockFull,
+            price: IAPService.instance.localizedPrice,
+            onUnlock: () => PaywallSoft.show(context, priceLabel: priceLabel),
           );
         }
         return _ComparisonResults(

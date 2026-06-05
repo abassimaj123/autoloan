@@ -6,8 +6,8 @@ import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, 
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../core/payment_frequency.dart';
-import '../../widgets/premium_gate.dart';
 import '../../core/freemium/freemium_service.dart';
+import '../../core/freemium/iap_service.dart';
 import '../../main.dart' show paywallSession;
 import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
@@ -27,6 +27,7 @@ import '../../services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
+import '../../widgets/loan_charts.dart';
 import 'ca_provider.dart';
 import 'ca_logic.dart';
 import 'ca_taxes.dart';
@@ -267,6 +268,27 @@ class _CACalculatorTab extends StatelessWidget {
                           onCalculate: onCalculate,
                         ),
                         _CAInsuranceSection(p: p, onCalculate: onCalculate),
+                        // ── Cost Breakdown Chart ─────────────────────────
+                        if (p.result != null)
+                          Builder(
+                            builder: (context) {
+                              final isFr = Localizations.localeOf(context).languageCode == 'fr';
+                              final principal = p.result!.loanAmount;
+                              final interest = p.result!.totalInterest;
+                              final cs = Theme.of(context).colorScheme;
+                              return SectionCard(
+                                title: isFr ? 'Répartition des coûts' : 'Cost Breakdown',
+                                children: [
+                                  LoanDonutChart(
+                                    principal: principal,
+                                    totalInterest: interest,
+                                    primaryColor: cs.primary,
+                                    accentColor: cs.secondary,
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                         // ── Quick Tools (visible immediately after inputs) ──
                         _CAQuickToolsSection(p: p),
                         // ── Extra sections ────────────────────────────────
@@ -612,9 +634,12 @@ class _CAQuickToolsSection extends StatelessWidget {
         ),
         // ── True Cost of Ownership ─────────────────────────────────────
         const SizedBox(height: AppSpacing.md),
-        _ProToolButton(
+        _PremiumToolCard(
           icon: Icons.directions_car_filled_rounded,
           label: l10n.trueCostOfOwnership,
+          description: isFr
+              ? 'Analysez le vrai coût total de votre véhicule'
+              : 'Analyze the true total cost of your vehicle',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -632,9 +657,12 @@ class _CAQuickToolsSection extends StatelessWidget {
         ),
         // ── Compare 3 Loans ────────────────────────────────────────────
         const SizedBox(height: AppSpacing.md),
-        _ProToolButton(
+        _PremiumToolCard(
           icon: Icons.compare_arrows_rounded,
           label: l10n.compare3Loans,
+          description: isFr
+              ? 'Comparez jusqu\'a 3 offres de pret cote a cote'
+              : 'Compare up to 3 loan offers side by side',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -938,7 +966,12 @@ class _CAResults extends StatelessWidget {
             label: Text(l10n.earlyPayoff),
           ),
         ] else ...[
-          PremiumGate(adService: adService, flavor: 'ca'),
+          CalcwisePremiumGate(
+            title: l10n.results,
+            description: l10n.unlockFull,
+            price: IAPService.instance.localizedPrice,
+            onUnlock: () => PaywallSoft.show(context),
+          ),
         ],
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -1925,18 +1958,21 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
   }
 }
 
-// ── PRO tool button ────────────────────────────────────────────────────────────
-// Shared by CA / UK / US quick-tools sections.
-// Shows a PRO badge when the user is not premium.
+// ── Premium Tool Card ─────────────────────────────────────────────────────────
+// Premium-gated tool card with gradient banner (locked) or clean card (unlocked).
+// Locked: gradient bg, lock icon, tool name, description, chevron → PaywallSoft.
+// Unlocked: tool icon, tool name, description, chevron → navigates to tool.
 
-class _ProToolButton extends StatelessWidget {
+class _PremiumToolCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String description;
   final VoidCallback onTap;
 
-  const _ProToolButton({
+  const _PremiumToolCard({
     required this.icon,
     required this.label,
+    required this.description,
     required this.onTap,
   });
 
@@ -1951,47 +1987,82 @@ class _ProToolButton extends StatelessWidget {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        return OutlinedButton.icon(
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            if (!hasFull) {
-              PaywallSoft.show(context);
-              return;
-            }
-            onTap();
-          },
-          icon: Icon(icon),
-          label: Row(
+        return hasFull
+            ? _buildUnlockedCard(context, cs)
+            : CalcwisePremiumGate(
+                title: label,
+                description: description,
+                price: IAPService.instance.localizedPrice,
+                onUnlock: () => PaywallSoft.show(context),
+              );
+      },
+    );
+  }
+
+  Widget _buildUnlockedCard(BuildContext context, ColorScheme cs) {
+    return Card(
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(color: cs.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.mdPlus,
+          ),
+          child: Row(
             children: [
-              Expanded(child: Text(label)),
-              if (!hasFull) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: cs.primary,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Text(
-                    'PRO',
-                    style: TextStyle(
-                      color: cs.onPrimary,
-                      fontSize: AppTextSize.xs,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              // Tool icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-              ],
+                child: Icon(icon, color: cs.primary, size: 22),
+              ),
+              const SizedBox(width: AppSpacing.smPlus),
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: cs.onSurfaceVariant,
+                size: 22,
+              ),
             ],
           ),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
