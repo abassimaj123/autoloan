@@ -484,7 +484,7 @@ void main() {
     testProv('MB', 0.12000, 3600.00);
     // SK : GST(5%) + PST(6%) = 11% dans le code (spec indique 6%)
     testProv('SK', 0.11000, 3300.00);
-    testProv('NS', 0.15000, 4500.00);
+    testProv('NS', 0.14000, 4200.00); // NS HST réduit 15% → 14% depuis avril 2025
     testProv('NB', 0.15000, 4500.00);
     testProv('NL', 0.15000, 4500.00);
     testProv('PE', 0.15000, 4500.00);
