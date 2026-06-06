@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'us_logic.dart';
 import '../../core/payment_frequency.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdService;
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdService, ResultHasher, CalcwiseDurations;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 
@@ -23,6 +26,8 @@ class USProvider extends ChangeNotifier {
 
   USCalculation? _result;
   USCalculation? get result => _result;
+
+  Timer? _saveTimer;
 
   USProvider(this._ads, this._history);
 
@@ -92,29 +97,65 @@ class USProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Called after user stops editing (2 s inactivity). Saves one entry.
-  void saveSnapshot() {
+  /// Schedule a debounced auto-save (5 s after the last call).
+  /// Call this immediately after [calculate] is triggered from the screen.
+  void scheduleAutoSave() {
     if (_result == null) return;
-    _history.add('us', {
-      'timestamp': DateTime.now().toIso8601String(),
-      'vehiclePrice': vehiclePrice,
-      'tradeInValue': tradeInValue,
-      'downPayment': _result!.downPayment,
-      'financedAmount': _result!.financedAmount,
-      'monthlyPayment': _result!.monthlyPayment,
-      if (frequency == PaymentFrequency.biWeekly)
-        'biWeeklyPayment': _result!.biWeeklyPayment,
-      if (frequency == PaymentFrequency.weekly)
-        'weeklyPayment': _result!.weeklyPayment,
-      'isBiWeekly': isBiWeekly,
-      'frequency': frequency.name,
-      'effectiveRate': _result!.effectiveRate,
-      'totalCost': _result!.totalCost,
-      'totalInterest': _result!.totalInterest,
-      'termMonths': termMonths,
-      'annualRate': annualRate,
+    _saveTimer?.cancel();
+    _saveTimer = Timer(CalcwiseDurations.saveDebounce, _doAutoSave);
+  }
+
+  void _doAutoSave() {
+    if (_result == null) return;
+    final hash = ResultHasher.hashInputs({
+      'vehiclePrice': ResultHasher.roundTo(vehiclePrice, 500),
+      'tradeIn': ResultHasher.roundTo(tradeInValue, 500),
+      'annualRate': ResultHasher.roundTo(annualRate, 0.1),
+      'termMonths': termMonths.toDouble(),
     });
+    _history.addAutoSave('us', _buildData(), hash);
     AnalyticsService.instance.logHistorySaved('us');
     _ads.onAction();
+  }
+
+  /// Immediately pin the current result as a named scenario.
+  Future<void> saveScenario({String? label}) async {
+    if (_result == null) return;
+    final hash = ResultHasher.hashInputs({
+      'vehiclePrice': ResultHasher.roundTo(vehiclePrice, 500),
+      'tradeIn': ResultHasher.roundTo(tradeInValue, 500),
+      'annualRate': ResultHasher.roundTo(annualRate, 0.1),
+      'termMonths': termMonths.toDouble(),
+    });
+    await _history.saveScenario('us', _buildData(), hash, label: label);
+    AnalyticsService.instance.logHistorySaved('us');
+    _ads.onAction();
+    notifyListeners();
+  }
+
+  Map<String, dynamic> _buildData() => {
+        'timestamp': DateTime.now().toIso8601String(),
+        'vehiclePrice': vehiclePrice,
+        'tradeInValue': tradeInValue,
+        'downPayment': _result!.downPayment,
+        'financedAmount': _result!.financedAmount,
+        'monthlyPayment': _result!.monthlyPayment,
+        if (frequency == PaymentFrequency.biWeekly)
+          'biWeeklyPayment': _result!.biWeeklyPayment,
+        if (frequency == PaymentFrequency.weekly)
+          'weeklyPayment': _result!.weeklyPayment,
+        'isBiWeekly': isBiWeekly,
+        'frequency': frequency.name,
+        'effectiveRate': _result!.effectiveRate,
+        'totalCost': _result!.totalCost,
+        'totalInterest': _result!.totalInterest,
+        'termMonths': termMonths,
+        'annualRate': annualRate,
+      };
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    super.dispose();
   }
 }

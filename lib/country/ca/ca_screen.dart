@@ -28,6 +28,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
 import '../../widgets/loan_charts.dart';
+import '../../widgets/save_scenario_button.dart';
 import 'ca_provider.dart';
 import 'ca_logic.dart';
 import 'ca_taxes.dart';
@@ -41,7 +42,7 @@ class CAScreen extends StatefulWidget {
 
 class _CAScreenState extends State<CAScreen> {
   Timer? _debounce;
-  Timer? _saveDebounce;
+
   bool _validated = false;
   int _selectedTab = 0;
   int _historyRefreshKey = 0;
@@ -62,7 +63,6 @@ class _CAScreenState extends State<CAScreen> {
   void dispose() {
     freemiumService.isPremiumNotifier.removeListener(_onPremiumChange);
     _debounce?.cancel();
-    _saveDebounce?.cancel();
     super.dispose();
   }
 
@@ -103,11 +103,10 @@ class _CAScreenState extends State<CAScreen> {
     if (!_validated) setState(() => _validated = true);
     _debounce?.cancel();
     _debounce = Timer(AppDuration.page, () {
-      if (mounted) context.read<CAProvider>().calculate();
-    });
-    _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 2000), () {
-      if (mounted) context.read<CAProvider>().saveSnapshot();
+      if (!mounted) return;
+      final p = context.read<CAProvider>();
+      p.calculate();
+      p.scheduleAutoSave();
     });
   }
 
@@ -238,6 +237,14 @@ class _CACalculatorTab extends StatelessWidget {
                                   index: 0,
                                   child: _CAResults(p: p, adService: adService),
                                 ),
+                                CalcwiseStaggerItem(
+                                  index: 1,
+                                  child: SaveScenarioButton(
+                                    onSave: (label) => context
+                                        .read<CAProvider>()
+                                        .saveScenario(label: label),
+                                  ),
+                                ),
                               ],
                             ),
                           )
@@ -334,7 +341,9 @@ class _CAVehicleSection extends StatelessWidget {
           value: p.vehiclePrice,
           symbol: 'C\$',
           helperText: 'e.g. 35 000',
-          errorText: validated && p.vehiclePrice <= 0 ? 'Required' : null,
+          errorText: validated && p.vehiclePrice <= 0
+              ? (Localizations.localeOf(context).languageCode == 'fr' ? 'Requis' : 'Required')
+              : null,
           onChanged: (v) {
             p.setVehiclePrice(v);
             onCalculate();
@@ -476,7 +485,9 @@ class _CALoanTermsSection extends StatelessWidget {
             p.setAnnualRate(v);
             onCalculate();
           },
-          errorText: validated && p.annualRate <= 0 ? 'Required' : null,
+          errorText: validated && p.annualRate <= 0
+              ? (Localizations.localeOf(context).languageCode == 'fr' ? 'Requis' : 'Required')
+              : null,
         ),
         const SizedBox(height: AppSpacing.lg),
         DurationChips(
@@ -517,7 +528,7 @@ class _CAInsuranceSection extends StatelessWidget {
       children: [
         _InsuranceRow(
           label:
-              '${l10n.lifeDisability} (\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
+              '${l10n.lifeDisability} (C\$${p.insurance.lifeDisabilityAmount.toStringAsFixed(0)}/${l10n.month})',
           value: p.insurance.lifeDisability,
           onChanged: (v) {
             p.setLifeDisability(v);
@@ -869,7 +880,7 @@ class _CAResults extends StatelessWidget {
               try {
                 await PdfExportService.exportLoanPdf(
                   title: l10n.appNameCA,
-                  currencySymbol: '\$',
+                  currencySymbol: 'C\$',
                   loanAmount: r.loanAmount,
                   annualRate: r.annualRate,
                   termMonths: r.termMonths,
@@ -954,6 +965,7 @@ class _CAResults extends StatelessWidget {
                     loanAmount: r.loanAmount,
                     annualRate: r.annualRate,
                     termMonths: r.termMonths,
+                    currencySymbol: 'C\$',
                     flavor: 'ca',
                   ),
                   transitionsBuilder: (_, anim, __, child) =>
@@ -1183,7 +1195,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               max: 25,
               step: 1,
               display:
-                  '\$${(_overageFeeCentsPerKm / 100).toStringAsFixed(2)}/km',
+                  'C\$${(_overageFeeCentsPerKm / 100).toStringAsFixed(2)}/km',
               onChanged: (v) => setState(() => _overageFeeCentsPerKm = v),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1522,7 +1534,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Fuel price (\$/L)',
+            label: 'Fuel price (C\$/L)',
             value: _fuelPrice,
             min: 1.00,
             max: 2.50,
@@ -1532,7 +1544,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Annual insurance (\$)',
+            label: 'Annual insurance (C\$)',
             value: _annualInsurance,
             min: 600,
             max: 5000,
@@ -1542,7 +1554,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Annual maintenance (\$)',
+            label: 'Annual maintenance (C\$)',
             value: _annualMaint,
             min: 200,
             max: 3000,

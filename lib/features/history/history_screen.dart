@@ -127,7 +127,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  String get _currency => widget.country == 'uk' ? '£' : '\$';
+  String get _currency =>
+      widget.country == 'uk' ? '£' : widget.country == 'ca' ? 'C\$' : '\$';
 
   @override
   void initState() {
@@ -138,10 +139,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _load() {
     if (!mounted) return;
     final history = context.read<HistoryService>();
-    final all = history
-        .getAll()
-        .where((e) => e['country'] == widget.country)
-        .toList();
+    final all = history.getAllForCountry(widget.country);
     setState(() {
       _all = all;
       _loading = false;
@@ -152,7 +150,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final adService = context.read<CalcwiseAdService>();
     final l10n = AppLocalizations.of(context)!;
-
     final history = context.read<HistoryService>();
 
     if (_loading) {
@@ -166,8 +163,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return const _HistorySkeleton();
     }
 
-    final all = _all;
-
     return ListenableBuilder(
       listenable: Listenable.merge([
         freemiumService.hasFullAccessNotifier,
@@ -176,10 +171,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        final shown = hasFull
-            ? all
-            : all.take(freemiumService.historyLimit).toList();
-        final locked = all.length - shown.length;
+        final autoSaves =
+            _all.where((e) => e['isPinned'] != true).toList();
+        final pinned = _all.where((e) => e['isPinned'] == true).toList();
+        final shownAutoSaves = hasFull
+            ? autoSaves
+            : autoSaves.take(freemiumService.historyLimit).toList();
+        final locked = autoSaves.length - shownAutoSaves.length;
 
         if (!widget.showAppBar) {
           return _buildBody(
@@ -187,8 +185,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             l10n,
             adService,
             history,
-            all,
-            shown,
+            pinned,
+            shownAutoSaves,
             locked,
             hasFull,
           );
@@ -198,8 +196,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           l10n,
           adService,
           history,
-          all,
-          shown,
+          pinned,
+          shownAutoSaves,
           locked,
           hasFull,
         );
@@ -212,12 +210,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     AppLocalizations l10n,
     CalcwiseAdService adService,
     HistoryService history,
-    List<Map<String, dynamic>> all,
-    List<Map<String, dynamic>> shown,
+    List<Map<String, dynamic>> pinned,
+    List<Map<String, dynamic>> shownAutoSaves,
     int locked,
     bool hasFull,
   ) {
-    if (all.isEmpty) {
+    if (_all.isEmpty) {
       return CalcwiseEmptyState(
         icon: Icons.history_rounded,
         title: l10n.noHistory,
@@ -242,7 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     builder: (_) => AlertDialog(
                       title: Text(l10n.clearHistory),
                       content: Text(
-                        'Clear all ${all.length} calculation${all.length == 1 ? "" : "s"}? This cannot be undone.',
+                        'Clear all ${_all.length} calculation${_all.length == 1 ? "" : "s"}? This cannot be undone.',
                       ),
                       actions: [
                         TextButton(
@@ -277,8 +275,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             l10n,
             adService,
             history,
-            all,
-            shown,
+            pinned,
+            shownAutoSaves,
             locked,
             hasFull,
           ),
@@ -292,18 +290,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
     AppLocalizations l10n,
     CalcwiseAdService adService,
     HistoryService history,
-    List<Map<String, dynamic>> all,
-    List<Map<String, dynamic>> shown,
+    List<Map<String, dynamic>> pinned,
+    List<Map<String, dynamic>> shownAutoSaves,
     int locked,
     bool hasFull,
   ) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
+        // ── Pinned scenarios ─────────────────────────────���───────────────
+        if (pinned.isNotEmpty) ...[
+          _SectionHeader(
+            icon: Icons.bookmark_rounded,
+            label: 'Saved Scenarios',
+          ),
+          ...pinned.map(
+            (e) => _HistoryCard(
+              entry: e,
+              currency: _currency,
+              country: widget.country,
+              onAction: (action) => _handleAction(action, e, history),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+
+        // ── Recent calculations ───────────────────────────────────────────
+        if (shownAutoSaves.isNotEmpty)
+          _SectionHeader(
+            icon: Icons.history_rounded,
+            label: 'Recent Calculations',
+          ),
+
         // ── Approaching-limit nudge ──
         if (!hasFull &&
             locked == 0 &&
-            shown.length >= freemiumService.historyLimit)
+            shownAutoSaves.length >= freemiumService.historyLimit)
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
@@ -322,7 +344,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    color:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -358,12 +381,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
 
-        // ── Entry cards ──
-        ...shown.map(
+        // ── Auto-save entry cards ──
+        ...shownAutoSaves.map(
           (e) => _HistoryCard(
             entry: e,
             currency: _currency,
             country: widget.country,
+            onAction: (action) => _handleAction(action, e, history),
           ),
         ),
 
@@ -403,8 +427,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     AppLocalizations l10n,
     CalcwiseAdService adService,
     HistoryService history,
-    List<Map<String, dynamic>> all,
-    List<Map<String, dynamic>> shown,
+    List<Map<String, dynamic>> pinned,
+    List<Map<String, dynamic>> shownAutoSaves,
     int locked,
     bool hasFull,
   ) {
@@ -413,7 +437,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: Text('$_flag ${l10n.history}'),
         actions: [
-          if (all.isNotEmpty)
+          if (_all.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.clearHistory,
@@ -423,7 +447,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   builder: (_) => AlertDialog(
                     title: Text(l10n.clearHistory),
                     content: Text(
-                      'Clear all ${all.length} calculation${all.length == 1 ? '' : 's'}? This cannot be undone.',
+                      'Clear all ${_all.length} calculation${_all.length == 1 ? '' : 's'}? This cannot be undone.',
                     ),
                     actions: [
                       TextButton(
@@ -446,7 +470,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
         ],
       ),
-      body: all.isEmpty
+      body: _all.isEmpty
           ? CalcwiseEmptyState(
               icon: Icons.history_rounded,
               title: l10n.noHistory,
@@ -457,31 +481,143 @@ class _HistoryScreenState extends State<HistoryScreen> {
               l10n,
               adService,
               history,
-              all,
-              shown,
+              pinned,
+              shownAutoSaves,
               locked,
               hasFull,
             ),
     );
   }
+
+  Future<void> _handleAction(
+    _CardAction action,
+    Map<String, dynamic> entry,
+    HistoryService history,
+  ) async {
+    final id = entry['id'] as int?;
+    if (id == null) return;
+
+    switch (action) {
+      case _CardAction.unpin:
+        await history.unpin(id);
+        _load();
+      case _CardAction.rename:
+        final label = await _showRenameDialog(
+          entry['pinLabel'] as String? ?? '',
+        );
+        if (label == null) return;
+        await history.rename(id, label.trim());
+        _load();
+      case _CardAction.delete:
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Delete entry'),
+            content: const Text('Remove this calculation? Cannot be undone.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true) {
+          await history.delete(id);
+          _load();
+        }
+    }
+  }
+
+  Future<String?> _showRenameDialog(String current) async {
+    final ctrl = TextEditingController(text: current);
+    return showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Rename scenario'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Scenario name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, ctrl.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+// ── Section header ─────────────────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _SectionHeader({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: cs.primary),
+          const SizedBox(width: 6),
+          Text(
+            label.toUpperCase(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: cs.primary,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Card action enum ─────────────────────────────────────────────────────────
+enum _CardAction { unpin, rename, delete }
 
 // ── History entry card ─────────────────────────────────────────────────────
 class _HistoryCard extends StatelessWidget {
   final Map<String, dynamic> entry;
   final String currency;
   final String country;
+  final void Function(_CardAction) onAction;
 
   const _HistoryCard({
     required this.entry,
     required this.currency,
     required this.country,
+    required this.onAction,
   });
 
   double? _d(String key) {
     final v = entry[key];
     return v == null ? null : (v as num).toDouble();
   }
+
+  bool get _isPinned => entry['isPinned'] == true;
+  String? get _pinLabel => entry['pinLabel'] as String?;
 
   @override
   Widget build(BuildContext context) {
@@ -504,7 +640,12 @@ class _HistoryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Theme.of(context).dividerColor),
+        side: BorderSide(
+          color: _isPinned
+              ? cs.primary.withValues(alpha: 0.4)
+              : Theme.of(context).dividerColor,
+          width: _isPinned ? 1.5 : 1.0,
+        ),
       ),
       elevation: 0,
       child: InkWell(
@@ -523,15 +664,38 @@ class _HistoryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Row 1: price + payment chip ──────────────────────
+              // ── Row 1: price + payment chip + menu ────────────────────
               Row(
                 children: [
-                  Text(
-                    fmt.format(price),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  // Pin badge or label
+                  if (_isPinned) ...[
+                    Icon(Icons.bookmark_rounded, size: 14, color: cs.primary),
+                    const SizedBox(width: 4),
+                    if (_pinLabel != null && _pinLabel!.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                          _pinLabel!,
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                            color: cs.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (_pinLabel == null || _pinLabel!.isEmpty)
+                      Text(
+                        fmt.format(price),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                  ] else
+                    Text(
+                      fmt.format(price),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -551,8 +715,61 @@ class _HistoryCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 4),
+                  PopupMenuButton<_CardAction>(
+                    icon: Icon(
+                      Icons.more_vert,
+                      size: 18,
+                      color: cs.onSurfaceVariant,
+                    ),
+                    iconSize: 18,
+                    padding: EdgeInsets.zero,
+                    onSelected: onAction,
+                    itemBuilder: (_) => [
+                      if (_isPinned)
+                        const PopupMenuItem(
+                          value: _CardAction.unpin,
+                          child: ListTile(
+                            dense: true,
+                            leading: Icon(Icons.bookmark_remove_outlined),
+                            title: Text('Remove pin'),
+                          ),
+                        ),
+                      if (_isPinned)
+                        const PopupMenuItem(
+                          value: _CardAction.rename,
+                          child: ListTile(
+                            dense: true,
+                            leading: Icon(Icons.edit_outlined),
+                            title: Text('Rename'),
+                          ),
+                        ),
+                      const PopupMenuItem(
+                        value: _CardAction.delete,
+                        child: ListTile(
+                          dense: true,
+                          leading: Icon(Icons.delete_outline),
+                          title: Text('Delete'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
+
+              // Pin label subtitle (if pinned and has a label, show the price below)
+              if (_isPinned &&
+                  _pinLabel != null &&
+                  _pinLabel!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  fmt.format(price),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 8),
 
               // ── Row 2: term · rate · province ────────────────────

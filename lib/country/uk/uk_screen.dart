@@ -28,6 +28,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
 import '../../widgets/loan_charts.dart';
+import '../../widgets/save_scenario_button.dart';
 import 'uk_provider.dart';
 import 'uk_logic.dart';
 
@@ -40,7 +41,7 @@ class UKScreen extends StatefulWidget {
 
 class _UKScreenState extends State<UKScreen> {
   Timer? _debounce;
-  Timer? _saveDebounce;
+
   bool _validated = false;
   int _selectedTab = 0;
   int _historyRefreshKey = 0;
@@ -61,7 +62,6 @@ class _UKScreenState extends State<UKScreen> {
   void dispose() {
     freemiumService.isPremiumNotifier.removeListener(_onPremiumChange);
     _debounce?.cancel();
-    _saveDebounce?.cancel();
     super.dispose();
   }
 
@@ -79,9 +79,9 @@ class _UKScreenState extends State<UKScreen> {
       AnalyticsService.instance.logTabChanged('compare');
       AnalyticsService.instance.logCompareUsed('uk');
     } else if (i == 2) {
-      AnalyticsService.instance.logTabChanged('history');
-    } else if (i == 3) {
       AnalyticsService.instance.logTabChanged('lease_vs_buy');
+    } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
@@ -94,7 +94,7 @@ class _UKScreenState extends State<UKScreen> {
     }
     setState(() {
       _selectedTab = i;
-      if (i == 2) _historyRefreshKey++;
+      if (i == 3) _historyRefreshKey++;
     });
   }
 
@@ -102,11 +102,10 @@ class _UKScreenState extends State<UKScreen> {
     if (!_validated) setState(() => _validated = true);
     _debounce?.cancel();
     _debounce = Timer(AppDuration.page, () {
-      if (mounted) context.read<UKProvider>().calculate();
-    });
-    _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 2000), () {
-      if (mounted) context.read<UKProvider>().saveSnapshot();
+      if (!mounted) return;
+      final p = context.read<UKProvider>();
+      p.calculate();
+      p.scheduleAutoSave();
     });
   }
 
@@ -236,6 +235,14 @@ class _UKCalculatorTab extends StatelessWidget {
                                 CalcwiseStaggerItem(
                                   index: 0,
                                   child: _UKResults(p: p, adService: adService),
+                                ),
+                                CalcwiseStaggerItem(
+                                  index: 1,
+                                  child: SaveScenarioButton(
+                                    onSave: (label) => context
+                                        .read<UKProvider>()
+                                        .saveScenario(label: label),
+                                  ),
                                 ),
                               ],
                             ),

@@ -28,6 +28,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/insight_engine.dart';
 import '../../widgets/insight_card.dart';
 import '../../widgets/loan_charts.dart';
+import '../../widgets/save_scenario_button.dart';
 import 'us_provider.dart';
 import 'us_logic.dart';
 
@@ -40,7 +41,7 @@ class USScreen extends StatefulWidget {
 
 class _USScreenState extends State<USScreen> {
   Timer? _debounce;
-  Timer? _saveDebounce;
+
   bool _validated = false;
   int _selectedTab = 0;
   int _historyRefreshKey = 0;
@@ -62,7 +63,6 @@ class _USScreenState extends State<USScreen> {
   void dispose() {
     freemiumService.isPremiumNotifier.removeListener(_onPremiumChange);
     _debounce?.cancel();
-    _saveDebounce?.cancel();
     super.dispose();
   }
 
@@ -78,12 +78,10 @@ class _USScreenState extends State<USScreen> {
     if (!_validated) setState(() => _validated = true);
     _debounce?.cancel();
     _debounce = Timer(AppDuration.page, () {
-      if (mounted) context.read<USProvider>().calculate();
-    });
-    // Save after 2 s of inactivity — one entry per session, not per keystroke
-    _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 2000), () {
-      if (mounted) context.read<USProvider>().saveSnapshot();
+      if (!mounted) return;
+      final p = context.read<USProvider>();
+      p.calculate();
+      p.scheduleAutoSave();
     });
   }
 
@@ -93,9 +91,9 @@ class _USScreenState extends State<USScreen> {
       AnalyticsService.instance.logTabChanged('compare');
       AnalyticsService.instance.logCompareUsed('us');
     } else if (i == 2) {
-      AnalyticsService.instance.logTabChanged('history');
-    } else if (i == 3) {
       AnalyticsService.instance.logTabChanged('lease_vs_buy');
+    } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
@@ -108,7 +106,7 @@ class _USScreenState extends State<USScreen> {
     }
     setState(() {
       _selectedTab = i;
-      if (i == 2) _historyRefreshKey++;
+      if (i == 3) _historyRefreshKey++;
     });
   }
 
@@ -249,6 +247,14 @@ class _USCalculatorTab extends StatelessWidget {
                                 CalcwiseStaggerItem(
                                   index: 0,
                                   child: _USResults(p: p, adService: adService),
+                                ),
+                                CalcwiseStaggerItem(
+                                  index: 1,
+                                  child: SaveScenarioButton(
+                                    onSave: (label) => context
+                                        .read<USProvider>()
+                                        .saveScenario(label: label),
+                                  ),
                                 ),
                               ],
                             ),
