@@ -50,6 +50,7 @@ class _UKScreenState extends State<UKScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('uk');
     _wasPremium = freemiumService.hasFullAccess;
     freemiumService.isPremiumNotifier.addListener(_onPremiumChange);
     WidgetsBinding.instance.addPostFrameCallback(

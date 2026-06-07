@@ -51,6 +51,7 @@ class _CAScreenState extends State<CAScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('ca');
     _wasPremium = freemiumService.hasFullAccess;
     freemiumService.isPremiumNotifier.addListener(_onPremiumChange);
     WidgetsBinding.instance.addPostFrameCallback(

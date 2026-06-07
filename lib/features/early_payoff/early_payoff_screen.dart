@@ -79,8 +79,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
   @override
   void initState() {
     super.initState();
-    // log immediately on open
-    AnalyticsService.instance.logTabChanged('early_payoff');
+    AnalyticsService.instance.logScreenView('early_payoff');
   }
 
   _PayoffResult _compute(double extraPayment) {
