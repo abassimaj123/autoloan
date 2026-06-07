@@ -66,7 +66,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
     });
     smartHistoryService.scheduleAutoSave(
       appKey: 'autoloan',
-      screenId: 'lease_vs_buy',
+      screenId: 'lease_vs_buy_${widget.flavor}',
       inputHash: hash,
       l1: {
         'msrp': _msrp,
@@ -111,7 +111,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'lease_vs_buy',
+      screenId: 'lease_vs_buy_${widget.flavor}',
       inputHash: hash,
       l1: {
         'msrp': _msrp,
@@ -212,7 +212,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
 
   @override
   void dispose() {
-    smartHistoryService.cancelPendingSave('autoloan', 'lease_vs_buy');
+    smartHistoryService.cancelPendingSave('autoloan', 'lease_vs_buy_${widget.flavor}');
     super.dispose();
   }
 

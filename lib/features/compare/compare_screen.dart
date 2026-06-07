@@ -74,7 +74,7 @@ class _CompareScreenState extends State<CompareScreen> {
     });
     smartHistoryService.scheduleAutoSave(
       appKey: 'autoloan',
-      screenId: 'compare',
+      screenId: 'compare_${widget.flavor}',
       inputHash: hash,
       l1: {
         'price': vehiclePrice,
@@ -119,7 +119,7 @@ class _CompareScreenState extends State<CompareScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'compare',
+      screenId: 'compare_${widget.flavor}',
       inputHash: hash,
       l1: {
         'price': vehiclePrice,
@@ -168,7 +168,7 @@ class _CompareScreenState extends State<CompareScreen> {
 
   @override
   void dispose() {
-    smartHistoryService.cancelPendingSave('autoloan', 'compare');
+    smartHistoryService.cancelPendingSave('autoloan', 'compare_${widget.flavor}');
     super.dispose();
   }
 

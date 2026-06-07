@@ -197,9 +197,11 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
   }
 
   void _recalc() {
-    _r1 = _LoanResult.compute(_amount1, _rate1, _term1);
-    _r2 = _LoanResult.compute(_amount2, _rate2, _term2);
-    _r3 = _LoanResult.compute(_amount3, _rate3, _term3);
+    setState(() {
+      _r1 = _LoanResult.compute(_amount1, _rate1, _term1);
+      _r2 = _LoanResult.compute(_amount2, _rate2, _term2);
+      _r3 = _LoanResult.compute(_amount3, _rate3, _term3);
+    });
     _scheduleAutoSave();
   }
 

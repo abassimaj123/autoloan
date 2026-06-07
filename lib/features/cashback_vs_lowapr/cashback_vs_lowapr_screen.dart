@@ -65,7 +65,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     });
     smartHistoryService.scheduleAutoSave(
       appKey: 'autoloan',
-      screenId: 'cashback_vs_lowapr',
+      screenId: 'cashback_vs_lowapr_${widget.flavor}',
       inputHash: hash,
       l1: {
         'vehiclePrice': _vehiclePrice,
@@ -112,7 +112,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'cashback_vs_lowapr',
+      screenId: 'cashback_vs_lowapr_${widget.flavor}',
       inputHash: hash,
       l1: {
         'vehiclePrice': _vehiclePrice,
@@ -158,7 +158,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
 
   @override
   void dispose() {
-    smartHistoryService.cancelPendingSave('autoloan', 'cashback_vs_lowapr');
+    smartHistoryService.cancelPendingSave('autoloan', 'cashback_vs_lowapr_${widget.flavor}');
     super.dispose();
   }
 
