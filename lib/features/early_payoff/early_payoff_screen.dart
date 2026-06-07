@@ -9,6 +9,8 @@ import '../../main.dart' show smartHistoryService;
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../../core/freemium/freemium_service.dart';
+import '../pdf/pdf_export_service.dart';
 
 /// Early Payoff Calculator — shows how extra monthly payments reduce
 /// loan term and total interest paid.
@@ -283,6 +285,69 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
 
                   // ── Save Scenario ──────────────────────────────────────────
                   SaveScenarioButton(onSave: _saveScenario),
+
+                  // ── PDF Export (premium) ───────────────────────────────────
+                  if (freemiumService.hasFullAccess || freemiumService.isRewarded)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final isFr =
+                              Localizations.localeOf(context).languageCode == 'fr';
+                          try {
+                            await PdfExportService.exportLoanPdf(
+                              title: l10n.earlyPayoff,
+                              currencySymbol: widget.currencySymbol,
+                              loanAmount: widget.loanAmount,
+                              annualRate: widget.annualRate,
+                              termMonths: widget.termMonths,
+                              downPayment: 0,
+                              isFrench: isFr,
+                              summary: [
+                                MapEntry(l10n.loanAmount,
+                                    fmt.format(widget.loanAmount)),
+                                MapEntry(l10n.annualRate,
+                                    '${widget.annualRate.toStringAsFixed(2)}%'),
+                                MapEntry(l10n.termMonths,
+                                    '${widget.termMonths} mo (${widget.termMonths ~/ 12} yr)'),
+                                MapEntry(l10n.monthlyPayment,
+                                    fmt.format(result.stdMonthlyPayment)),
+                                MapEntry(l10n.extraMonthlyPayment,
+                                    fmt.format(_extraMonthly)),
+                                MapEntry(l10n.newMonthlyPayment,
+                                    fmt.format(result.stdMonthlyPayment + _extraMonthly)),
+                                MapEntry(l10n.paidOffIn,
+                                    '${result.earlyMonths} mo (${(result.earlyMonths / 12).toStringAsFixed(1)} yr)'),
+                                MapEntry(l10n.interestSaved,
+                                    fmt.format(result.interestSaved)),
+                                MapEntry(l10n.monthsSaved,
+                                    '${result.monthsSaved} ${l10n.month}'),
+                              ],
+                            );
+                            AnalyticsService.instance.logPdfExported('early_payoff');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('PDF exported successfully'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (_) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Export failed'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.picture_as_pdf_outlined),
+                        label: Text(l10n.exportPdf),
+                      ),
+                    ),
                 ],
               ],
             ),

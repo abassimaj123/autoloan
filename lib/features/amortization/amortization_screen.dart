@@ -11,6 +11,8 @@ import '../../services/analytics_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens,
         ResultHasher;
+import '../../core/freemium/freemium_service.dart';
+import '../pdf/pdf_export_service.dart';
 
 class AmortizationRow {
   final int period;
@@ -184,6 +186,73 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     );
   }
 
+  Future<void> _exportPdf(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final rows = buildSchedule(
+      loanAmount: loanAmount,
+      annualRate: annualRate,
+      termMonths: termMonths,
+      balloonAmount: balloonAmount,
+      isBiWeekly: isBiWeekly,
+    );
+    if (rows.isEmpty) return;
+    final monthly = rows.first.payment;
+    final totalInterest = rows.fold(0.0, (s, r) => s + r.interest);
+    final totalPaid = rows.fold(0.0, (s, r) => s + r.payment);
+    final fmt = NumberFormat.currency(symbol: currencySymbol, decimalDigits: 2);
+    try {
+      await PdfExportService.exportLoanPdf(
+        title: title ?? l10n.amortization,
+        currencySymbol: currencySymbol,
+        loanAmount: loanAmount,
+        annualRate: annualRate,
+        termMonths: termMonths,
+        downPayment: downPayment,
+        balloonAmount: balloonAmount,
+        insuranceMonthly: insuranceMonthly,
+        isFrench: isFr,
+        summary: [
+          MapEntry(l10n.loanAmount, fmt.format(loanAmount)),
+          MapEntry(l10n.annualRate, '${annualRate.toStringAsFixed(2)}%'),
+          MapEntry(
+            l10n.termMonths,
+            isBiWeekly
+                ? '${rows.length} bi-weekly periods'
+                : '$termMonths mo (${termMonths ~/ 12} yr)',
+          ),
+          MapEntry(
+            isBiWeekly ? 'Bi-wk Payment' : l10n.payment,
+            fmt.format(monthly),
+          ),
+          MapEntry(l10n.totalInterest, fmt.format(totalInterest)),
+          MapEntry(l10n.totalCostShort,
+              fmt.format(totalPaid + downPayment + insuranceMonthly * termMonths)),
+        ],
+      );
+      AnalyticsService.instance.logPdfExported('amortization');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('PDF exported successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Export failed'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   static double _roundTo(double v, double step) => (v / step).round() * step;
 
   Future<void> _saveScenario(
@@ -265,6 +334,16 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
         appBar: AppBar(
           title: Text(title ?? l10n.amortization),
           actions: [
+            if (freemiumService.hasFullAccess || freemiumService.isRewarded)
+              Semantics(
+                label: 'Export PDF',
+                button: true,
+                child: IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  tooltip: l10n.exportPdf,
+                  onPressed: () => _exportPdf(context, l10n),
+                ),
+              ),
             Semantics(
               label: 'Share schedule',
               button: true,
