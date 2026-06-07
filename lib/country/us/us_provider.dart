@@ -107,11 +107,11 @@ class USProvider extends ChangeNotifier {
 
   void _doAutoSave() {
     if (_result == null) return;
-    final hash = ResultHasher.hashInputs({
+    final hash = ResultHasher.hashMixed({
       'vehiclePrice': ResultHasher.roundTo(vehiclePrice, 500),
       'tradeIn': ResultHasher.roundTo(tradeInValue, 500),
       'annualRate': ResultHasher.roundTo(annualRate, 0.1),
-      'termMonths': termMonths.toDouble(),
+      'termMonths': termMonths,
     });
     _history.addAutoSave('us', _buildData(), hash);
     AnalyticsService.instance.logHistorySaved('us');
@@ -121,11 +121,11 @@ class USProvider extends ChangeNotifier {
   /// Immediately pin the current result as a named scenario.
   Future<void> saveScenario({String? label}) async {
     if (_result == null) return;
-    final hash = ResultHasher.hashInputs({
+    final hash = ResultHasher.hashMixed({
       'vehiclePrice': ResultHasher.roundTo(vehiclePrice, 500),
       'tradeIn': ResultHasher.roundTo(tradeInValue, 500),
       'annualRate': ResultHasher.roundTo(annualRate, 0.1),
-      'termMonths': termMonths.toDouble(),
+      'termMonths': termMonths,
     });
     await _history.saveScenario('us', _buildData(), hash, label: label);
     AnalyticsService.instance.logHistorySaved('us');
