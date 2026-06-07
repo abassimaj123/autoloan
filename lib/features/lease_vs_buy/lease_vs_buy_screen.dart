@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:calcwise_core/calcwise_core.dart'
+    show ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
+import '../../widgets/save_scenario_button.dart';
 import '../../core/freemium/freemium_service.dart';
-import '../../main.dart' show paywallSession;
+import '../../main.dart' show paywallSession, smartHistoryService;
 import '../../services/analytics_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
@@ -49,7 +52,100 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
 
   _LvBResult? _result;
 
-  String get _sym => widget.flavor == 'uk' ? '£' : '\$';
+  String get _sym => widget.flavor == 'uk' ? '£' : widget.flavor == 'ca' ? 'C\$' : '\$';
+
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  void _scheduleAutoSave() {
+    if (_result == null) return;
+    final hash = ResultHasher.hashMixed({
+      'msrp': _roundTo(_msrp, 1000),
+      'buyApr': _roundTo(_buyApr, 0.25),
+      'leaseMonthly': _roundTo(_leaseMonthly, 50),
+      'buyTerm': _buyTerm,
+    });
+    smartHistoryService.scheduleAutoSave(
+      appKey: 'autoloan',
+      screenId: 'lease_vs_buy',
+      inputHash: hash,
+      l1: {
+        'msrp': _msrp,
+        'buyMonthly': _result!.buyMonthly,
+        'leaseMonthly': _leaseMonthly,
+        'saving': _result!.saving,
+      },
+      l2: {
+        'inputs': {
+          'msrp': _msrp,
+          'buyDown': _buyDown,
+          'buyTerm': _buyTerm,
+          'buyApr': _buyApr,
+          'residualPercent': _residualPercent,
+          'annualInsurance': _annualInsurance,
+          'leaseMonthly': _leaseMonthly,
+          'leaseTerm': _leaseTerm,
+          'leaseDown': _leaseDown,
+          'acquisitionFee': _acquisitionFee,
+          'dispositionFee': _dispositionFee,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'buyMonthly': _result!.buyMonthly,
+          'buyTotalCost': _result!.buyTotalCost,
+          'leaseTotalCost': _result!.leaseTotalCost,
+          'breakEvenMiles': _result!.breakEvenMiles,
+          'leaseIsChEaper': _result!.leaseIsChEaper,
+          'saving': _result!.saving,
+        },
+      },
+    );
+  }
+
+  Future<void> _saveScenario(String? label) async {
+    if (_result == null) return;
+    final hash = ResultHasher.hashMixed({
+      'msrp': _roundTo(_msrp, 1000),
+      'buyApr': _roundTo(_buyApr, 0.25),
+      'leaseMonthly': _roundTo(_leaseMonthly, 50),
+      'buyTerm': _buyTerm,
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'lease_vs_buy',
+      inputHash: hash,
+      l1: {
+        'msrp': _msrp,
+        'buyMonthly': _result!.buyMonthly,
+        'leaseMonthly': _leaseMonthly,
+        'saving': _result!.saving,
+      },
+      l2: {
+        'inputs': {
+          'msrp': _msrp,
+          'buyDown': _buyDown,
+          'buyTerm': _buyTerm,
+          'buyApr': _buyApr,
+          'residualPercent': _residualPercent,
+          'annualInsurance': _annualInsurance,
+          'leaseMonthly': _leaseMonthly,
+          'leaseTerm': _leaseTerm,
+          'leaseDown': _leaseDown,
+          'acquisitionFee': _acquisitionFee,
+          'dispositionFee': _dispositionFee,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'buyMonthly': _result!.buyMonthly,
+          'buyTotalCost': _result!.buyTotalCost,
+          'leaseTotalCost': _result!.leaseTotalCost,
+          'breakEvenMiles': _result!.breakEvenMiles,
+          'leaseIsChEaper': _result!.leaseIsChEaper,
+          'saving': _result!.saving,
+        },
+      },
+      label: label,
+    );
+  }
   String get _distLabel => widget.flavor == 'uk' ? 'km' : 'miles';
 
   @override
@@ -111,6 +207,13 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
         estimatedMiles: _estimatedMiles,
       );
     });
+    _scheduleAutoSave();
+  }
+
+  @override
+  void dispose() {
+    smartHistoryService.cancelPendingSave('autoloan', 'lease_vs_buy');
+    super.dispose();
   }
 
   Future<void> _checkPaywall() async {
@@ -343,6 +446,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                         minimumSize: const Size.fromHeight(52),
                       ),
                     ),
+
+                    // ── Save Scenario ─────────────────────────────────────
+                    if (_result != null)
+                      SaveScenarioButton(onSave: _saveScenario),
                   ],
                 ),
               ),

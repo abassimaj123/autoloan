@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,11 +10,17 @@ import 'package:calcwise_core/calcwise_core.dart'
         AppSpacing,
         AppRadius,
         AppTextSize,
-        CalcwiseChartTokens;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+        CalcwiseChartTokens,
+        ResultHasher;
+import 'package:calcwise_core/calcwise_core.dart'
+    hide SectionCard, ResultTile, PaywallHard;
 import '../l10n/app_localizations.dart';
+import '../services/analytics_service.dart';
 import '../widgets/shared_inputs.dart';
 import '../widgets/paywall_soft.dart';
+import '../widgets/paywall_hard.dart';
+import '../widgets/save_scenario_button.dart';
+import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
 
@@ -76,9 +83,117 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
 
   String get _distUnit => widget.flavor == 'ca' ? 'km' : 'miles';
 
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  void _scheduleAutoSave() {
+    if (_result == null) return;
+    final annualFuel = _fuel * 12;
+    final hash = ResultHasher.hashMixed({
+      'vehiclePrice': _roundTo(_vehiclePrice, 1000),
+      'loanRate': _roundTo(_monthlyPayment, 25),
+      'ownershipYears': _ownershipYears,
+      'annualFuel': _roundTo(annualFuel, 500),
+    });
+    smartHistoryService.scheduleAutoSave(
+      appKey: 'autoloan',
+      screenId: 'total_cost',
+      inputHash: hash,
+      l1: {
+        'vehiclePrice': _vehiclePrice,
+        'monthlyPayment': _monthlyPayment,
+        'annualCost': _result!.costPerMonth * 12,
+        'total': _result!.grandTotal,
+        'years': _ownershipYears,
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': _vehiclePrice,
+          'monthlyPayment': _monthlyPayment,
+          'ownershipYears': _ownershipYears,
+          'insurance': _insurance,
+          'fuel': _fuel,
+          'maintenance': _maintenance,
+          'depreciationRate': _depreciationRate,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'totalLoan': _result!.totalLoan,
+          'totalInsurance': _result!.totalInsurance,
+          'totalFuel': _result!.totalFuel,
+          'totalMaintenance': _result!.totalMaintenance,
+          'depreciationLoss': _result!.depreciationLoss,
+          'grandTotal': _result!.grandTotal,
+          'costPerMonth': _result!.costPerMonth,
+        },
+      },
+    );
+  }
+
+  Future<void> _saveScenario(String? label) async {
+    if (_result == null) return;
+    final annualFuel = _fuel * 12;
+    final hash = ResultHasher.hashMixed({
+      'vehiclePrice': _roundTo(_vehiclePrice, 1000),
+      'loanRate': _roundTo(_monthlyPayment, 25),
+      'ownershipYears': _ownershipYears,
+      'annualFuel': _roundTo(annualFuel, 500),
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'total_cost',
+      inputHash: hash,
+      l1: {
+        'vehiclePrice': _vehiclePrice,
+        'monthlyPayment': _monthlyPayment,
+        'annualCost': _result!.costPerMonth * 12,
+        'total': _result!.grandTotal,
+        'years': _ownershipYears,
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': _vehiclePrice,
+          'monthlyPayment': _monthlyPayment,
+          'ownershipYears': _ownershipYears,
+          'insurance': _insurance,
+          'fuel': _fuel,
+          'maintenance': _maintenance,
+          'depreciationRate': _depreciationRate,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'totalLoan': _result!.totalLoan,
+          'totalInsurance': _result!.totalInsurance,
+          'totalFuel': _result!.totalFuel,
+          'totalMaintenance': _result!.totalMaintenance,
+          'depreciationLoss': _result!.depreciationLoss,
+          'grandTotal': _result!.grandTotal,
+          'costPerMonth': _result!.costPerMonth,
+        },
+      },
+      label: label,
+    );
+  }
+
+  Future<void> _checkPaywall() async {
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.hard) {
+      PaywallHard.show(context);
+    } else if (trigger == PaywallTrigger.soft) {
+      PaywallSoft.show(context);
+    }
+  }
+
+  @override
+  void dispose() {
+    smartHistoryService.cancelPendingSave('autoloan', 'total_cost');
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('total_cost');
     _vehiclePrice = widget.vehiclePrice ?? 25000;
     _monthlyPayment = widget.monthlyPayment ?? 450;
     _ownershipYears = widget.termMonths != null
@@ -121,6 +236,8 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
         costPerMonth: costPerMonth,
       );
     });
+    _scheduleAutoSave();
+    unawaited(_checkPaywall());
   }
 
   @override
@@ -252,6 +369,10 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
                     ownershipYears: _ownershipYears,
                   ),
 
+                // ── Save Scenario ────────────────────────────────────────────
+                if (_result != null)
+                  SaveScenarioButton(onSave: _saveScenario),
+
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   'For informational purposes only. Depreciation estimates vary by '
@@ -382,9 +503,7 @@ class _GatedTcoResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceLabel = flavor == 'uk'
-        ? '£2.99'
-        : (flavor == 'us' ? r'$2.99' : r'$3.99 CAD');
+    final priceLabel = IAPService.instance.localizedPrice.value ?? 'Premium';
 
     return ListenableBuilder(
       listenable: Listenable.merge([

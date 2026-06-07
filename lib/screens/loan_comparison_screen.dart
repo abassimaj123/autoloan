@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,10 +10,16 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdFooter,
         AppSpacing,
         AppRadius,
-        AppTextSize;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+        AppTextSize,
+        ResultHasher;
+import 'package:calcwise_core/calcwise_core.dart'
+    hide SectionCard, ResultTile, PaywallHard;
 import '../l10n/app_localizations.dart';
+import '../services/analytics_service.dart';
 import '../widgets/paywall_soft.dart';
+import '../widgets/paywall_hard.dart';
+import '../widgets/save_scenario_button.dart';
+import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
 
@@ -59,9 +66,133 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     }
   }
 
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  void _scheduleAutoSave() {
+    final hash = ResultHasher.hashMixed({
+      'amount1': _roundTo(_amount1, 1000),
+      'rate1': _roundTo(_rate1, 0.25),
+      'amount2': _roundTo(_amount2, 1000),
+      'rate2': _roundTo(_rate2, 0.25),
+      'term1': _term1,
+      'term2': _term2,
+    });
+    final best = _winnerIndex;
+    final costs = [_r1.totalCost, _r2.totalCost, _r3.totalCost];
+    final worstCost = costs.reduce((a, b) => a > b ? a : b);
+    final bestCost = costs[best];
+    smartHistoryService.scheduleAutoSave(
+      appKey: 'autoloan',
+      screenId: 'loan_comparison',
+      inputHash: hash,
+      l1: {
+        'loanCount': 3,
+        'bestMonthly': [_r1, _r2, _r3][best].monthlyPayment,
+        'intDiff': worstCost - bestCost,
+        'bestLoan': best + 1,
+      },
+      l2: {
+        'inputs': {
+          'amount1': _amount1,
+          'rate1': _rate1,
+          'term1': _term1,
+          'amount2': _amount2,
+          'rate2': _rate2,
+          'term2': _term2,
+          'amount3': _amount3,
+          'rate3': _rate3,
+          'term3': _term3,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthly1': _r1.monthlyPayment,
+          'interest1': _r1.totalInterest,
+          'cost1': _r1.totalCost,
+          'monthly2': _r2.monthlyPayment,
+          'interest2': _r2.totalInterest,
+          'cost2': _r2.totalCost,
+          'monthly3': _r3.monthlyPayment,
+          'interest3': _r3.totalInterest,
+          'cost3': _r3.totalCost,
+          'winner': best,
+        },
+      },
+    );
+  }
+
+  Future<void> _saveScenario(String? label) async {
+    final hash = ResultHasher.hashMixed({
+      'amount1': _roundTo(_amount1, 1000),
+      'rate1': _roundTo(_rate1, 0.25),
+      'amount2': _roundTo(_amount2, 1000),
+      'rate2': _roundTo(_rate2, 0.25),
+      'term1': _term1,
+      'term2': _term2,
+    });
+    final best = _winnerIndex;
+    final costs = [_r1.totalCost, _r2.totalCost, _r3.totalCost];
+    final worstCost = costs.reduce((a, b) => a > b ? a : b);
+    final bestCost = costs[best];
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'loan_comparison',
+      inputHash: hash,
+      l1: {
+        'loanCount': 3,
+        'bestMonthly': [_r1, _r2, _r3][best].monthlyPayment,
+        'intDiff': worstCost - bestCost,
+        'bestLoan': best + 1,
+      },
+      l2: {
+        'inputs': {
+          'amount1': _amount1,
+          'rate1': _rate1,
+          'term1': _term1,
+          'amount2': _amount2,
+          'rate2': _rate2,
+          'term2': _term2,
+          'amount3': _amount3,
+          'rate3': _rate3,
+          'term3': _term3,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthly1': _r1.monthlyPayment,
+          'interest1': _r1.totalInterest,
+          'cost1': _r1.totalCost,
+          'monthly2': _r2.monthlyPayment,
+          'interest2': _r2.totalInterest,
+          'cost2': _r2.totalCost,
+          'monthly3': _r3.monthlyPayment,
+          'interest3': _r3.totalInterest,
+          'cost3': _r3.totalCost,
+          'winner': best,
+        },
+      },
+      label: label,
+    );
+  }
+
+  Future<void> _checkPaywall() async {
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.hard) {
+      PaywallHard.show(context);
+    } else if (trigger == PaywallTrigger.soft) {
+      PaywallSoft.show(context);
+    }
+  }
+
+  @override
+  void dispose() {
+    smartHistoryService.cancelPendingSave('autoloan', 'loan_comparison');
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('loan_comparison');
     _recalc();
   }
 
@@ -69,6 +200,13 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     _r1 = _LoanResult.compute(_amount1, _rate1, _term1);
     _r2 = _LoanResult.compute(_amount2, _rate2, _term2);
     _r3 = _LoanResult.compute(_amount3, _rate3, _term3);
+    _scheduleAutoSave();
+  }
+
+  /// Called from input change handlers (after frame, so context is valid).
+  void _recalcAndPaywall() {
+    _recalc();
+    unawaited(_checkPaywall());
   }
 
   /// Index (0,1,2) of the loan with lowest totalCost.
@@ -135,24 +273,24 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                         if (i == 0) _amount1 = v;
                         if (i == 1) _amount2 = v;
                         if (i == 2) _amount3 = v;
-                        _recalc();
                       });
+                      _recalcAndPaywall();
                     },
                     onRateChanged: (v) {
                       setState(() {
                         if (i == 0) _rate1 = v;
                         if (i == 1) _rate2 = v;
                         if (i == 2) _rate3 = v;
-                        _recalc();
                       });
+                      _recalcAndPaywall();
                     },
                     onTermChanged: (v) {
                       setState(() {
                         if (i == 0) _term1 = v;
                         if (i == 1) _term2 = v;
                         if (i == 2) _term3 = v;
-                        _recalc();
                       });
+                      _recalcAndPaywall();
                     },
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -170,6 +308,9 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                   adService: adService,
                   flavor: widget.flavor,
                 ),
+
+                // ── Save Scenario ──────────────────────────────────────────
+                SaveScenarioButton(onSave: _saveScenario),
 
                 const SizedBox(height: AppSpacing.md),
                 Text(
@@ -416,9 +557,7 @@ class _GatedComparisonResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceLabel = flavor == 'uk'
-        ? '£2.99'
-        : (flavor == 'us' ? r'$2.99' : r'$3.99 CAD');
+    final priceLabel = IAPService.instance.localizedPrice.value ?? 'Premium';
 
     return ListenableBuilder(
       listenable: Listenable.merge([

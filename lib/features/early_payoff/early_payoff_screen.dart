@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
+import '../../widgets/save_scenario_button.dart';
 import '../../services/analytics_service.dart';
-import 'package:calcwise_core/calcwise_core.dart' show CalcwiseAdFooter;
+import '../../main.dart' show smartHistoryService;
+import 'package:calcwise_core/calcwise_core.dart'
+    show CalcwiseAdFooter, ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 
 /// Early Payoff Calculator — shows how extra monthly payments reduce
@@ -31,6 +34,45 @@ class EarlyPayoffScreen extends StatefulWidget {
 
 class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
   double _extraMonthly = 100;
+
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  Future<void> _saveScenario(String? label) async {
+    final result = _compute(_extraMonthly);
+    final hash = ResultHasher.hashMixed({
+      'loanAmount': _roundTo(widget.loanAmount, 1000),
+      'annualRate': _roundTo(widget.annualRate, 0.25),
+      'termMonths': widget.termMonths,
+      'extraMonthly': _roundTo(_extraMonthly, 25),
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'early_payoff',
+      inputHash: hash,
+      l1: {
+        'loanAmount': widget.loanAmount,
+        'extraMonthly': _extraMonthly,
+        'monthsSaved': result.monthsSaved,
+        'interestSaved': result.interestSaved,
+      },
+      l2: {
+        'inputs': {
+          'loanAmount': widget.loanAmount,
+          'annualRate': widget.annualRate,
+          'termMonths': widget.termMonths,
+          'extraPayment': _extraMonthly,
+        },
+        'results': {
+          'monthsSaved': result.monthsSaved,
+          'interestSaved': result.interestSaved,
+          'earlyMonths': result.earlyMonths,
+          'earlyTotalInterest': result.earlyTotalInterest,
+          'stdMonthlyPayment': result.stdMonthlyPayment,
+        },
+      },
+      label: label,
+    );
+  }
 
   @override
   void initState() {
@@ -238,6 +280,9 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                       ),
                     ),
                   ),
+
+                  // ── Save Scenario ──────────────────────────────────────────
+                  SaveScenarioButton(onSave: _saveScenario),
                 ],
               ],
             ),

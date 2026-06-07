@@ -15,8 +15,12 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdService,
         CalcwiseAdFooter,
         ComparisonView,
-        ComparisonScenario;
+        ComparisonScenario,
+        ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import '../../main.dart' show smartHistoryService;
+import '../../services/analytics_service.dart';
+import '../../widgets/save_scenario_button.dart';
 
 class CompareScreen extends StatefulWidget {
   final String flavor; // 'ca', 'uk', 'us'
@@ -52,7 +56,100 @@ class _CompareScreenState extends State<CompareScreen> {
 
   bool get _showBiWeekly => true; // all flavors support bi-weekly
 
-  String get _currencySymbol => widget.flavor == 'uk' ? '£' : '\$';
+  String get _currencySymbol => widget.flavor == 'uk' ? '£' : widget.flavor == 'ca' ? 'C\$' : '\$';
+
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  void _scheduleAutoSave() {
+    if (_resA == null || _resB == null) return;
+    final hash = ResultHasher.hashMixed({
+      'loanAmount': _roundTo(
+        (vehiclePrice - downPayment).clamp(0.0, double.infinity),
+        1000,
+      ),
+      'rateA': _roundTo(rateA, 0.25),
+      'rateB': _roundTo(rateB, 0.25),
+      'termA': termA,
+      'termB': termB,
+    });
+    smartHistoryService.scheduleAutoSave(
+      appKey: 'autoloan',
+      screenId: 'compare',
+      inputHash: hash,
+      l1: {
+        'price': vehiclePrice,
+        'rateA': rateA,
+        'rateB': rateB,
+        'payDiff': (_resA!.monthlyPayment - _resB!.monthlyPayment).abs(),
+        'intDiff': (_resA!.totalInterest - _resB!.totalInterest).abs(),
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': vehiclePrice,
+          'downPayment': downPayment,
+          'rateA': rateA,
+          'termA': termA,
+          'rateB': rateB,
+          'termB': termB,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthlyA': _resA!.monthlyPayment,
+          'totalInterestA': _resA!.totalInterest,
+          'totalCostA': _resA!.totalCost,
+          'monthlyB': _resB!.monthlyPayment,
+          'totalInterestB': _resB!.totalInterest,
+          'totalCostB': _resB!.totalCost,
+        },
+      },
+    );
+  }
+
+  Future<void> _saveScenario(String? label) async {
+    if (_resA == null || _resB == null) return;
+    final hash = ResultHasher.hashMixed({
+      'loanAmount': _roundTo(
+        (vehiclePrice - downPayment).clamp(0.0, double.infinity),
+        1000,
+      ),
+      'rateA': _roundTo(rateA, 0.25),
+      'rateB': _roundTo(rateB, 0.25),
+      'termA': termA,
+      'termB': termB,
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'compare',
+      inputHash: hash,
+      l1: {
+        'price': vehiclePrice,
+        'rateA': rateA,
+        'rateB': rateB,
+        'payDiff': (_resA!.monthlyPayment - _resB!.monthlyPayment).abs(),
+        'intDiff': (_resA!.totalInterest - _resB!.totalInterest).abs(),
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': vehiclePrice,
+          'downPayment': downPayment,
+          'rateA': rateA,
+          'termA': termA,
+          'rateB': rateB,
+          'termB': termB,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthlyA': _resA!.monthlyPayment,
+          'totalInterestA': _resA!.totalInterest,
+          'totalCostA': _resA!.totalCost,
+          'monthlyB': _resB!.monthlyPayment,
+          'totalInterestB': _resB!.totalInterest,
+          'totalCostB': _resB!.totalCost,
+        },
+      },
+      label: label,
+    );
+  }
 
   void _calculate() {
     final taxAmount = widget.flavor == 'us'
@@ -66,11 +163,19 @@ class _CompareScreenState extends State<CompareScreen> {
       _resA = _LoanResult.compute(loanAmount, rateA, termA, isBiWeekly);
       _resB = _LoanResult.compute(loanAmount, rateB, termB, isBiWeekly);
     });
+    _scheduleAutoSave();
+  }
+
+  @override
+  void dispose() {
+    smartHistoryService.cancelPendingSave('autoloan', 'compare');
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('compare');
     // Pre-fill from the main calculator provider so the user sees their own
     // values instead of hardcoded defaults when switching to this tab.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -314,6 +419,10 @@ class _CompareScreenState extends State<CompareScreen> {
               l10n: l10n,
               flavor: widget.flavor,
             ),
+
+          // ── Save Scenario ────────────────────────────────────────────────
+          if (_resA != null && _resB != null)
+            SaveScenarioButton(onSave: _saveScenario),
         ],
       ),
     );
@@ -478,9 +587,7 @@ class _GatedCompareResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final adService = context.read<CalcwiseAdService>();
-    final priceLabel = flavor == 'uk'
-        ? '£2.99'
-        : (flavor == 'us' ? r'$2.99' : r'$3.99 CAD');
+    final priceLabel = IAPService.instance.localizedPrice.value ?? 'Premium';
 
     return ListenableBuilder(
       listenable: Listenable.merge([

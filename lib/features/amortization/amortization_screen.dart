@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../l10n/app_localizations.dart';
+import '../../widgets/save_scenario_button.dart';
+import '../../main.dart' show smartHistoryService;
+import '../../services/analytics_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens;
+    show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens,
+        ResultHasher;
 
 class AmortizationRow {
   final int period;
@@ -93,7 +97,7 @@ List<AmortizationRow> buildSchedule({
   return rows;
 }
 
-class AmortizationScreen extends StatelessWidget {
+class AmortizationScreen extends StatefulWidget {
   final double loanAmount;
   final double annualRate;
   final int termMonths;
@@ -118,6 +122,28 @@ class AmortizationScreen extends StatelessWidget {
     this.isBiWeekly = false,
     this.title,
   });
+
+  @override
+  State<AmortizationScreen> createState() => _AmortizationScreenState();
+}
+
+class _AmortizationScreenState extends State<AmortizationScreen> {
+  // Expose widget fields for concise access
+  double get loanAmount => widget.loanAmount;
+  double get annualRate => widget.annualRate;
+  int get termMonths => widget.termMonths;
+  double get balloonAmount => widget.balloonAmount;
+  double get downPayment => widget.downPayment;
+  double get insuranceMonthly => widget.insuranceMonthly;
+  String get currencySymbol => widget.currencySymbol;
+  bool get isBiWeekly => widget.isBiWeekly;
+  String? get title => widget.title;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.logScreenView('amortization');
+  }
 
   void _shareSchedule(
     List<AmortizationRow> rows,
@@ -155,6 +181,50 @@ class AmortizationScreen extends StatelessWidget {
         '\nTerm:           ${isBiWeekly ? '${rows.length} bi-weekly periods' : '$termMonths months'}';
     Share.share(
       '${title ?? l10n.amortization}\n$sep\n$header\n$sep\n$lines$truncNote\n$sep$summary',
+    );
+  }
+
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  Future<void> _saveScenario(
+    List<AmortizationRow> rows,
+    String? label,
+  ) async {
+    if (rows.isEmpty) return;
+    final totalInterest = rows.fold(0.0, (s, r) => s + r.interest);
+    final totalPaid = rows.fold(0.0, (s, r) => s + r.payment);
+    final monthly = rows.isNotEmpty ? rows.first.payment : 0.0;
+    final hash = ResultHasher.hashMixed({
+      'loanAmount': _roundTo(loanAmount, 1000),
+      'annualRate': _roundTo(annualRate, 0.25),
+      'termMonths': termMonths,
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'amortization',
+      inputHash: hash,
+      l1: {
+        'loanAmount': loanAmount,
+        'annualRate': annualRate,
+        'termMonths': termMonths,
+        'monthly': monthly,
+        'totalInterest': totalInterest,
+      },
+      l2: {
+        'inputs': {
+          'loanAmount': loanAmount,
+          'annualRate': annualRate,
+          'termMonths': termMonths,
+          'balloonAmount': balloonAmount,
+          'isBiWeekly': isBiWeekly,
+        },
+        'results': {
+          'monthlyPayment': monthly,
+          'totalInterest': totalInterest,
+          'totalPaid': totalPaid,
+        },
+      },
+      label: label,
     );
   }
 
@@ -219,6 +289,15 @@ class AmortizationScreen extends StatelessWidget {
             // ── Tab 1: Amortization Table ──────────────────────────────
             Column(
               children: [
+                // ── Save Scenario button ─────────────────────────────
+                if (rows.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+                    child: SaveScenarioButton(
+                      onSave: (label) => _saveScenario(rows, label),
+                    ),
+                  ),
                 // Summary header
                 Semantics(
                   label:

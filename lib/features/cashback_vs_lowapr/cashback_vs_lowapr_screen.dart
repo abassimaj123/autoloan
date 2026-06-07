@@ -1,11 +1,20 @@
+import 'dart:async' show unawaited;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import 'package:calcwise_core/calcwise_core.dart'
+    show ResultHasher;
+import 'package:calcwise_core/calcwise_core.dart'
+    hide SectionCard, ResultTile, PaywallHard;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
+import '../../widgets/paywall_soft.dart';
+import '../../widgets/paywall_hard.dart';
+import '../../widgets/save_scenario_button.dart';
+import '../../main.dart' show smartHistoryService, paywallSession;
+import '../../services/analytics_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
@@ -38,11 +47,125 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
   // Scenario B — Low APR (often 0 %) + no cash back
   double _rateB = 0.0;
 
-  String get _currencySymbol => widget.flavor == 'uk' ? '£' : '\$';
+  // Cached result for SmartHistory (updated on each build)
+  _Result? _resA;
+  _Result? _resB;
+
+  String get _currencySymbol => widget.flavor == 'uk' ? '£' : widget.flavor == 'ca' ? 'C\$' : '\$';
+
+  static double _roundTo(double v, double step) => (v / step).round() * step;
+
+  void _scheduleAutoSave(_Result resA, _Result resB, bool aWins) {
+    final hash = ResultHasher.hashMixed({
+      'vehiclePrice': _roundTo(_vehiclePrice, 1000),
+      'cashBack': _roundTo(_cashBack, 500),
+      'rateA': _roundTo(_rateA, 0.25),
+      'rateB': _roundTo(_rateB, 0.25),
+      'termMonths': _termMonths,
+    });
+    smartHistoryService.scheduleAutoSave(
+      appKey: 'autoloan',
+      screenId: 'cashback_vs_lowapr',
+      inputHash: hash,
+      l1: {
+        'vehiclePrice': _vehiclePrice,
+        'cashBack': _cashBack,
+        'lowAprRate': _rateB,
+        'winner': aWins ? 'cashback' : 'lowapr',
+        'savings': (resA.totalCost - resB.totalCost).abs(),
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': _vehiclePrice,
+          'downPayment': _downPayment,
+          'termMonths': _termMonths,
+          'cashBack': _cashBack,
+          'rateA': _rateA,
+          'rateB': _rateB,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthlyA': resA.monthly,
+          'totalInterestA': resA.totalInterest,
+          'totalCostA': resA.totalCost,
+          'monthlyB': resB.monthly,
+          'totalInterestB': resB.totalInterest,
+          'totalCostB': resB.totalCost,
+          'winner': aWins ? 'cashback' : 'lowapr',
+          'savings': (resA.totalCost - resB.totalCost).abs(),
+        },
+      },
+    );
+  }
+
+  Future<void> _saveScenario(String? label) async {
+    final resA = _resA;
+    final resB = _resB;
+    if (resA == null || resB == null) return;
+    final aWins = resA.totalCost <= resB.totalCost;
+    final hash = ResultHasher.hashMixed({
+      'vehiclePrice': _roundTo(_vehiclePrice, 1000),
+      'cashBack': _roundTo(_cashBack, 500),
+      'rateA': _roundTo(_rateA, 0.25),
+      'rateB': _roundTo(_rateB, 0.25),
+      'termMonths': _termMonths,
+    });
+    await smartHistoryService.saveScenario(
+      appKey: 'autoloan',
+      screenId: 'cashback_vs_lowapr',
+      inputHash: hash,
+      l1: {
+        'vehiclePrice': _vehiclePrice,
+        'cashBack': _cashBack,
+        'lowAprRate': _rateB,
+        'winner': aWins ? 'cashback' : 'lowapr',
+        'savings': (resA.totalCost - resB.totalCost).abs(),
+      },
+      l2: {
+        'inputs': {
+          'vehiclePrice': _vehiclePrice,
+          'downPayment': _downPayment,
+          'termMonths': _termMonths,
+          'cashBack': _cashBack,
+          'rateA': _rateA,
+          'rateB': _rateB,
+          'flavor': widget.flavor,
+        },
+        'results': {
+          'monthlyA': resA.monthly,
+          'totalInterestA': resA.totalInterest,
+          'totalCostA': resA.totalCost,
+          'monthlyB': resB.monthly,
+          'totalInterestB': resB.totalInterest,
+          'totalCostB': resB.totalCost,
+          'winner': aWins ? 'cashback' : 'lowapr',
+          'savings': (resA.totalCost - resB.totalCost).abs(),
+        },
+      },
+      label: label,
+    );
+  }
+
+  Future<void> _checkPaywall() async {
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.hard) {
+      PaywallHard.show(context);
+    } else if (trigger == PaywallTrigger.soft) {
+      PaywallSoft.show(context);
+    }
+  }
+
+  @override
+  void dispose() {
+    smartHistoryService.cancelPendingSave('autoloan', 'cashback_vs_lowapr');
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('cashback_vs_lowapr');
     // Pre-fill from the main calculator provider so the user sees their own
     // values instead of hardcoded defaults when this screen opens.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -73,6 +196,8 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
             _rateA = p.annualRate;
           });
       }
+      // Record initial action (screen opened = 1 action)
+      unawaited(_checkPaywall());
     });
   }
 
@@ -99,7 +224,9 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
+    final langCode = Localizations.localeOf(context).languageCode;
+    final isSpanish = langCode == 'es';
+    final isFrench = langCode == 'fr';
     final fmt = NumberFormat.currency(
       symbol: _currencySymbol,
       decimalDigits: 2,
@@ -114,13 +241,25 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     final resA = _compute(loanA, _rateA, _termMonths);
     final resB = _compute(loanB, _rateB, _termMonths);
 
+    // Cache results for SmartHistory auto-save (fired after frame to avoid setState-in-build)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_resA?.monthly != resA.monthly || _resB?.monthly != resB.monthly) {
+        setState(() {
+          _resA = resA;
+          _resB = resB;
+        });
+        _scheduleAutoSave(resA, resB, resA.totalCost <= resB.totalCost);
+      }
+    });
+
     final aWins = resA.totalCost <= resB.totalCost;
     final winnerIndex = aWins ? 0 : 1;
     final savings = (resA.totalCost - resB.totalCost).abs();
 
-    final monthlyLabel = isSpanish ? 'Pago mensual' : 'Monthly Payment';
-    final interestLabel = isSpanish ? 'Interés total' : 'Total Interest';
-    final costLabel = isSpanish ? 'Costo total' : 'Total Cost';
+    final monthlyLabel = isFrench ? 'Paiement mensuel' : isSpanish ? 'Pago mensual' : 'Monthly Payment';
+    final interestLabel = isFrench ? 'Intérêt total' : isSpanish ? 'Interés total' : 'Total Interest';
+    final costLabel = isFrench ? 'Coût total' : isSpanish ? 'Costo total' : 'Total Cost';
 
     return Scaffold(
       appBar: AppBar(
@@ -144,10 +283,12 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SectionCard(
-                      title: isSpanish ? 'Vehículo' : 'Vehicle',
+                      title: isFrench ? 'Véhicule' : isSpanish ? 'Vehículo' : 'Vehicle',
                       children: [
                         CurrencyTextInput(
-                          label: isSpanish
+                          label: isFrench
+                              ? 'Prix du véhicule'
+                              : isSpanish
                               ? 'Precio del vehículo'
                               : 'Vehicle price',
                           value: _vehiclePrice,
@@ -157,7 +298,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         CurrencyTextInput(
-                          label: isSpanish ? 'Pago inicial' : 'Down payment',
+                          label: isFrench ? 'Mise de fonds' : isSpanish ? 'Pago inicial' : 'Down payment',
                           value: _downPayment,
                           symbol: _currencySymbol,
                           helperText: 'e.g. 5 000',
@@ -169,12 +310,16 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     SectionCard(
-                      title: isSpanish
+                      title: isFrench
+                          ? 'Scénario A — Remise'
+                          : isSpanish
                           ? 'Escenario A — Reembolso'
                           : 'Scenario A — Cash-Back',
                       children: [
                         CurrencyTextInput(
-                          label: isSpanish
+                          label: isFrench
+                              ? 'Montant remise'
+                              : isSpanish
                               ? 'Reembolso en efectivo'
                               : 'Cash-back amount',
                           value: _cashBack,
@@ -184,7 +329,9 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         RateInputField(
-                          label: isSpanish
+                          label: isFrench
+                              ? 'Taux annuel standard'
+                              : isSpanish
                               ? 'Tasa anual estándar'
                               : 'Standard APR',
                           value: _rateA,
@@ -194,12 +341,16 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     SectionCard(
-                      title: isSpanish
+                      title: isFrench
+                          ? 'Scénario B — Taux bas'
+                          : isSpanish
                           ? 'Escenario B — Tasa Baja'
                           : 'Scenario B — Low APR',
                       children: [
                         RateInputField(
-                          label: isSpanish
+                          label: isFrench
+                              ? 'Taux promotionnel'
+                              : isSpanish
                               ? 'Tasa promocional'
                               : 'Promotional APR',
                           value: _rateB,
@@ -207,7 +358,9 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
-                          isSpanish
+                          isFrench
+                              ? 'Pas de remise — prêt complet à ce taux.'
+                              : isSpanish
                               ? 'Sin reembolso — préstamo completo a esta tasa.'
                               : 'No cash-back — full loan at this rate.',
                           style: Theme.of(context).textTheme.bodySmall
@@ -221,11 +374,11 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                     ),
                     const SizedBox(height: 16),
                     ComparisonView(
-                      title: isSpanish ? 'Resultados' : 'Results',
+                      title: isFrench ? 'Résultats' : isSpanish ? 'Resultados' : 'Results',
                       winnerIndex: winnerIndex,
                       scenarios: [
                         ComparisonScenario(
-                          label: isSpanish ? 'A — Reembolso' : 'A — Cash-Back',
+                          label: isFrench ? 'A — Remise' : isSpanish ? 'A — Reembolso' : 'A — Cash-Back',
                           metrics: {
                             monthlyLabel: fmt.format(resA.monthly),
                             interestLabel: fmt.format(resA.totalInterest),
@@ -233,7 +386,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                           },
                         ),
                         ComparisonScenario(
-                          label: isSpanish ? 'B — Tasa Baja' : 'B — Low APR',
+                          label: isFrench ? 'B — Taux bas' : isSpanish ? 'B — Tasa Baja' : 'B — Low APR',
                           metrics: {
                             monthlyLabel: fmt.format(resB.monthly),
                             interestLabel: fmt.format(resB.totalInterest),
@@ -262,10 +415,14 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                           Expanded(
                             child: Text(
                               aWins
-                                  ? (isSpanish
+                                  ? (isFrench
+                                        ? 'Remise gagne — économise ${fmt.format(savings)} au total'
+                                        : isSpanish
                                         ? 'Reembolso gana — ahorra ${fmt.format(savings)} en total'
                                         : 'Cash-Back wins — saves ${fmt.format(savings)} overall')
-                                  : (isSpanish
+                                  : (isFrench
+                                        ? 'Taux bas gagne — économise ${fmt.format(savings)} au total'
+                                        : isSpanish
                                         ? 'Tasa Baja gana — ahorra ${fmt.format(savings)} en total'
                                         : 'Low-APR wins — saves ${fmt.format(savings)} overall'),
                               style: Theme.of(context).textTheme.bodyMedium
@@ -277,7 +434,9 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      isSpanish
+                      isFrench
+                          ? 'À titre informatif seulement. Ne constitue pas un conseil financier.'
+                          : isSpanish
                           ? 'Para fines informativos. No es asesoramiento financiero.'
                           : 'For informational purposes only. Not financial advice.',
                       textAlign: TextAlign.center,
@@ -287,6 +446,8 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    SaveScenarioButton(onSave: _saveScenario),
+                    const SizedBox(height: 4),
                     const CalcwiseAdFooter(),
                   ],
                 ),

@@ -21,6 +21,7 @@ import 'package:calcwise_core/calcwise_core.dart'
     show
         themeModeService,
         PaywallSessionService,
+        SmartHistoryService,
         CalcwiseAdService,
         CalcwiseAdConfig,
         requestCalcwiseConsent,
@@ -39,6 +40,7 @@ import 'core/theme/theme_uk.dart';
 import 'core/theme/theme_us.dart';
 // AdService removed — using CalcwiseAdService from calcwise_core
 import 'services/history_service.dart';
+import 'services/autoloan_database_adapter.dart';
 import 'country/ca/ca_provider.dart';
 import 'country/uk/uk_provider.dart';
 import 'country/us/us_provider.dart';
@@ -49,6 +51,10 @@ final paywallSession = PaywallSessionService(
   appKey: 'autoloan',
   hasFullAccess: () => freemiumService.hasFullAccess,
 );
+
+// SmartHistoryService — wired to AutoLoan's SharedPreferences-backed HistoryService
+// via AutoLoanDatabaseAdapter. Initialized lazily after HistoryService is available.
+late final SmartHistoryService smartHistoryService;
 
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
@@ -86,6 +92,14 @@ void main() async {
   await freemiumService.initialize();
   await IAPService.instance.initialize();
   await paywallSession.initialize();
+
+  // SmartHistory — backed by the same SharedPreferences HistoryService
+  // Note: AutoLoanApp also creates a HistoryService(prefs) — same prefs, same data.
+  final histSvcForSmartHistory = HistoryService(prefs);
+  smartHistoryService = SmartHistoryService(
+    db: AutoLoanDatabaseAdapter(histSvcForSmartHistory),
+    freemium: freemiumService,
+  );
   AnalyticsService.instance.setUserPremium(freemiumService.hasFullAccess);
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
