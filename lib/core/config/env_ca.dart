@@ -3,7 +3,7 @@ import 'app_config.dart';
 final configCA = AppConfig(
   country: Country.CA,
   currency: 'CAD',
-  currencySymbol: '\$',
+  currencySymbol: 'C\$',
   distanceUnit: 'km',
   biWeekly: true,
   balloon: false,

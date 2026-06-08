@@ -188,8 +188,12 @@ class SettingsScreen extends StatelessWidget {
             ),
             CalcwiseSettingsTile(
               icon: Icons.grid_view_rounded,
-              label: 'More apps by CalqWise',
-              subtitle: 'See all our calculators',
+              label: Localizations.localeOf(context).languageCode == 'fr'
+                  ? 'Plus d\'apps par CalqWise'
+                  : 'More apps by CalqWise',
+              subtitle: Localizations.localeOf(context).languageCode == 'fr'
+                  ? 'Voir tous nos calculateurs'
+                  : 'See all our calculators',
               onTap: () => launchUrl(
                 Uri.parse(
                   'https://play.google.com/store/apps/developer?id=CalqWise',
@@ -241,14 +245,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   String _premiumPrice(String flavor) {
-    switch (flavor) {
-      case 'uk':
-        return '£2.49';
-      case 'us':
-        return '\$2.99';
-      default:
-        return 'CA\$3.99';
-    }
+    return IAPService.instance.localizedPrice.value ?? 'Premium';
   }
 
   String _appName(String flavor, AppLocalizations l10n) {
