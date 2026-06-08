@@ -131,7 +131,7 @@ void main() {
       expect(r.vedMonthly, 0);
     });
 
-    test('petrolLarge VED = £280/yr → £23.33/mo', () {
+    test('petrolLarge VED = £360/yr → £30.00/mo (DVLA 2025/26)', () {
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
         downPayment: 5000,
@@ -140,8 +140,8 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.petrolLarge,
       );
-      expect(r.vedMonthly, closeTo(280.0 / 12, 0.01));
-      expect(r.monthlyPayment, closeTo(r.baseLoanPayment + 280.0 / 12, 0.01));
+      expect(r.vedMonthly, closeTo(360.0 / 12, 0.01));
+      expect(r.monthlyPayment, closeTo(r.baseLoanPayment + 360.0 / 12, 0.01));
     });
 
     test('electric VED = £10/yr since April 2025 (DVLA 2025/26)', () {

@@ -123,39 +123,39 @@ void main() {
       );
     });
 
-    test('[UK-2a] VED Petrol >1000cc = £280/yr', () {
+    test('[UK-2a] VED Petrol >1000cc = £360/yr', () {
       expect(
         VehicleType.petrolLarge.vedAnnual,
-        closeTo(280.0, 0.01),
-        reason: '[UK-2a] vedAnnual petrolLarge = £280',
+        closeTo(360.0, 0.01),
+        reason: '[UK-2a] vedAnnual petrolLarge = £360',
       );
     });
 
-    test('[UK-2b] VED mensuel = £280 / 12 = £23.33', () {
+    test('[UK-2b] VED mensuel = £360 / 12 = £30.00', () {
       expect(
         rWithVed.vedMonthly,
-        closeTo(280.0 / 12, 0.01),
-        reason: '[UK-2b] 280/12 = £23.33/mo',
+        closeTo(360.0 / 12, 0.01),
+        reason: '[UK-2b] 360/12 = £30.00/mo',
       );
     });
 
     test('[UK-2c] Paiement mensuel total = prêt + VED', () {
       expect(
         rWithVed.monthlyPayment,
-        closeTo(rWithVed.baseLoanPayment + 280.0 / 12, 0.01),
+        closeTo(rWithVed.baseLoanPayment + 360.0 / 12, 0.01),
         reason: '[UK-2c] baseLoanPayment + vedMonthly',
       );
     });
 
-    test('[UK-2d] Total VED 60 mois = £1,400.00', () {
+    test('[UK-2d] Total VED 60 mois = £1,800.00', () {
       expect(
         rWithVed.vedTotal,
-        closeTo(1400.00, 0.01),
-        reason: '[UK-2d] £280 × 5 ans = £1,400',
+        closeTo(1800.00, 0.01),
+        reason: '[UK-2d] £360 × 5 ans = £1,800',
       );
     });
 
-    test('[UK-2e] Coût total avec VED = £30,104.86', () {
+    test('[UK-2e] Coût total avec VED = £30,504.86 (VED £360/yr × 5)', () {
       final expected = 25000.0 + rWithVed.totalInterest + rWithVed.vedTotal;
       expect(
         rWithVed.totalCost,
@@ -164,8 +164,8 @@ void main() {
       );
       expect(
         rWithVed.totalCost,
-        closeTo(30104.86, 1.00),
-        reason: '[UK-2e] Spec attendu ≈ £30,104.86',
+        closeTo(30504.86, 1.00),
+        reason: '[UK-2e] Spec attendu ≈ £30,504.86 (VED £360 × 5 ans)',
       );
     });
 
@@ -185,7 +185,7 @@ void main() {
 
   // ═══════════════════════════════════════════════════════════════════
   // UK — TOUS LES TYPES VED (CAS UK-3)
-  // Taux 2024 corrigés : diesel £190, +dieselSurcharge £590, hybrid £190, custom
+  // Taux 2025/26 DVLA : petrolSmall £210, petrolLarge £360, dieselSurcharge £630, diesel/hybrid £190
   // ═══════════════════════════════════════════════════════════════════
   group('UK — Types VED', () {
     void testVed(VehicleType type, double expectedAnnual, {double? customVed}) {
@@ -223,14 +223,14 @@ void main() {
       );
     }
 
-    testVed(VehicleType.petrolSmall, 180.0); // £180/yr → £15.00/mo
-    testVed(VehicleType.petrolLarge, 280.0); // £280/yr → £23.33/mo
+    testVed(VehicleType.petrolSmall, 210.0); // £210/yr → £17.50/mo (DVLA 2025/26)
+    testVed(VehicleType.petrolLarge, 360.0); // £360/yr → £30.00/mo (DVLA 2025/26)
     testVed(VehicleType.electric, 10.0); // £10/yr → £0.83/mo (DVLA avril 2025)
     testVed(
       VehicleType.diesel,
       190.0,
     ); // Standard 2024 RDE2 diesel (BUG #2 corrigé)
-    testVed(VehicleType.dieselSurcharge, 590.0); // Non-RDE2 diesel surcharge
+    testVed(VehicleType.dieselSurcharge, 630.0); // Non-RDE2 diesel surcharge (DVLA 2025/26)
     testVed(VehicleType.hybrid, 190.0); // Hybrid = same as standard diesel 2024
 
     test('[UK-3-custom] Custom VED : rate fourni via customVedAnnual', () {
@@ -484,7 +484,7 @@ void main() {
     });
 
     test('[UK-5g] VED Total = vedAnnual × (termMonths/12)', () {
-      const annualVed = 280.0;
+      const annualVed = 360.0;
       const term = 48;
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
@@ -497,7 +497,7 @@ void main() {
       expect(
         r.vedTotal,
         closeTo(annualVed * term / 12, 0.01),
-        reason: '[UK-5g] VED total = £280 × 4 ans = £1,120 (48 mois)',
+        reason: '[UK-5g] VED total = £360 × 4 ans = £1,440 (48 mois)',
       );
     });
 
@@ -798,10 +798,10 @@ void main() {
           vehicleType: VehicleType.petrolLarge,
           frequency: PaymentFrequency.biWeekly,
         );
-        // vedAnnual = 280, vedBiWeekly = 280/26
+        // vedAnnual = 360, vedBiWeekly = 360/26
         expect(
           rVed.biWeeklyPayment,
-          closeTo(rVed.biWeeklyLoanPayment + 280.0 / 26, 0.01),
+          closeTo(rVed.biWeeklyLoanPayment + 360.0 / 26, 0.01),
           reason: '[UK-7e] VED bi-hebdomadaire = VED annuel / 26',
         );
       },
