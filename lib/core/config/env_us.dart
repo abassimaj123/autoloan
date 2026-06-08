@@ -10,6 +10,6 @@ final configUS = AppConfig(
   tradeIn: true,
   languages: ['en', 'es'],
   taxSystem: TaxSystem.manual,
-  defaultRate: 6.9,
+  defaultRate: 8.9,
   durations: [24, 36, 48, 60, 72, 84],
 );

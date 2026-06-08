@@ -66,15 +66,15 @@ extension VehicleTypeExt on VehicleType {
   String get label {
     switch (this) {
       case VehicleType.petrolSmall:
-        return 'Petrol < 1000cc (£180/yr)';
+        return 'Petrol < 1000cc (£210/yr)';
       case VehicleType.petrolLarge:
-        return 'Petrol > 1000cc (£280/yr)';
+        return 'Petrol > 1000cc (£360/yr)';
       case VehicleType.electric:
         return 'Electric (£10/yr)'; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
       case VehicleType.diesel:
         return 'Diesel RDE2 (£190/yr)';
       case VehicleType.dieselSurcharge:
-        return 'Diesel non-RDE2 (£590/yr)';
+        return 'Diesel non-RDE2 (£630/yr)';
       case VehicleType.hybrid:
         return 'Hybrid (£190/yr)';
       case VehicleType.custom:
@@ -86,15 +86,15 @@ extension VehicleTypeExt on VehicleType {
   double get vedAnnual {
     switch (this) {
       case VehicleType.petrolSmall:
-        return 180.0;
+        return 210.0;
       case VehicleType.petrolLarge:
-        return 280.0;
+        return 360.0;
       case VehicleType.electric:
         return 10.0; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
       case VehicleType.diesel:
         return 190.0; // Standard 2024 rate (RDE2-compliant)
       case VehicleType.dieselSurcharge:
-        return 590.0; // Surcharge for non-RDE2 diesel
+        return 630.0; // Surcharge for non-RDE2 diesel (DVLA 2025/26)
       case VehicleType.hybrid:
         return 190.0;
       case VehicleType.custom:
