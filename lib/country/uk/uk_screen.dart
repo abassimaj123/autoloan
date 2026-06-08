@@ -154,10 +154,10 @@ class _UKScreenState extends State<UKScreen> {
             selectedIcon: const Icon(Icons.compare_arrows_rounded),
             label: l10n.compareLoans,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.balance_outlined),
-            selectedIcon: Icon(Icons.balance_rounded),
-            label: 'Lease vs Buy',
+          NavigationDestination(
+            icon: const Icon(Icons.balance_outlined),
+            selectedIcon: const Icon(Icons.balance_rounded),
+            label: l10n.leaseVsBuy,
           ),
           NavigationDestination(
             icon: const Icon(Icons.history_outlined),
@@ -1990,7 +1990,8 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Months already paid'),
+                  const Flexible(child: Text('Months already paid', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     '$_monthsPaid months',
                     style: TextStyle(
@@ -2108,7 +2109,8 @@ class _UKAffordabilitySectionState extends State<_UKAffordabilitySection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Gross monthly income'),
+                  const Flexible(child: Text('Gross monthly income', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     AmountFormatter.formatInteger(_monthlyIncome),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

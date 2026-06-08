@@ -14,6 +14,7 @@ import '../../widgets/save_scenario_button.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../../main.dart' show paywallSession, smartHistoryService;
 import '../../services/analytics_service.dart';
+import '../pdf/pdf_export_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
@@ -146,7 +147,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       label: label,
     );
   }
-  String get _distLabel => widget.flavor == 'uk' ? 'km' : 'miles';
+  String get _distLabel => widget.flavor == 'ca' ? 'km' : 'miles';
 
   @override
   void initState() {
@@ -214,6 +215,40 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
   void dispose() {
     smartHistoryService.cancelPendingSave('autoloan', 'lease_vs_buy_${widget.flavor}');
     super.dispose();
+  }
+
+  Future<void> _exportPdf(BuildContext context) async {
+    if (_result == null) return;
+    final langCode = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await PdfExportService.exportLeaseVsBuy(
+        title: l10n.leaseVsBuy,
+        currency: _sym,
+        vehiclePrice: _msrp,
+        buyDown: _buyDown,
+        buyApr: _buyApr,
+        buyTerm: _buyTerm,
+        residualPercent: _residualPercent,
+        annualInsurance: _annualInsurance,
+        leaseMonthly: _leaseMonthly,
+        leaseTerm: _leaseTerm,
+        leaseDown: _leaseDown,
+        acquisitionFee: _acquisitionFee,
+        dispositionFee: _dispositionFee,
+        buyMonthly: _result!.buyMonthly,
+        buyTotalCost: _result!.buyTotalCost,
+        buyTotalInterest: _result!.buyTotalInterest,
+        buyInsuranceCost: _result!.buyInsuranceCost,
+        leaseTotalCost: _result!.leaseTotalCost,
+        breakEvenMiles: _result!.breakEvenMiles,
+        leaseIsChEaper: _result!.leaseIsChEaper,
+        saving: _result!.saving,
+        distLabel: _distLabel,
+        isFrench: langCode == 'fr',
+        isSpanish: langCode == 'es',
+      );
+    } catch (_) {}
   }
 
   Future<void> _checkPaywall() async {
@@ -467,6 +502,15 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       appBar: AppBar(
         title: Text(l10n.leaseVsBuy),
         leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+        actions: [
+          if (_result != null &&
+              (freemiumService.hasFullAccess || freemiumService.isRewarded))
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              tooltip: l10n.exportPdf,
+              onPressed: () => _exportPdf(context),
+            ),
+        ],
       ),
       body: Column(
         children: [

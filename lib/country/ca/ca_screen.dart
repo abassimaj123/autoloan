@@ -1072,7 +1072,8 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Residual Value %'),
+                  const Flexible(child: Text('Residual Value %', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     '${_residualPercent.toStringAsFixed(0)}%',
                     style: TextStyle(
@@ -1891,7 +1892,8 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Gross monthly income'),
+                  const Flexible(child: Text('Gross monthly income', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     AmountFormatter.formatInteger(_monthlyIncome),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

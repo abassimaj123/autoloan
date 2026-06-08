@@ -22,6 +22,7 @@ import '../widgets/save_scenario_button.dart';
 import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
+import '../features/pdf/pdf_export_service.dart';
 
 /// Multi-Loan Comparison — compare 3 loan offers side-by-side.
 /// Premium-gated screen, works for all 3 flavors.
@@ -183,6 +184,62 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     }
   }
 
+  Future<void> _exportPdf(BuildContext context) async {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final l10n = AppLocalizations.of(context)!;
+    final isUk = widget.flavor == 'uk';
+    final screenTitle =
+        isUk ? 'Compare 3 Finance Deals' : l10n.compare3Loans;
+    try {
+      await PdfExportService.exportLoanComparison(
+        title: screenTitle,
+        currency: _sym,
+        amounts: [_amount1, _amount2, _amount3],
+        rates: [_rate1, _rate2, _rate3],
+        terms: [_term1, _term2, _term3],
+        monthlyPayments: [
+          _r1.monthlyPayment,
+          _r2.monthlyPayment,
+          _r3.monthlyPayment,
+        ],
+        totalInterests: [
+          _r1.totalInterest,
+          _r2.totalInterest,
+          _r3.totalInterest,
+        ],
+        totalCosts: [_r1.totalCost, _r2.totalCost, _r3.totalCost],
+        winnerIndex: _winnerIndex,
+        isFrench: isFr,
+        isSpanish: isEs,
+      );
+      AnalyticsService.instance.logPdfExported('loan_comparison');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isFr
+              ? 'PDF exporté avec succès'
+              : isEs
+                  ? 'PDF exportado exitosamente'
+                  : 'PDF exported successfully'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isFr
+              ? "Échec de l'export"
+              : isEs
+                  ? 'Error al exportar'
+                  : 'Export failed'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     smartHistoryService.cancelPendingSave('autoloan', 'loan_comparison');
@@ -247,7 +304,21 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     final screenTitle = isUk ? 'Compare 3 Finance Deals' : l10n.compare3Loans;
 
     return Scaffold(
-      appBar: AppBar(title: Text(screenTitle)),
+      appBar: AppBar(
+        title: Text(screenTitle),
+        actions: [
+          if (freemiumService.hasFullAccess || freemiumService.isRewarded)
+            Semantics(
+              label: 'Export PDF',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                tooltip: l10n.exportPdf,
+                onPressed: () => _exportPdf(context),
+              ),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -315,17 +386,25 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                 SaveScenarioButton(onSave: _saveScenario),
 
                 const SizedBox(height: AppSpacing.md),
-                Text(
-                  'For informational purposes only. Rates and fees vary by lender.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: AppTextSize.xs,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.55),
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final langCode = Localizations.localeOf(context).languageCode;
+                  final disclaimer = langCode == 'fr'
+                      ? 'À titre informatif seulement. Les taux et frais varient selon le prêteur.'
+                      : langCode == 'es'
+                          ? 'Solo con fines informativos. Las tasas y cargos varían según el prestamista.'
+                          : 'For informational purposes only. Rates and fees vary by lender.';
+                  return Text(
+                    disclaimer,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: AppTextSize.xs,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.55),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

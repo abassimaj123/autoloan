@@ -23,6 +23,7 @@ import '../widgets/save_scenario_button.dart';
 import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
+import '../features/pdf/pdf_export_service.dart';
 
 /// Total Cost of Ownership Calculator — premium-gated full screen.
 /// Works for all 3 flavors: CA (CAD, km), UK (GBP, miles), US (USD, miles).
@@ -184,6 +185,63 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
     }
   }
 
+  Future<void> _exportPdf(BuildContext context) async {
+    if (_result == null) return;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await PdfExportService.exportTotalCost(
+        title: l10n.trueCostOfOwnership,
+        currency: _sym,
+        vehiclePrice: _vehiclePrice,
+        monthlyPayment: _monthlyPayment,
+        ownershipYears: _ownershipYears,
+        insurance: _insurance,
+        fuel: _fuel,
+        maintenance: _maintenance,
+        depreciationRate: _depreciationRate,
+        totalLoan: _result!.totalLoan,
+        totalInsurance: _result!.totalInsurance,
+        totalFuel: _result!.totalFuel,
+        totalMaintenance: _result!.totalMaintenance,
+        depreciationLoss: _result!.depreciationLoss,
+        grandTotal: _result!.grandTotal,
+        costPerMonth: _result!.costPerMonth,
+        fuelLabel: _fuelLabel(l10n),
+        distUnit: _distUnit,
+        isFrench: isFr,
+        isSpanish: isEs,
+      );
+      AnalyticsService.instance.logPdfExported('total_cost');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isFr
+              ? 'PDF exporté avec succès'
+              : isEs
+                  ? 'PDF exportado exitosamente'
+                  : 'PDF exported successfully'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      final isFr = Localizations.localeOf(context).languageCode == 'fr';
+      final isEs = Localizations.localeOf(context).languageCode == 'es';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isFr
+              ? "Échec de l'export"
+              : isEs
+                  ? 'Error al exportar'
+                  : 'Export failed'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     smartHistoryService.cancelPendingSave('autoloan', 'total_cost');
@@ -247,7 +305,22 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
     final fmt = NumberFormat.currency(symbol: _sym, decimalDigits: 0);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.trueCostOfOwnership)),
+      appBar: AppBar(
+        title: Text(l10n.trueCostOfOwnership),
+        actions: [
+          if (_result != null &&
+              (freemiumService.hasFullAccess || freemiumService.isRewarded))
+            Semantics(
+              label: 'Export PDF',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.picture_as_pdf_outlined),
+                tooltip: l10n.exportPdf,
+                onPressed: () => _exportPdf(context),
+              ),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -374,18 +447,26 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
                   SaveScenarioButton(onSave: _saveScenario),
 
                 const SizedBox(height: AppSpacing.md),
-                Text(
-                  'For informational purposes only. Depreciation estimates vary by '
-                  'vehicle make, model, and $_distUnit driven.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: AppTextSize.xs,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.55),
-                  ),
-                ),
+                Builder(builder: (context) {
+                  final isFr = Localizations.localeOf(context).languageCode == 'fr';
+                  final isEs = Localizations.localeOf(context).languageCode == 'es';
+                  final footerText = isFr
+                      ? 'À titre informatif seulement. La dépréciation varie selon la marque, le modèle et les $_distUnit parcourus.'
+                      : isEs
+                          ? 'Solo con fines informativos. La depreciación varía según la marca, modelo y $_distUnit recorridos.'
+                          : 'For informational purposes only. Depreciation estimates vary by vehicle make, model, and $_distUnit driven.';
+                  return Text(
+                    footerText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: AppTextSize.xs,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.55),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

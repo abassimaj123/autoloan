@@ -20,6 +20,7 @@ import 'package:calcwise_core/calcwise_core.dart'
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../../main.dart' show smartHistoryService;
 import '../../services/analytics_service.dart';
+import '../pdf/pdf_export_service.dart';
 import '../../widgets/save_scenario_button.dart';
 
 class CompareScreen extends StatefulWidget {
@@ -149,6 +150,37 @@ class _CompareScreenState extends State<CompareScreen> {
       },
       label: label,
     );
+  }
+
+  Future<void> _exportPdf(BuildContext context) async {
+    if (_resA == null || _resB == null) return;
+    final langCode = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+    final aBetter = _resA!.totalCost <= _resB!.totalCost;
+    final savings = (_resA!.totalCost - _resB!.totalCost).abs();
+    try {
+      await PdfExportService.exportLoanCompare(
+        title: l10n.compareLoans,
+        currency: _currencySymbol,
+        vehiclePrice: vehiclePrice,
+        downPayment: downPayment,
+        rateA: rateA,
+        termA: termA,
+        rateB: rateB,
+        termB: termB,
+        monthlyA: isBiWeekly ? _resA!.biWeeklyPayment : _resA!.monthlyPayment,
+        totalInterestA: _resA!.totalInterest,
+        totalCostA: _resA!.totalCost,
+        monthlyB: isBiWeekly ? _resB!.biWeeklyPayment : _resB!.monthlyPayment,
+        totalInterestB: _resB!.totalInterest,
+        totalCostB: _resB!.totalCost,
+        aBetter: aBetter,
+        savings: savings,
+        isBiWeekly: isBiWeekly,
+        isFrench: langCode == 'fr',
+        isSpanish: langCode == 'es',
+      );
+    } catch (_) {}
   }
 
   void _calculate() {
@@ -432,7 +464,19 @@ class _CompareScreenState extends State<CompareScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.compareLoans)),
+      appBar: AppBar(
+        title: Text(l10n.compareLoans),
+        actions: [
+          if (_resA != null &&
+              _resB != null &&
+              (freemiumService.hasFullAccess || freemiumService.isRewarded))
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              tooltip: l10n.exportPdf,
+              onPressed: () => _exportPdf(context),
+            ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(child: listView),
@@ -513,7 +557,7 @@ class _ScenarioCard extends StatelessWidget {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  labelText: '% Rate',
+                  labelText: AppLocalizations.of(context)!.loanInputRate,
                   border: const OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 12,

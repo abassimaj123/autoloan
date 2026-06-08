@@ -15,6 +15,8 @@ import '../../widgets/paywall_hard.dart';
 import '../../widgets/save_scenario_button.dart';
 import '../../main.dart' show smartHistoryService, paywallSession;
 import '../../services/analytics_service.dart';
+import '../pdf/pdf_export_service.dart';
+import '../../core/freemium/freemium_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
@@ -146,6 +148,40 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     );
   }
 
+  Future<void> _exportPdf(
+      BuildContext context, _Result resA, _Result resB, bool aWins) async {
+    final langCode = Localizations.localeOf(context).languageCode;
+    final isFrench = langCode == 'fr';
+    final isSpanish = langCode == 'es';
+    final title = isFrench
+        ? 'Remise vs Taux Bas'
+        : isSpanish
+            ? 'Reembolso vs Tasa Baja'
+            : 'Cash-Back vs Low-APR';
+    try {
+      await PdfExportService.exportCashbackVsLowApr(
+        title: title,
+        currency: _currencySymbol,
+        vehiclePrice: _vehiclePrice,
+        downPayment: _downPayment,
+        termMonths: _termMonths,
+        cashBack: _cashBack,
+        rateA: _rateA,
+        rateB: _rateB,
+        monthlyA: resA.monthly,
+        totalInterestA: resA.totalInterest,
+        totalCostA: resA.totalCost,
+        monthlyB: resB.monthly,
+        totalInterestB: resB.totalInterest,
+        totalCostB: resB.totalCost,
+        aWins: aWins,
+        savings: (resA.totalCost - resB.totalCost).abs(),
+        isFrench: isFrench,
+        isSpanish: isSpanish,
+      );
+    } catch (_) {}
+  }
+
   Future<void> _checkPaywall() async {
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
@@ -264,6 +300,14 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.cashBackVsLowApr),
+        actions: [
+          if (freemiumService.hasFullAccess || freemiumService.isRewarded)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              tooltip: l10n.exportPdf,
+              onPressed: () => _exportPdf(context, resA, resB, aWins),
+            ),
+        ],
       ),
       body: SafeArea(
         top: false,

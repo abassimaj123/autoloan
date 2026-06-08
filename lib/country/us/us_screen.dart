@@ -154,10 +154,10 @@ class _USScreenState extends State<USScreen> {
             selectedIcon: const Icon(Icons.compare_arrows_rounded),
             label: l10n.compareLoans,
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.balance_outlined),
-            selectedIcon: Icon(Icons.balance_rounded),
-            label: 'Lease vs Buy',
+          NavigationDestination(
+            icon: const Icon(Icons.balance_outlined),
+            selectedIcon: const Icon(Icons.balance_rounded),
+            label: l10n.leaseVsBuy,
           ),
           NavigationDestination(
             icon: const Icon(Icons.history_outlined),
@@ -1006,7 +1006,8 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Residual Value %'),
+                  const Flexible(child: Text('Residual Value %', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     '${_residualPercent.toStringAsFixed(0)}%',
                     style: TextStyle(
@@ -1806,7 +1807,13 @@ class _USAffordabilityReverseSolverSectionState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Monthly budget for car payment'),
+                  const Flexible(
+                    child: Text(
+                      'Monthly budget for car payment',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Text(
                     AmountFormatter.ui(_monthlyBudget, 'USD'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -2082,7 +2089,8 @@ class _USAffordabilitySectionState extends State<_USAffordabilitySection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Gross monthly income'),
+                  const Flexible(child: Text('Gross monthly income', overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
                   Text(
                     AmountFormatter.formatInteger(_monthlyIncome),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
