@@ -760,18 +760,22 @@ class _USResults extends StatelessWidget {
               );
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Shared successfully'),
+                  SnackBar(
+                    content: Text(isSpanishShare
+                        ? 'Compartido exitosamente'
+                        : 'Shared successfully'),
                     behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               }
             } catch (_) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Share failed'),
+                  SnackBar(
+                    content: Text(isSpanishShare
+                        ? 'Error al compartir'
+                        : 'Share failed'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -812,6 +816,8 @@ class _USResults extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () async {
+              final isEsPdf =
+                  Localizations.localeOf(context).languageCode == 'es';
               try {
                 await PdfExportService.exportLoanPdf(
                   title: l10n.appNameUS,
@@ -820,7 +826,7 @@ class _USResults extends StatelessWidget {
                   annualRate: r.effectiveRate,
                   termMonths: r.termMonths,
                   downPayment: r.downPayment,
-                  isSpanish: Localizations.localeOf(context).languageCode == 'es',
+                  isSpanish: isEsPdf,
                   summary: [
                     MapEntry(
                       l10n.vehiclePrice,
@@ -871,18 +877,22 @@ class _USResults extends StatelessWidget {
                 AnalyticsService.instance.logPdfExported('us');
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('PDF exported successfully'),
+                    SnackBar(
+                      content: Text(isEsPdf
+                          ? 'PDF exportado exitosamente'
+                          : 'PDF exported successfully'),
                       behavior: SnackBarBehavior.floating,
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 }
               } catch (_) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Export failed'),
+                    SnackBar(
+                      content: Text(isEsPdf
+                          ? 'Error al exportar'
+                          : 'Export failed'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
