@@ -454,7 +454,7 @@ class _UKFinancingTypeSection extends StatelessWidget {
                       ? Theme.of(context).colorScheme.secondary
                       : null,
                   foregroundColor: ft == UKFinancingType.standardLoan
-                      ? Colors.white
+                      ? Theme.of(context).colorScheme.onSecondary
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
@@ -473,7 +473,7 @@ class _UKFinancingTypeSection extends StatelessWidget {
                       ? Theme.of(context).colorScheme.secondary
                       : null,
                   foregroundColor: ft == UKFinancingType.hp
-                      ? Colors.white
+                      ? Theme.of(context).colorScheme.onSecondary
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),
@@ -492,7 +492,7 @@ class _UKFinancingTypeSection extends StatelessWidget {
                       ? Theme.of(context).colorScheme.secondary
                       : null,
                   foregroundColor: ft == UKFinancingType.pcp
-                      ? Colors.white
+                      ? Theme.of(context).colorScheme.onSecondary
                       : null,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                 ),

@@ -824,7 +824,7 @@ class _CompCol extends StatelessWidget {
               child: Text(
                 betterLabel,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
