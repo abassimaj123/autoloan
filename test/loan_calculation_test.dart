@@ -482,6 +482,8 @@ void main() {
 
   // ── TEST 15 — UK Road tax ─────────────────────────────────────────────────
   test('TEST 15 — UK petrolLarge VED £360/yr → £30.00/mo in payment (DVLA 2025/26)', () {
+    // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
+    final vedAnnual = VehicleType.petrolLarge.vedAnnual;
     final r = UKCalculation.calculate(
       vehiclePrice: 20000,
       downPayment: 4000,
@@ -491,23 +493,22 @@ void main() {
       vehicleType: VehicleType.petrolLarge,
     );
 
-    // VED annual = £360, monthly = £360/12 = £30.00
     expect(
       r.vedMonthly,
-      closeTo(360.0 / 12, 0.01),
-      reason: '£360/yr ÷ 12 = £30.00/mo',
+      closeTo(vedAnnual / 12, 0.01),
+      reason: 'VED annual / 12 = monthly instalment',
     );
     expect(
       r.monthlyPayment,
-      closeTo(r.baseLoanPayment + 360.0 / 12, 0.01),
-      reason: 'Monthly = loan payment + VED monthly (£360/12 = £30)',
+      closeTo(r.baseLoanPayment + vedAnnual / 12, 0.01),
+      reason: 'Monthly = loan payment + VED monthly',
     );
 
-    // Total VED over 60 months = £360 × 5 = £1,800
+    // Total VED over 60 months = vedAnnual × 5
     expect(
       r.vedTotal,
-      closeTo(360.0 * 60 / 12, 0.01),
-      reason: 'VED total = £360 × (60/12) = £1,800',
+      closeTo(vedAnnual * 60 / 12, 0.01),
+      reason: 'VED total = vedAnnual × (60/12)',
     );
 
     // totalCost includes road tax

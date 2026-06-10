@@ -131,18 +131,20 @@ void main() {
       );
     });
 
-    test('[UK-2b] VED mensuel = £360 / 12 = £30.00', () {
+    test('[UK-2b] VED mensuel = vedAnnual / 12', () {
+      // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
       expect(
         rWithVed.vedMonthly,
-        closeTo(360.0 / 12, 0.01),
-        reason: '[UK-2b] 360/12 = £30.00/mo',
+        closeTo(VehicleType.petrolLarge.vedAnnual / 12, 0.01),
+        reason: '[UK-2b] vedAnnual/12 = monthly instalment',
       );
     });
 
     test('[UK-2c] Paiement mensuel total = prêt + VED', () {
+      // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
       expect(
         rWithVed.monthlyPayment,
-        closeTo(rWithVed.baseLoanPayment + 360.0 / 12, 0.01),
+        closeTo(rWithVed.baseLoanPayment + VehicleType.petrolLarge.vedAnnual / 12, 0.01),
         reason: '[UK-2c] baseLoanPayment + vedMonthly',
       );
     });
@@ -484,7 +486,8 @@ void main() {
     });
 
     test('[UK-5g] VED Total = vedAnnual × (termMonths/12)', () {
-      const annualVed = 360.0;
+      // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
+      final annualVed = VehicleType.petrolLarge.vedAnnual;
       const term = 48;
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
@@ -497,7 +500,7 @@ void main() {
       expect(
         r.vedTotal,
         closeTo(annualVed * term / 12, 0.01),
-        reason: '[UK-5g] VED total = £360 × 4 ans = £1,440 (48 mois)',
+        reason: '[UK-5g] VED total = vedAnnual × 4 ans = £1,440 (48 mois)',
       );
     });
 
@@ -798,10 +801,10 @@ void main() {
           vehicleType: VehicleType.petrolLarge,
           frequency: PaymentFrequency.biWeekly,
         );
-        // vedAnnual = 360, vedBiWeekly = 360/26
+        // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
         expect(
           rVed.biWeeklyPayment,
-          closeTo(rVed.biWeeklyLoanPayment + 360.0 / 26, 0.01),
+          closeTo(rVed.biWeeklyLoanPayment + VehicleType.petrolLarge.vedAnnual / 26, 0.01),
           reason: '[UK-7e] VED bi-hebdomadaire = VED annuel / 26',
         );
       },

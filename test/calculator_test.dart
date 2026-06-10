@@ -132,6 +132,7 @@ void main() {
     });
 
     test('petrolLarge VED = £360/yr → £30.00/mo (DVLA 2025/26)', () {
+      // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
         downPayment: 5000,
@@ -140,8 +141,9 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.petrolLarge,
       );
-      expect(r.vedMonthly, closeTo(360.0 / 12, 0.01));
-      expect(r.monthlyPayment, closeTo(r.baseLoanPayment + 360.0 / 12, 0.01));
+      final vedAnnual = VehicleType.petrolLarge.vedAnnual;
+      expect(r.vedMonthly, closeTo(vedAnnual / 12, 0.01));
+      expect(r.monthlyPayment, closeTo(r.baseLoanPayment + vedAnnual / 12, 0.01));
     });
 
     test('electric VED = £10/yr since April 2025 (DVLA 2025/26)', () {
