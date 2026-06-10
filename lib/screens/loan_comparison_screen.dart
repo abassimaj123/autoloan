@@ -23,6 +23,7 @@ import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
 import '../features/pdf/pdf_export_service.dart';
+import '../features/history/history_screen.dart';
 
 /// Multi-Loan Comparison — compare 3 loan offers side-by-side.
 /// Premium-gated screen, works for all 3 flavors.
@@ -118,6 +119,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
           'winner': best,
         },
       },
+      onSaved: () { HistoryScreen.refreshNotifier.value++; },
     );
   }
 

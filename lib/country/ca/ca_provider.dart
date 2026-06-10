@@ -7,6 +7,7 @@ import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, ResultHasher, CalcwiseDurations;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
+import '../../features/history/history_screen.dart';
 
 class InsuranceOptions {
   bool lifeDisability = false;
@@ -152,6 +153,7 @@ class CAProvider extends ChangeNotifier {
       'province': provinceCode,
     });
     _history.addAutoSave('ca', _buildData(), hash);
+    HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('ca');
     _ads.onAction();
   }

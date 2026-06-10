@@ -22,6 +22,7 @@ import '../../main.dart' show smartHistoryService;
 import '../../services/analytics_service.dart';
 import '../pdf/pdf_export_service.dart';
 import '../../widgets/save_scenario_button.dart';
+import '../history/history_screen.dart';
 
 class CompareScreen extends StatefulWidget {
   final String flavor; // 'ca', 'uk', 'us'
@@ -103,6 +104,7 @@ class _CompareScreenState extends State<CompareScreen> {
           'totalCostB': _resB!.totalCost,
         },
       },
+      onSaved: () { HistoryScreen.refreshNotifier.value++; },
     );
   }
 

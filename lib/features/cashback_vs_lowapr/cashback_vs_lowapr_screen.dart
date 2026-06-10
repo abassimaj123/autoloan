@@ -20,6 +20,7 @@ import '../../core/freemium/freemium_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
+import '../history/history_screen.dart';
 
 /// Cash-Back vs Low-APR comparator.
 ///
@@ -97,6 +98,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
           'savings': (resA.totalCost - resB.totalCost).abs(),
         },
       },
+      onSaved: () { HistoryScreen.refreshNotifier.value++; },
     );
   }
 

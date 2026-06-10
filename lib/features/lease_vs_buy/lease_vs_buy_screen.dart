@@ -18,6 +18,7 @@ import '../pdf/pdf_export_service.dart';
 import '../../country/ca/ca_provider.dart';
 import '../../country/uk/uk_provider.dart';
 import '../../country/us/us_provider.dart';
+import '../history/history_screen.dart';
 
 class LeaseVsBuyScreen extends StatefulWidget {
   final String flavor; // 'us' | 'ca' | 'uk'
@@ -99,6 +100,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
           'saving': _result!.saving,
         },
       },
+      onSaved: () { HistoryScreen.refreshNotifier.value++; },
     );
   }
 

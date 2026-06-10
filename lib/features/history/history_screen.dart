@@ -22,6 +22,9 @@ class HistoryScreen extends StatefulWidget {
     this.onClear,
   });
 
+  /// Increment to trigger a silent refresh of the history list after auto-save.
+  static final refreshNotifier = ValueNotifier<int>(0);
+
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
@@ -131,6 +134,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     Future.microtask(_load);
+    HistoryScreen.refreshNotifier.addListener(_load);
+  }
+
+  @override
+  void dispose() {
+    HistoryScreen.refreshNotifier.removeListener(_load);
+    super.dispose();
   }
 
   void _load() {

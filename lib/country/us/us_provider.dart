@@ -7,6 +7,7 @@ import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, ResultHasher, CalcwiseDurations;
 import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
+import '../../features/history/history_screen.dart';
 
 class USProvider extends ChangeNotifier {
   final CalcwiseAdService _ads;
@@ -114,6 +115,7 @@ class USProvider extends ChangeNotifier {
       'termMonths': termMonths,
     });
     _history.addAutoSave('us', _buildData(), hash);
+    HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('us');
     _ads.onAction();
   }

@@ -24,6 +24,7 @@ import '../main.dart' show smartHistoryService, paywallSession;
 import '../core/freemium/freemium_service.dart';
 import '../core/freemium/iap_service.dart';
 import '../features/pdf/pdf_export_service.dart';
+import '../features/history/history_screen.dart';
 
 /// Total Cost of Ownership Calculator — premium-gated full screen.
 /// Works for all 3 flavors: CA (CAD, km), UK (GBP, miles), US (USD, miles).
@@ -127,6 +128,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
           'costPerMonth': _result!.costPerMonth,
         },
       },
+      onSaved: () { HistoryScreen.refreshNotifier.value++; },
     );
   }
 
