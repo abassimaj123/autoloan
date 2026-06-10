@@ -477,22 +477,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
         ],
       ),
-      body: _all.isEmpty
-          ? CalcwiseEmptyState(
-              icon: Icons.history_rounded,
-              title: l10n.noHistory,
-              body: 'Your saved calculations will appear here.',
-            )
-          : _buildListView(
-              context,
-              l10n,
-              adService,
-              history,
-              pinned,
-              shownAutoSaves,
-              locked,
-              hasFull,
-            ),
+      body: CalcwisePageEntrance(
+        child: _all.isEmpty
+            ? CalcwiseEmptyState(
+                icon: Icons.history_rounded,
+                title: l10n.noHistory,
+                body: 'Your saved calculations will appear here.',
+              )
+            : _buildListView(
+                context,
+                l10n,
+                adService,
+                history,
+                pinned,
+                shownAutoSaves,
+                locked,
+                hasFull,
+              ),
+      ),
     );
   }
 

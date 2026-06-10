@@ -323,7 +323,8 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
             ),
         ],
       ),
-      body: Column(
+      body: CalcwisePageEntrance(
+        child: Column(
         children: [
           Expanded(
             child: ListView(
@@ -474,6 +475,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
           ),
           const CalcwiseAdFooter(),
         ],
+        ),
       ),
     );
   }

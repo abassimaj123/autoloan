@@ -321,7 +321,8 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
             ),
         ],
       ),
-      body: Column(
+      body: CalcwisePageEntrance(
+        child: Column(
         children: [
           Expanded(
             child: ListView(
@@ -412,6 +413,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
           ),
           const CalcwiseAdFooter(),
         ],
+        ),
       ),
     );
   }

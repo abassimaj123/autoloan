@@ -479,11 +479,13 @@ class _CompareScreenState extends State<CompareScreen> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(child: listView),
-          const CalcwiseAdFooter(),
-        ],
+      body: CalcwisePageEntrance(
+        child: Column(
+          children: [
+            Expanded(child: listView),
+            const CalcwiseAdFooter(),
+          ],
+        ),
       ),
     );
   }

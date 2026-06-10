@@ -311,7 +311,8 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
             ),
         ],
       ),
-      body: SafeArea(
+      body: CalcwisePageEntrance(
+        child: SafeArea(
         top: false,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -500,6 +501,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

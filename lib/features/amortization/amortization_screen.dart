@@ -10,7 +10,7 @@ import '../../main.dart' show smartHistoryService;
 import '../../services/analytics_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens,
-        ResultHasher;
+        ResultHasher, CalcwisePageEntrance;
 import '../../core/freemium/freemium_service.dart';
 import '../pdf/pdf_export_service.dart';
 
@@ -363,7 +363,8 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
           ),
         ),
         bottomNavigationBar: const CalcwiseAdFooter(),
-        body: TabBarView(
+        body: CalcwisePageEntrance(
+          child: TabBarView(
           children: [
             // ── Tab 1: Amortization Table ──────────────────────────────
             Column(
@@ -506,6 +507,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
               isBiWeekly: isBiWeekly,
             ),
           ],
+        ),
         ),
       ),
     );
