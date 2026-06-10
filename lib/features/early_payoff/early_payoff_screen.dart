@@ -151,13 +151,8 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.xxxl,
-              ),
+            child: CalcwiseScreenScaffold(
+              resultKey: ValueKey(result.hashCode),
               children: [
                 // ── Loan summary ────────────────────────────────────────────
                 SectionCard(

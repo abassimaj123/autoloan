@@ -226,8 +226,8 @@ class HistoryDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+          body: CalcwiseScreenScaffold(
+            resultKey: ValueKey(entry.hashCode),
             children: [
               // ── Date ──────────────────────────────────────────────────
               if (ts != null)
