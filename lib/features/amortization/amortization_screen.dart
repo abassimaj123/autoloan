@@ -10,7 +10,7 @@ import '../../main.dart' show smartHistoryService;
 import '../../services/analytics_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens,
-        ResultHasher, CalcwisePageEntrance;
+        ResultHasher, CalcwisePageEntrance, CalcwiseChartReveal;
 import '../../core/freemium/freemium_service.dart';
 import '../pdf/pdf_export_service.dart';
 
@@ -679,7 +679,9 @@ class _PayoffChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: Semantics(
+            child: CalcwiseChartReveal(
+              axis: Axis.horizontal,
+              child: Semantics(
               label:
                   'Line chart showing remaining loan balance over ${rows.length} ${isBiWeekly ? "bi-weekly periods" : "months"}. '
                   'Starting balance: ${NumberFormat.currency(symbol: currencySymbol, decimalDigits: 0).format(maxBalance)}. '
@@ -771,6 +773,7 @@ class _PayoffChart extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
             ),
           ),
         ],

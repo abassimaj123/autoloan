@@ -907,12 +907,18 @@ class _UKResults extends StatelessWidget {
               ? 'HP ${paymentLabelFor(l10n, p.frequency)}'
               : paymentLabelFor(l10n, p.frequency),
           value: AmountFormatter.ui(r.displayPayment, 'GBP'),
+          rawValue: r.displayPayment,
+          valueFormatter: (v) => AmountFormatter.ui(v, 'GBP'),
           secondary: p.financingType == UKFinancingType.hp
               ? 'Hire Purchase — you own the car at end'
               : 'Principal & Interest',
           stats: [
             (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'GBP')),
             (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'GBP')),
+          ],
+          rawStats: [
+            (label: l10n.totalInterest, value: r.totalInterest, formatter: (v) => AmountFormatter.ui(v, 'GBP')),
+            (label: l10n.totalCost, value: r.totalCost, formatter: (v) => AmountFormatter.ui(v, 'GBP')),
           ],
         ),
         if (!p.frequency.isMonthly)

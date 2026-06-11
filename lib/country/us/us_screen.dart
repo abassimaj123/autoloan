@@ -695,10 +695,16 @@ class _USResults extends StatelessWidget {
         CalcwiseHeroCard(
           label: paymentLabelFor(l10n, p.frequency),
           value: AmountFormatter.ui(r.displayPayment, 'USD'),
+          rawValue: r.displayPayment,
+          valueFormatter: (v) => AmountFormatter.ui(v, 'USD'),
           secondary: 'Principal & Interest',
           stats: [
             (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'USD')),
             (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'USD')),
+          ],
+          rawStats: [
+            (label: l10n.totalInterest, value: r.totalInterest, formatter: (v) => AmountFormatter.ui(v, 'USD')),
+            (label: l10n.totalCost, value: r.totalCost, formatter: (v) => AmountFormatter.ui(v, 'USD')),
           ],
         ),
         if (!p.frequency.isMonthly)
