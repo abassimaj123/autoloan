@@ -169,28 +169,42 @@ class _USScreenState extends State<USScreen> {
       body: Column(
         children: [
           Expanded(
-            child: IndexedStack(
-              index: _selectedTab,
-              children: [
-                // Tab 0: Calculator
-                _USCalculatorTab(
-                  validated: _validated,
-                  onCalculate: _debouncedCalculate,
-                  adService: adService,
-                  rateAdjLabel: _rateAdjLabel,
-                ),
-                // Tab 1: Compare
-                CompareScreen(flavor: 'us', showAppBar: false),
-                // Tab 2: Lease vs Buy
-                const LeaseVsBuyScreen(flavor: 'us', showAppBar: false),
-                // Tab 3: History (always last)
-                HistoryScreen(
-                  key: ValueKey(_historyRefreshKey),
-                  country: 'us',
-                  showAppBar: false,
-                  onClear: () => setState(() => _historyRefreshKey++),
-                ),
-              ],
+            child: Builder(
+              builder: (context) {
+                final pages = <Widget>[
+                  // Tab 0: Calculator
+                  _USCalculatorTab(
+                    validated: _validated,
+                    onCalculate: _debouncedCalculate,
+                    adService: adService,
+                    rateAdjLabel: _rateAdjLabel,
+                  ),
+                  // Tab 1: Compare
+                  CompareScreen(flavor: 'us', showAppBar: false),
+                  // Tab 2: Lease vs Buy
+                  const LeaseVsBuyScreen(flavor: 'us', showAppBar: false),
+                  // Tab 3: History (always last)
+                  HistoryScreen(
+                    key: ValueKey(_historyRefreshKey),
+                    country: 'us',
+                    showAppBar: false,
+                    onClear: () => setState(() => _historyRefreshKey++),
+                  ),
+                ];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: List.generate(
+                    pages.length,
+                    (i) => IgnorePointer(
+                      ignoring: _selectedTab != i,
+                      child: CalcwiseTabReveal(
+                        active: _selectedTab == i,
+                        child: pages[i],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const CalcwiseAdFooter(),

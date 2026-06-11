@@ -170,27 +170,41 @@ class _CAScreenState extends State<CAScreen> {
       body: Column(
         children: [
           Expanded(
-            child: IndexedStack(
-              index: _selectedTab,
-              children: [
-                // Tab 0: Calculator
-                _CACalculatorTab(
-                  validated: _validated,
-                  onCalculate: _debouncedCalculate,
-                  adService: adService,
-                ),
-                // Tab 1: Compare
-                CompareScreen(flavor: 'ca', showAppBar: false),
-                // Tab 2: Lease vs Buy
-                const LeaseVsBuyScreen(flavor: 'ca', showAppBar: false),
-                // Tab 3: History
-                HistoryScreen(
-                  key: ValueKey(_historyRefreshKey),
-                  country: 'ca',
-                  showAppBar: false,
-                  onClear: () => setState(() => _historyRefreshKey++),
-                ),
-              ],
+            child: Builder(
+              builder: (context) {
+                final pages = <Widget>[
+                  // Tab 0: Calculator
+                  _CACalculatorTab(
+                    validated: _validated,
+                    onCalculate: _debouncedCalculate,
+                    adService: adService,
+                  ),
+                  // Tab 1: Compare
+                  CompareScreen(flavor: 'ca', showAppBar: false),
+                  // Tab 2: Lease vs Buy
+                  const LeaseVsBuyScreen(flavor: 'ca', showAppBar: false),
+                  // Tab 3: History
+                  HistoryScreen(
+                    key: ValueKey(_historyRefreshKey),
+                    country: 'ca',
+                    showAppBar: false,
+                    onClear: () => setState(() => _historyRefreshKey++),
+                  ),
+                ];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: List.generate(
+                    pages.length,
+                    (i) => IgnorePointer(
+                      ignoring: _selectedTab != i,
+                      child: CalcwiseTabReveal(
+                        active: _selectedTab == i,
+                        child: pages[i],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const CalcwiseAdFooter(),
