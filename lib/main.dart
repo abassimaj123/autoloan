@@ -119,6 +119,7 @@ void main() async {
     adService: adService,
     freemium: freemiumService,
     onGetPremium: () => IAPService.instance.buy(),
+    analytics: AnalyticsService.instance,
   );
   CalcwiseRewardAdSheet.configure(
     adService: adService,
