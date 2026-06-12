@@ -596,4 +596,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cashBackVsLowApr => 'Reembolso vs Tasa Baja';
+
+  @override
+  String get affordabilityGuide => 'Guía de Asequibilidad';
 }

@@ -1215,6 +1215,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash-Back vs Low-APR'**
   String get cashBackVsLowApr;
+
+  /// No description provided for @affordabilityGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Affordability Guide'**
+  String get affordabilityGuide;
 }
 
 class _AppLocalizationsDelegate

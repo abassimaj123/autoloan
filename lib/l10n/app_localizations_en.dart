@@ -589,4 +589,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashBackVsLowApr => 'Cash-Back vs Low-APR';
+
+  @override
+  String get affordabilityGuide => 'Affordability Guide';
 }

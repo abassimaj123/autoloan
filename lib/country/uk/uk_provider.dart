@@ -129,6 +129,7 @@ class UKProvider extends ChangeNotifier {
       ratePct: annualRate,
       termMonths: termMonths,
     );
+    AnalyticsService.instance.maybeLogFirstCalculate();
     notifyListeners();
   }
 

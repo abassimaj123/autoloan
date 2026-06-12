@@ -132,6 +132,7 @@ class CAProvider extends ChangeNotifier {
       ratePct: annualRate,
       termMonths: termMonths,
     );
+    AnalyticsService.instance.maybeLogFirstCalculate();
     notifyListeners();
   }
 
@@ -155,7 +156,7 @@ class CAProvider extends ChangeNotifier {
     _history.addAutoSave('ca', _buildData(), hash);
     HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('ca');
-    _ads.onAction();
+    _ads.onSave();
   }
 
   /// Immediately pin the current result as a named scenario.
@@ -170,7 +171,7 @@ class CAProvider extends ChangeNotifier {
     });
     await _history.saveScenario('ca', _buildData(), hash, label: label);
     AnalyticsService.instance.logHistorySaved('ca');
-    _ads.onAction();
+    _ads.onSave();
     notifyListeners();
   }
 

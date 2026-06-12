@@ -9,6 +9,9 @@ build/
 *.iml
 *.log
 
+# AdMob production IDs (dart-define-from-file)
+admob.json
+
 # Android secrets
 local.properties
 android/local.properties

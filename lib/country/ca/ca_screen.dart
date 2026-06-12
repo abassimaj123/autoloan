@@ -1072,7 +1072,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
     final r = widget.p.result;
 
     return SectionCard(
-      title: 'Lease vs Buy Comparison',
+      title: AppLocalizations.of(context)!.leaseVsBuy,
       children: [
         Row(
           children: [
@@ -1531,7 +1531,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
     final termYears = r.termMonths ~/ 12;
 
     return SectionCard(
-      title: 'Total Cost of Ownership',
+      title: AppLocalizations.of(context)!.totalCostOfOwnership,
       children: [
         Row(
           children: [
@@ -1735,7 +1735,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: 'Trade-In Value Calculator',
+      title: AppLocalizations.of(context)!.tradeInValue,
       children: [
         Row(
           children: [
@@ -1892,7 +1892,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
     }
 
     return SectionCard(
-      title: 'Affordability Guide',
+      title: AppLocalizations.of(context)!.affordabilityGuide,
       children: [
         Row(
           children: [

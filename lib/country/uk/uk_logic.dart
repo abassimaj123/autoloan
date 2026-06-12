@@ -42,9 +42,9 @@ double co2FirstYearVed(double co2GPerKm) {
   return 5490.0; // Over 255 g/km
 }
 
-/// Standard rate for year 2+ — £10 for EVs, £190 for everyone else
+/// Standard rate for year 2+ — £10 for EVs (first year only, then £195), £195 for everyone else (2025/26)
 double co2StandardRateVed(double co2GPerKm) {
-  return co2GPerKm <= 0 ? 10.0 : 190.0;
+  return co2GPerKm <= 0 ? 195.0 : 195.0;
 }
 
 /// Public alias for use from provider
@@ -70,13 +70,13 @@ extension VehicleTypeExt on VehicleType {
       case VehicleType.petrolLarge:
         return 'Petrol > 1000cc (£360/yr)';
       case VehicleType.electric:
-        return 'Electric (£10/yr)'; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
+        return 'Electric (£195/yr)'; // EV: £10 first year only; £195/yr from year 2 (DVLA 2025/26)
       case VehicleType.diesel:
-        return 'Diesel RDE2 (£190/yr)';
+        return 'Diesel RDE2 (£195/yr)';
       case VehicleType.dieselSurcharge:
         return 'Diesel non-RDE2 (£630/yr)';
       case VehicleType.hybrid:
-        return 'Hybrid (£190/yr)';
+        return 'Hybrid (£195/yr)';
       case VehicleType.custom:
         return 'Custom VED rate';
     }
@@ -90,13 +90,13 @@ extension VehicleTypeExt on VehicleType {
       case VehicleType.petrolLarge:
         return 360.0;
       case VehicleType.electric:
-        return 10.0; // EV: £10/an depuis avril 2025 (DVLA 2025/26 rates)
+        return 195.0; // EV: £195/yr from year 2 onwards (DVLA 2025/26 — £10 first year via co2FirstYearVed)
       case VehicleType.diesel:
-        return 190.0; // Standard 2024 rate (RDE2-compliant)
+        return 195.0; // Standard rate 2025/26 (RDE2-compliant)
       case VehicleType.dieselSurcharge:
         return 630.0; // Surcharge for non-RDE2 diesel (DVLA 2025/26)
       case VehicleType.hybrid:
-        return 190.0;
+        return 195.0;
       case VehicleType.custom:
         return 0.0; // Rate supplied via customVedAnnual param
     }

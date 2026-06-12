@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import 'freemium_service.dart';
+import '../../services/analytics_service.dart';
 
 // Re-export the iapErrorNotifier from library for backward compatibility
 export 'package:calcwise_core/services/iap_service.dart' show iapErrorNotifier;
@@ -23,7 +24,7 @@ class IAPService {
     _iap = CalcwiseIAP(
       productId: productId,
       freemium: freemiumService,
-      analytics: CalcwiseAnalytics(appName: 'auto_loan'),
+      analytics: AnalyticsService.instance,
       onPurchaseCompleted: () =>
           CalcwiseReviewService.instance.requestAfterPurchase(),
     );

@@ -95,6 +95,7 @@ class USProvider extends ChangeNotifier {
       ratePct: annualRate,
       termMonths: termMonths,
     );
+    AnalyticsService.instance.maybeLogFirstCalculate();
     notifyListeners();
   }
 
