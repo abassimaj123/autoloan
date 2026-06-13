@@ -227,13 +227,15 @@ void main() {
 
     testVed(VehicleType.petrolSmall, 210.0); // £210/yr → £17.50/mo (DVLA 2025/26)
     testVed(VehicleType.petrolLarge, 360.0); // £360/yr → £30.00/mo (DVLA 2025/26)
-    testVed(VehicleType.electric, 10.0); // £10/yr → £0.83/mo (DVLA avril 2025)
+    // EV standard (year 2+) rate is £195/yr in 2025/26; £10 is first-year only.
+    // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
+    testVed(VehicleType.electric, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26)
     testVed(
       VehicleType.diesel,
-      190.0,
-    ); // Standard 2024 RDE2 diesel (BUG #2 corrigé)
+      195.0,
+    ); // Standard rate 2025/26 RDE2-compliant diesel
     testVed(VehicleType.dieselSurcharge, 630.0); // Non-RDE2 diesel surcharge (DVLA 2025/26)
-    testVed(VehicleType.hybrid, 190.0); // Hybrid = same as standard diesel 2024
+    testVed(VehicleType.hybrid, 195.0); // Hybrid = standard rate 2025/26 (AFV discount removed)
 
     test('[UK-3-custom] Custom VED : rate fourni via customVedAnnual', () {
       const customRate = 350.0;
@@ -277,7 +279,9 @@ void main() {
       },
     );
 
-    test('[UK-3-elect] Électrique : VED = £10/an (DVLA avril 2025)', () {
+    test('[UK-3-elect] Électrique : VED standard = £195/an (DVLA 2025/26)', () {
+      // £10 first-year rate only; ongoing standard rate (year 2+) is £195/yr.
+      // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
         downPayment: 5000,
@@ -286,12 +290,12 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.electric,
       );
-      expect(r.vedMonthly, closeTo(10.0 / 12, 0.01), reason: '[UK-3-elect] £10/12 = £0.83/mo');
-      expect(r.vedTotal, closeTo(10.0 * 5, 0.01), reason: '[UK-3-elect] £10 × 5 ans = £50 total');
+      expect(r.vedMonthly, closeTo(195.0 / 12, 0.01), reason: '[UK-3-elect] £195/12 = £16.25/mo');
+      expect(r.vedTotal, closeTo(195.0 * 5, 0.01), reason: '[UK-3-elect] £195 × 5 ans = £975 total');
       expect(
         r.monthlyPayment,
-        closeTo(r.baseLoanPayment + 10.0 / 12, 0.01),
-        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment + vedMonthly (VED=£10/an)',
+        closeTo(r.baseLoanPayment + 195.0 / 12, 0.01),
+        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment + vedMonthly (VED=£195/an)',
       );
     });
   });

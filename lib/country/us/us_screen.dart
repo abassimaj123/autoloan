@@ -1319,9 +1319,11 @@ class _USRefiSectionState extends State<_USRefiSection> {
 
   late final TextEditingController _balanceCtrl;
   late final TextEditingController _currentRateCtrl;
+  late final TextEditingController _currentPaymentCtrl;
   late final TextEditingController _moRemainingCtrl;
   late final TextEditingController _newRateCtrl;
   late final TextEditingController _newTermCtrl;
+  late final TextEditingController _feesCtrl;
 
   USRefiCalculation? _refi;
 
@@ -1335,31 +1337,56 @@ class _USRefiSectionState extends State<_USRefiSection> {
     _currentRateCtrl = TextEditingController(
       text: r.effectiveRate.toStringAsFixed(2),
     );
+    _currentPaymentCtrl = TextEditingController(
+      text: r.monthlyPayment.toStringAsFixed(0),
+    );
     _moRemainingCtrl = TextEditingController(text: r.termMonths.toString());
     _newRateCtrl = TextEditingController(
       text: (r.effectiveRate - 1).clamp(0, 30).toStringAsFixed(2),
     );
     _newTermCtrl = TextEditingController(text: r.termMonths.toString());
+    _feesCtrl = TextEditingController(text: '0');
+
+    // Reactive auto-calc — matches the main calculator's input pattern.
+    for (final c in [
+      _balanceCtrl,
+      _currentRateCtrl,
+      _currentPaymentCtrl,
+      _moRemainingCtrl,
+      _newRateCtrl,
+      _newTermCtrl,
+      _feesCtrl,
+    ]) {
+      c.addListener(_calculate);
+    }
+    _calculate();
   }
 
   @override
   void dispose() {
     _balanceCtrl.dispose();
     _currentRateCtrl.dispose();
+    _currentPaymentCtrl.dispose();
     _moRemainingCtrl.dispose();
     _newRateCtrl.dispose();
     _newTermCtrl.dispose();
+    _feesCtrl.dispose();
     super.dispose();
   }
 
   void _calculate() {
     final balance = double.tryParse(_balanceCtrl.text) ?? 0;
     final currentRate = double.tryParse(_currentRateCtrl.text) ?? 0;
+    final actualPayment = double.tryParse(_currentPaymentCtrl.text) ?? 0;
     final moRemaining = int.tryParse(_moRemainingCtrl.text) ?? 0;
     final newRate = double.tryParse(_newRateCtrl.text) ?? 0;
     final newTerm = int.tryParse(_newTermCtrl.text) ?? 0;
+    final fees = double.tryParse(_feesCtrl.text) ?? 0;
 
-    if (balance <= 0 || moRemaining <= 0 || newTerm <= 0) return;
+    if (balance <= 0 || moRemaining <= 0 || newTerm <= 0) {
+      if (_refi != null) setState(() => _refi = null);
+      return;
+    }
 
     setState(() {
       _refi = USRefiCalculation.calculate(
@@ -1368,6 +1395,8 @@ class _USRefiSectionState extends State<_USRefiSection> {
         currentMonthsRemaining: moRemaining,
         newRate: newRate,
         newTermMonths: newTerm,
+        refiCosts: fees,
+        actualCurrentPayment: actualPayment,
       );
     });
   }
@@ -1400,6 +1429,11 @@ class _USRefiSectionState extends State<_USRefiSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _RefiField(
+            controller: _currentPaymentCtrl,
+            label: 'Current monthly payment (\$)',
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _RefiField(
             controller: _moRemainingCtrl,
             label: 'Months remaining',
             suffix: 'mo',
@@ -1416,17 +1450,10 @@ class _USRefiSectionState extends State<_USRefiSection> {
             label: 'New term (months)',
             suffix: 'mo',
           ),
-          const SizedBox(height: AppSpacing.md),
-          FilledButton.icon(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              _calculate();
-            },
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Calculate Refi'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(44),
-            ),
+          const SizedBox(height: AppSpacing.sm),
+          _RefiField(
+            controller: _feesCtrl,
+            label: 'Refinancing fees (\$)',
           ),
           if (_refi != null) ...[
             const SizedBox(height: AppSpacing.lg),
@@ -1445,12 +1472,12 @@ class _USRefiSectionState extends State<_USRefiSection> {
               isHighlight: _refi!.monthlySavings > 0,
             ),
             ResultTile(
-              label: 'Total interest saved',
+              label: 'Total interest saved (net of fees)',
               value: AmountFormatter.ui(_refi!.totalInterestSavings, 'USD'),
             ),
             if (_refi!.breakevenMonths > 0)
               ResultTile(
-                label: 'Breakeven',
+                label: 'Break-even',
                 value: '${_refi!.breakevenMonths} months',
               ),
             const SizedBox(height: AppSpacing.sm),

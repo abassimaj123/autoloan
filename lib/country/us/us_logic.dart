@@ -238,14 +238,15 @@ class USRefiCalculation {
   final double newRate;
   final int newTermMonths;
 
+  final double refiCosts; // closing / transfer fees on the new loan
   final double currentMonthly;
   final double newMonthly;
   final double monthlySavings;
   final double currentTotalInterest;
   final double newTotalInterest;
-  final double totalInterestSavings;
+  final double totalInterestSavings; // net of refiCosts
   final int breakevenMonths; // months to recoup any refinancing costs
-  final bool isWorthIt; // simple heuristic: saves money before new term ends
+  final bool isWorthIt; // saves money overall once costs are recouped
 
   const USRefiCalculation({
     required this.currentBalance,
@@ -253,6 +254,7 @@ class USRefiCalculation {
     required this.currentMonthsRemaining,
     required this.newRate,
     required this.newTermMonths,
+    required this.refiCosts,
     required this.currentMonthly,
     required this.newMonthly,
     required this.monthlySavings,
@@ -263,6 +265,14 @@ class USRefiCalculation {
     required this.isWorthIt,
   });
 
+  /// Refinance analysis. The amortization payment is computed with the shared
+  /// [calcPmt] helper (same standard formula as [USCalculation]) — no formula
+  /// duplication.
+  ///
+  /// [actualCurrentPayment] lets the user pin their real current payment (the
+  /// number on their statement). When > 0 it overrides the amortization-derived
+  /// payment for the savings comparison; otherwise the payment implied by
+  /// [currentBalance] / [currentRate] / [currentMonthsRemaining] is used.
   static USRefiCalculation calculate({
     required double currentBalance,
     required double currentRate,
@@ -270,6 +280,7 @@ class USRefiCalculation {
     required double newRate,
     required int newTermMonths,
     double refiCosts = 0,
+    double actualCurrentPayment = 0,
   }) {
     double calcPmt(double balance, double annualRate, int n) {
       if (annualRate <= 0) return n > 0 ? balance / n : 0;
@@ -278,11 +289,14 @@ class USRefiCalculation {
       return balance * (r * powN) / (powN - 1);
     }
 
-    final currentMonthly = calcPmt(
+    final derivedCurrentMonthly = calcPmt(
       currentBalance,
       currentRate,
       currentMonthsRemaining,
     );
+    final currentMonthly = actualCurrentPayment > 0
+        ? actualCurrentPayment
+        : derivedCurrentMonthly;
     final newMonthly = calcPmt(currentBalance, newRate, newTermMonths);
     final monthlySavings = currentMonthly - newMonthly;
 
@@ -293,12 +307,18 @@ class USRefiCalculation {
         );
     final newTotalInterest = (newMonthly * newTermMonths - currentBalance)
         .clamp(0.0, double.infinity);
-    final totalInterestSavings = currentTotalInterest - newTotalInterest;
+    // Interest saved, less the cost of refinancing.
+    final totalInterestSavings =
+        currentTotalInterest - newTotalInterest - refiCosts;
 
     final breakevenMonths = monthlySavings > 0 && refiCosts > 0
         ? (refiCosts / monthlySavings).ceil()
         : 0;
-    final isWorthIt = totalInterestSavings > 0 && monthlySavings >= 0;
+    // Worth it when monthly payment drops AND costs are recouped within the
+    // new term (break-even of 0 means there were no costs to recoup).
+    final isWorthIt = monthlySavings > 0 &&
+        totalInterestSavings > 0 &&
+        breakevenMonths <= newTermMonths;
 
     return USRefiCalculation(
       currentBalance: currentBalance,
@@ -306,6 +326,7 @@ class USRefiCalculation {
       currentMonthsRemaining: currentMonthsRemaining,
       newRate: newRate,
       newTermMonths: newTermMonths,
+      refiCosts: refiCosts,
       currentMonthly: currentMonthly,
       newMonthly: newMonthly,
       monthlySavings: monthlySavings,
