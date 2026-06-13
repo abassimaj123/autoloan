@@ -42,6 +42,7 @@
   "history": "Historial",
   "clearHistory": "Borrar historial",
   "noHistory": "Sin cálculos aún.",
+  "historyEmptyBody": "Tus cálculos guardados aparecerán aquí.",
   "amortization": "Tabla de amortización",
   "unlockFull": "Desbloquear resultados completos:",
   "watchAd": "Ver anuncio por 60 min de acceso",

@@ -135,6 +135,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noHistory => 'Sin cálculos aún.';
 
   @override
+  String get historyEmptyBody => 'Tus cálculos guardados aparecerán aquí.';
+
+  @override
   String get amortization => 'Tabla de amortización';
 
   @override

@@ -135,6 +135,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noHistory => 'Aucun calcul pour l\'instant.';
 
   @override
+  String get historyEmptyBody => 'Vos calculs sauvegardés apparaîtront ici.';
+
+  @override
   String get amortization => 'Tableau d\'amortissement';
 
   @override

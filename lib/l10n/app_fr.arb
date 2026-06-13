@@ -42,6 +42,7 @@
   "history": "Historique",
   "clearHistory": "Effacer l'historique",
   "noHistory": "Aucun calcul pour l'instant.",
+  "historyEmptyBody": "Vos calculs sauvegardés apparaîtront ici.",
   "amortization": "Tableau d'amortissement",
   "unlockFull": "Déverrouiller les résultats complets :",
   "watchAd": "Regarder une pub pour 60 min d'accès",

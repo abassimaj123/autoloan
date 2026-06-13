@@ -42,6 +42,7 @@
   "history": "History",
   "clearHistory": "Clear history",
   "noHistory": "No calculations yet.",
+  "historyEmptyBody": "Your saved calculations will appear here.",
   "amortization": "Amortization Schedule",
   "unlockFull": "Unlock full results:",
   "watchAd": "Watch ad for full access (60 min)",

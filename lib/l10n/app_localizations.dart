@@ -352,6 +352,12 @@ abstract class AppLocalizations {
   /// **'No calculations yet.'**
   String get noHistory;
 
+  /// No description provided for @historyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your saved calculations will appear here.'**
+  String get historyEmptyBody;
+
   /// No description provided for @amortization.
   ///
   /// In en, this message translates to:

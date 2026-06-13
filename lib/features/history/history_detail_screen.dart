@@ -246,6 +246,7 @@ class HistoryDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+          bottomNavigationBar: const CalcwiseAdFooter(),
           body: CalcwiseScreenScaffold(
             resultKey: ValueKey(entry.hashCode),
             children: [

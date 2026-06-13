@@ -135,6 +135,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noHistory => 'No calculations yet.';
 
   @override
+  String get historyEmptyBody => 'Your saved calculations will appear here.';
+
+  @override
   String get amortization => 'Amortization Schedule';
 
   @override

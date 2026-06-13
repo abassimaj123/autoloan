@@ -52,7 +52,7 @@ class _USScreenState extends State<USScreen> {
     super.initState();
     _wasPremium = freemiumService.hasFullAccess;
     freemiumService.isPremiumNotifier.addListener(_onPremiumChange);
-    AnalyticsService.instance.logScreenView('calculator');
+    AnalyticsService.instance.logScreenView('us');
     WidgetsBinding.instance.addPostFrameCallback(
       (_) async => await paywallSession.recordSession(),
     );

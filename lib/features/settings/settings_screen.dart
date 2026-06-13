@@ -5,7 +5,8 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseRateAppTile,
         CalcwiseSettingsScaffold,
         CalcwiseSettingsSection,
-        CalcwiseSettingsTile;
+        CalcwiseSettingsTile,
+        showCalcwisePrivacyOptions;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -170,6 +171,11 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.privacy_tip_rounded,
               label: l10n.settingsPrivacy,
               onTap: () => launchUrl(Uri.parse('https://calqwise.com/privacy')),
+            ),
+            CalcwiseSettingsTile(
+              icon: Icons.manage_search_rounded,
+              label: 'Privacy Settings',
+              onTap: showCalcwisePrivacyOptions,
             ),
             const CalcwiseRateAppTile(),
           ],

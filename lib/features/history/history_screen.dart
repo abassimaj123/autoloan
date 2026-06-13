@@ -226,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return CalcwiseEmptyState(
         icon: Icons.history_rounded,
         title: l10n.noHistory,
-        body: 'Your saved calculations will appear here.',
+        body: l10n.historyEmptyBody,
       );
     }
 
@@ -482,7 +482,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ? CalcwiseEmptyState(
                 icon: Icons.history_rounded,
                 title: l10n.noHistory,
-                body: 'Your saved calculations will appear here.',
+                body: l10n.historyEmptyBody,
               )
             : _buildListView(
                 context,
