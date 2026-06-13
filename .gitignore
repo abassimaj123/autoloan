@@ -27,3 +27,6 @@ scripts/node_modules/
 # Firebase
 google-services.json
 GoogleService-Info.plist
+
+# Build debug symbols (binary, not for VCS)
+debug_symbols/
