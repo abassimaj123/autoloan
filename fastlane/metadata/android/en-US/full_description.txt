@@ -1,0 +1,11 @@
+The smartest auto loan calculator available — built for car buyers in the US, Canada, and the UK who want to know their true cost before stepping into a dealership. Calculate your monthly payment, total interest, and full amortization schedule in seconds.
+
+Enter loan amount, interest rate, term, and down payment to get your exact monthly payment. Trade-in value tool deducts your trade-in and factors in any negative equity rolled into the new loan. Sales tax calculator adds state or provincial tax to your purchase price automatically. Total cost of ownership view shows principal, interest, taxes, and fees combined over the life of the loan so you see the real price — not just the sticker price.
+
+Refinance calculator: enter your current loan details and a new rate to see your monthly savings, total interest saved, and break-even point. Know in 10 seconds whether refinancing is worth it. Early payoff calculator shows how extra monthly payments shift your payoff date and reduce total interest — drag a slider from $0 to $500 extra and watch your savings update instantly.
+
+US users: APR vs. interest rate explainer, state-by-state sales tax presets, and dealer fee estimator. Canadian users: GST/PST/HST by province, Canadian lending guidelines. UK users: HP (hire purchase) vs. PCP comparison — see total cost and balloon payment for both structures side by side.
+
+Full bilingual support in English and French (EN+FR). Dark mode, calculation history, and PDF export. Works 100% offline — no account required.
+
+Keywords: auto loan calculator, car payment calculator, car loan calculator, refinance car loan, trade-in calculator, auto loan amortization, PCP calculator UK, HP vs PCP, car payment estimator, total cost of car, APR calculator, 2026 auto loan rates.
