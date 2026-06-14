@@ -90,6 +90,7 @@ class AnalyticsService extends CalcwiseAnalytics {
   Future<void> logEarlyPayoffCalculatedV2() =>
       log('early_payoff_calculated_v2');
   Future<void> logTotalCostCompared() => log('total_cost_compared');
+  Future<void> logRefiCalculatorViewed() => log('refi_calculator_viewed');
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 

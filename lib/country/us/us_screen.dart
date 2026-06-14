@@ -93,6 +93,9 @@ class _USScreenState extends State<USScreen> {
     } else if (i == 2) {
       AnalyticsService.instance.logTabChanged('lease_vs_buy');
     } else if (i == 3) {
+      AnalyticsService.instance.logTabChanged('refi');
+      AnalyticsService.instance.logRefiCalculatorViewed();
+    } else if (i == 4) {
       AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
@@ -106,7 +109,7 @@ class _USScreenState extends State<USScreen> {
     }
     setState(() {
       _selectedTab = i;
-      if (i == 3) _historyRefreshKey++;
+      if (i == 4) _historyRefreshKey++;
     });
   }
 
@@ -159,6 +162,11 @@ class _USScreenState extends State<USScreen> {
             selectedIcon: const Icon(Icons.balance_rounded),
             label: l10n.leaseVsBuy,
           ),
+          const NavigationDestination(
+            icon: Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horiz_rounded),
+            label: 'Refi',
+          ),
           NavigationDestination(
             icon: const Icon(Icons.history_outlined),
             selectedIcon: const Icon(Icons.history_rounded),
@@ -183,7 +191,11 @@ class _USScreenState extends State<USScreen> {
                   CompareScreen(flavor: 'us', showAppBar: false),
                   // Tab 2: Lease vs Buy
                   const LeaseVsBuyScreen(flavor: 'us', showAppBar: false),
-                  // Tab 3: History (always last)
+                  // Tab 3: Refi Calculator (premium)
+                  Consumer<USProvider>(
+                    builder: (context, p, _) => _USRefiTab(p: p),
+                  ),
+                  // Tab 4: History (always last)
                   HistoryScreen(
                     key: ValueKey(_historyRefreshKey),
                     country: 'us',
@@ -332,7 +344,6 @@ class _USCalculatorTab extends StatelessWidget {
                         _USQuickToolsSection(p: p),
                         // ── Extra sections ────────────────────────────────
                         _USLeaseSection(p: p),
-                        if (p.result != null) _USRefiSection(p: p),
                         if (p.result != null) _USTcoSection(p: p),
                         _USAffordabilityReverseSolverSection(p: p),
                         _USAffordabilitySection(p: p),
@@ -1308,14 +1319,17 @@ class _USColumn extends StatelessWidget {
 
 class _USRefiSection extends StatefulWidget {
   final USProvider p;
-  const _USRefiSection({required this.p});
+  /// When true, the section is always expanded (no toggle switch shown).
+  /// Used when the widget is displayed as a dedicated tab.
+  final bool autoExpand;
+  const _USRefiSection({required this.p, this.autoExpand = false});
 
   @override
   State<_USRefiSection> createState() => _USRefiSectionState();
 }
 
 class _USRefiSectionState extends State<_USRefiSection> {
-  bool _expanded = false;
+  late bool _expanded;
 
   late final TextEditingController _balanceCtrl;
   late final TextEditingController _currentRateCtrl;
@@ -1330,6 +1344,7 @@ class _USRefiSectionState extends State<_USRefiSection> {
   @override
   void initState() {
     super.initState();
+    _expanded = widget.autoExpand;
     final r = widget.p.result!;
     _balanceCtrl = TextEditingController(
       text: r.financedAmount.toStringAsFixed(0),
@@ -1406,15 +1421,16 @@ class _USRefiSectionState extends State<_USRefiSection> {
     return SectionCard(
       title: 'Refi Calculator',
       children: [
-        Row(
-          children: [
-            Switch(
-              value: _expanded,
-              onChanged: (v) => setState(() => _expanded = v),
-            ),
-            const Expanded(child: Text('Show Refinancing Calculator')),
-          ],
-        ),
+        if (!widget.autoExpand)
+          Row(
+            children: [
+              Switch(
+                value: _expanded,
+                onChanged: (v) => setState(() => _expanded = v),
+              ),
+              const Expanded(child: Text('Show Refinancing Calculator')),
+            ],
+          ),
         if (_expanded) ...[
           const SizedBox(height: AppSpacing.md),
           _RefiField(
@@ -1541,6 +1557,88 @@ class _RefiField extends StatelessWidget {
         border: const OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       ),
+    );
+  }
+}
+
+// ── US Refi Tab (premium-gated full-screen tab) ────────────────────────────────
+
+/// Wraps [_USRefiSection] as a standalone tab. Non-premium users see a
+/// [CalcwisePremiumGate] teaser; premium / rewarded users get the full
+/// refinancing calculator.
+class _USRefiTab extends StatelessWidget {
+  final USProvider p;
+  const _USRefiTab({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        freemiumService.hasFullAccessNotifier,
+        freemiumService.isRewardedNotifier,
+      ]),
+      builder: (context, _) {
+        final hasFull =
+            freemiumService.hasFullAccess || freemiumService.isRewarded;
+        return SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: AppSpacing.md,
+                          bottom: AppSpacing.sm,
+                        ),
+                        child: Text(
+                          isSpanish
+                              ? 'Calculadora de Refinanciamiento'
+                              : 'Refinancing Calculator',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (!hasFull)
+                        CalcwisePremiumGate(
+                          title: isSpanish
+                              ? 'Calculadora de Refinanciamiento'
+                              : 'Refinancing Calculator',
+                          description: isSpanish
+                              ? '¿Vale la pena refinanciar? Compara tu préstamo actual con una nueva oferta y calcula cuándo recuperas los costos.'
+                              : 'Is refinancing worth it? Compare your current loan against a new offer and find your break-even point.',
+                          price: IAPService.instance.localizedPrice,
+                          onUnlock: () => PaywallSoft.show(context),
+                        )
+                      else if (p.result != null)
+                        _USRefiSection(p: p, autoExpand: true)
+                      else
+                        CalcwiseEmptyState(
+                          icon: Icons.swap_horiz_rounded,
+                          title: isSpanish
+                              ? 'Sin préstamo activo'
+                              : 'No active loan',
+                          body: isSpanish
+                              ? 'Calcula un préstamo en la pestaña Calcular primero.'
+                              : 'Calculate a loan on the Calculate tab first.',
+                        ),
+                      const SizedBox(height: AppSpacing.listBottomInset),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
