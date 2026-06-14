@@ -26,7 +26,9 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdConfig,
         requestCalcwiseConsent,
         CalcwiseAdFooter,
-        CalcwiseRewardAdSheet;
+        CalcwiseRewardAdSheet,
+        CalcwiseTax,
+        calcwiseTaxRemoteFetch;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
@@ -65,6 +67,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await CalcwiseTax.init(remoteFetcher: calcwiseTaxRemoteFetch);
   await CrashlyticsService.init();
 
   // 1. GDPR / PIPEDA consent (UK + CA require it; UMP handles region detection)
