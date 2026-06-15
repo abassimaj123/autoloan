@@ -1241,28 +1241,31 @@ class _UKPcpHpSection extends StatelessWidget {
     return SectionCard(
       title: 'PCP vs HP Comparison',
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _UKCompareCol(
-                label: 'PCP',
-                monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
-                total: AmountFormatter.ui(pcpTotal, 'GBP'),
-                footnote: 'incl. ${AmountFormatter.formatInteger(r.gmfvAmount)} balloon',
-                highlight: pcpSavesPerMo > 0,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _UKCompareCol(
+                  label: 'PCP',
+                  monthly: AmountFormatter.ui(pcpMonthly, 'GBP'),
+                  total: AmountFormatter.ui(pcpTotal, 'GBP'),
+                  footnote: 'incl. ${AmountFormatter.formatInteger(r.gmfvAmount)} balloon',
+                  highlight: pcpSavesPerMo > 0,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _UKCompareCol(
-                label: 'HP',
-                monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
-                total: AmountFormatter.ui(hpTotal, 'GBP'),
-                footnote: 'full ownership',
-                highlight: pcpSavesPerMo <= 0,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _UKCompareCol(
+                  label: 'HP',
+                  monthly: AmountFormatter.ui(hpMonthly, 'GBP'),
+                  total: AmountFormatter.ui(hpTotal, 'GBP'),
+                  footnote: 'full ownership',
+                  highlight: pcpSavesPerMo <= 0,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         Container(
@@ -1778,8 +1781,10 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
           ),
           const SizedBox(height: AppSpacing.md),
           // Side-by-side cards
-          Row(
-            children: [
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Expanded(
                 child: _UKFinanceCol(
                   label: 'HP',
@@ -1802,6 +1807,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
                 ),
               ),
             ],
+            ),
           ),
           const SizedBox(height: 10),
           // Verdict banner

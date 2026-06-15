@@ -1360,27 +1360,30 @@ class _ComparisonCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _ComparisonColumn(
-                label: 'Lease ($leaseTermMonths mo)',
-                monthly: AmountFormatter.ui(lease.monthlyLease, 'CAD'),
-                total: AmountFormatter.ui(lease.totalLeaseCost, 'CAD'),
-                highlight: leaseWins,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _ComparisonColumn(
+                  label: 'Lease ($leaseTermMonths mo)',
+                  monthly: AmountFormatter.ui(lease.monthlyLease, 'CAD'),
+                  total: AmountFormatter.ui(lease.totalLeaseCost, 'CAD'),
+                  highlight: leaseWins,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _ComparisonColumn(
-                label: 'Buy ($buyTermMonths mo)',
-                monthly: AmountFormatter.ui(buyMonthly, 'CAD'),
-                total: AmountFormatter.ui(buyTotalOverLeaseTerm, 'CAD'),
-                highlight: !leaseWins,
-                footnote: 'over $leaseTermMonths mo',
+              const SizedBox(width: 8),
+              Expanded(
+                child: _ComparisonColumn(
+                  label: 'Buy ($buyTermMonths mo)',
+                  monthly: AmountFormatter.ui(buyMonthly, 'CAD'),
+                  total: AmountFormatter.ui(buyTotalOverLeaseTerm, 'CAD'),
+                  highlight: !leaseWins,
+                  footnote: 'over $leaseTermMonths mo',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         Container(
