@@ -70,8 +70,10 @@ class _USScreenState extends State<USScreen> {
     final now = freemiumService.hasFullAccess;
     if (now && !_wasPremium && mounted) {
       showPremiumWelcomeSnackBar(context);
+      try { AnalyticsService.instance.logPaywallConverted('iap'); } catch (_) {}
     }
     _wasPremium = now;
+    unawaited(AnalyticsService.instance.setUserPremium(now));
   }
 
   void _debouncedCalculate() {

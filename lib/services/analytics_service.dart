@@ -92,6 +92,9 @@ class AnalyticsService extends CalcwiseAnalytics {
   Future<void> logTotalCostCompared() => log('total_cost_compared');
   Future<void> logRefiCalculatorViewed() => log('refi_calculator_viewed');
 
+  Future<void> logPaywallConverted(String source) =>
+      log('paywall_converted', {'source': source});
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   String _priceBucket(double price) {

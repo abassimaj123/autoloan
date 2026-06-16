@@ -534,8 +534,7 @@ class _LoanInputCard extends StatelessWidget {
                           const TextInputType.numberWithOptions(decimal: true),
                       textInputAction: TextInputAction.next,
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9.,]')),
+                        CurrencyInputFormatter(locale: isUk ? 'en_GB' : 'en_US'),
                       ],
                       decoration: InputDecoration(
                         labelText: isUk
