@@ -3,14 +3,16 @@ import 'dart:ui' show FontFeature;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/save_scenario_button.dart';
-import '../../main.dart' show smartHistoryService;
+import '../../main.dart' show smartHistoryService, paywallSession;
 import '../../services/analytics_service.dart';
+import '../history/history_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdFooter, AppSpacing, AppRadius, CalcwiseChartTokens,
-        ResultHasher, CalcwisePageEntrance, CalcwiseChartReveal;
+    show CalcwiseAdFooter, CalcwiseAdService, AppSpacing, AppRadius,
+        CalcwiseChartTokens, ResultHasher, CalcwisePageEntrance, CalcwiseChartReveal;
 import '../../core/freemium/freemium_service.dart';
 import '../pdf/pdf_export_service.dart';
 
@@ -130,6 +132,8 @@ class AmortizationScreen extends StatefulWidget {
 }
 
 class _AmortizationScreenState extends State<AmortizationScreen> {
+  late CalcwiseAdService _adService;
+
   // Expose widget fields for concise access
   double get loanAmount => widget.loanAmount;
   double get annualRate => widget.annualRate;
@@ -140,6 +144,12 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
   String get currencySymbol => widget.currencySymbol;
   bool get isBiWeekly => widget.isBiWeekly;
   String? get title => widget.title;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
+  }
 
   @override
   void initState() {
@@ -295,6 +305,11 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
       },
       label: label,
     );
+    HistoryScreen.refreshNotifier.value++;
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
   }
 
   @override

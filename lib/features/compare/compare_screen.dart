@@ -18,7 +18,7 @@ import 'package:calcwise_core/calcwise_core.dart'
         ComparisonScenario,
         ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
-import '../../main.dart' show smartHistoryService;
+import '../../main.dart' show smartHistoryService, paywallSession;
 import '../../services/analytics_service.dart';
 import '../pdf/pdf_export_service.dart';
 import '../../widgets/save_scenario_button.dart';
@@ -38,6 +38,8 @@ class CompareScreen extends StatefulWidget {
 }
 
 class _CompareScreenState extends State<CompareScreen> {
+  late CalcwiseAdService _adService;
+
   // ── Shared inputs ──────────────────────────────────────────────────────────
   double vehiclePrice = 30000;
   double downPayment = 5000;
@@ -152,6 +154,10 @@ class _CompareScreenState extends State<CompareScreen> {
       },
       label: label,
     );
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
   }
 
   Future<void> _exportPdf(BuildContext context) async {
@@ -198,6 +204,12 @@ class _CompareScreenState extends State<CompareScreen> {
       _resB = _LoanResult.compute(loanAmount, rateB, termB, isBiWeekly);
     });
     _scheduleAutoSave();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
   }
 
   @override

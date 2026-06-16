@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/save_scenario_button.dart';
 import '../../services/analytics_service.dart';
-import '../../main.dart' show smartHistoryService;
+import '../../main.dart' show smartHistoryService, paywallSession;
+import '../history/history_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
@@ -35,6 +37,7 @@ class EarlyPayoffScreen extends StatefulWidget {
 }
 
 class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
+  late CalcwiseAdService _adService;
   double _extraMonthly = 100;
 
   static double _roundTo(double v, double step) => (v / step).round() * step;
@@ -74,6 +77,17 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
       },
       label: label,
     );
+    HistoryScreen.refreshNotifier.value++;
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
   }
 
   @override

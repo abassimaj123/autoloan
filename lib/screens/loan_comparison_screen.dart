@@ -37,6 +37,8 @@ class LoanComparisonScreen extends StatefulWidget {
 }
 
 class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
+  late CalcwiseAdService _adService;
+
   // ── Loan 1 ─────────────────────────────────────────────────────────────────
   double _amount1 = 25000;
   double _rate1 = 5.9;
@@ -174,6 +176,10 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
       },
       label: label,
     );
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
   }
 
   Future<void> _checkPaywall() async {
@@ -240,6 +246,12 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
         ),
       );
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
   }
 
   @override

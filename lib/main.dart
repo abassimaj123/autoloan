@@ -37,7 +37,7 @@ import 'services/analytics_service.dart';
 import 'core/config/ad_config.dart';
 import 'core/locale_notifier.dart';
 import 'core/freemium/freemium_service.dart';
-import 'core/freemium/iap_service.dart' show IAPService, iapErrorNotifier;
+import 'core/freemium/iap_service.dart' show IAPService, iapErrorNotifier, iapRestoreResultNotifier;
 import 'core/theme/theme_ca.dart';
 import 'core/theme/theme_uk.dart';
 import 'core/theme/theme_us.dart';
@@ -90,6 +90,9 @@ void main() async {
     analytics: AnalyticsService.instance,
   );
   await adService.initialize();
+  unawaited(MobileAds.instance.updateRequestConfiguration(
+    RequestConfiguration(testDeviceIds: ['FD16D4616C3A21C3ACE5E48F8DC9C1DC']),
+  ));
 
   // 3. App data
   final prefs = await SharedPreferences.getInstance();
@@ -299,11 +302,15 @@ class _IapErrorWrapperState extends State<_IapErrorWrapper> {
   void initState() {
     super.initState();
     iapErrorNotifier.addListener(_onIapError);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      iapRestoreResultNotifier.addListener(_onRestoreResult);
+    });
   }
 
   @override
   void dispose() {
     iapErrorNotifier.removeListener(_onIapError);
+    iapRestoreResultNotifier.removeListener(_onRestoreResult);
     super.dispose();
   }
 
@@ -314,6 +321,21 @@ class _IapErrorWrapperState extends State<_IapErrorWrapper> {
       SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
     );
     iapErrorNotifier.value = null;
+  }
+
+  void _onRestoreResult() {
+    final result = iapRestoreResultNotifier.value;
+    if (result == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final msg = result == 'restored'
+          ? 'Premium restored!'
+          : 'No purchases to restore.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+      );
+      iapRestoreResultNotifier.value = null;
+    });
   }
 
   @override

@@ -34,6 +34,8 @@ class LeaseVsBuyScreen extends StatefulWidget {
 }
 
 class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
+  late CalcwiseAdService _adService;
+
   // ── Buy inputs ─────────────────────────────────────────────────────────────
   double _msrp = 35000;
   double _buyDown = 5000;
@@ -148,8 +150,18 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       },
       label: label,
     );
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
   }
   String get _distLabel => widget.flavor == 'ca' ? 'km' : 'miles';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
+  }
 
   @override
   void initState() {

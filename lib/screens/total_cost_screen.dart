@@ -54,6 +54,8 @@ class TotalCostScreen extends StatefulWidget {
 }
 
 class _TotalCostScreenState extends State<TotalCostScreen> {
+  late CalcwiseAdService _adService;
+
   // ── Inputs ─────────────────────────────────────────────────────────────────
   late double _vehiclePrice;
   late double _monthlyPayment;
@@ -175,6 +177,10 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
       },
       label: label,
     );
+    try { AnalyticsService.instance.logSave(); } catch (_) {}
+    try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
+    _adService.onSave();
+    paywallSession.recordAction().ignore();
   }
 
   Future<void> _checkPaywall() async {
@@ -242,6 +248,12 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
         ),
       );
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _adService = context.read<CalcwiseAdService>();
   }
 
   @override
