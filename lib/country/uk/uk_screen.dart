@@ -247,21 +247,9 @@ class _UKCalculatorTab extends StatelessWidget {
                         // ── Hero result ───────────────────────────────────
                         if (p.result != null)
                           CalcwisePageEntrance(
-                            child: Column(
-                              children: [
-                                CalcwiseStaggerItem(
-                                  index: 0,
-                                  child: _UKResults(p: p, adService: adService),
-                                ),
-                                CalcwiseStaggerItem(
-                                  index: 1,
-                                  child: SaveScenarioButton(
-                                    onSave: (label) => context
-                                        .read<UKProvider>()
-                                        .saveScenario(label: label),
-                                  ),
-                                ),
-                              ],
+                            child: CalcwiseStaggerItem(
+                              index: 0,
+                              child: _UKResults(p: p, adService: adService),
                             ),
                           )
                         else
@@ -315,6 +303,15 @@ class _UKCalculatorTab extends StatelessWidget {
                         if (p.result != null) _UKTcoSection(p: p),
                         if (p.result != null) _UKHpVsPcpSection(p: p),
                         _UKAffordabilitySection(p: p),
+                        // ── Bottom action bar (Save) ──────────────────────
+                        if (p.result != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          SaveScenarioButton(
+                            onSave: (label) => context
+                                .read<UKProvider>()
+                                .saveScenario(label: label),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),

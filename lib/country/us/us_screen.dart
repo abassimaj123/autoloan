@@ -270,21 +270,9 @@ class _USCalculatorTab extends StatelessWidget {
                         // ── Hero result ───────────────────────────────────
                         if (p.result != null)
                           CalcwisePageEntrance(
-                            child: Column(
-                              children: [
-                                CalcwiseStaggerItem(
-                                  index: 0,
-                                  child: _USResults(p: p, adService: adService),
-                                ),
-                                CalcwiseStaggerItem(
-                                  index: 1,
-                                  child: SaveScenarioButton(
-                                    onSave: (label) => context
-                                        .read<USProvider>()
-                                        .saveScenario(label: label),
-                                  ),
-                                ),
-                              ],
+                            child: CalcwiseStaggerItem(
+                              index: 0,
+                              child: _USResults(p: p, adService: adService),
                             ),
                           )
                         else
@@ -349,6 +337,235 @@ class _USCalculatorTab extends StatelessWidget {
                         if (p.result != null) _USTcoSection(p: p),
                         _USAffordabilityReverseSolverSection(p: p),
                         _USAffordabilitySection(p: p),
+                        // ── Bottom action bar (Save / Share / Export) ─────
+                        if (p.result != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          SaveScenarioButton(
+                            onSave: (label) => context
+                                .read<USProvider>()
+                                .saveScenario(label: label),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Builder(
+                            builder: (context) {
+                              final l10n = AppLocalizations.of(context)!;
+                              final r = p.result!;
+                              final hasFull = freemiumService.hasFullAccess ||
+                                  freemiumService.isRewarded;
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        HapticFeedback.lightImpact();
+                                        final payment =
+                                            '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'USD')}';
+                                        final isSpanishShare =
+                                            Localizations.localeOf(context)
+                                                    .languageCode ==
+                                                'es';
+                                        try {
+                                          await Share.share(
+                                            isSpanishShare
+                                                ? 'Préstamo Auto EE.UU.\n'
+                                                    'Vehículo: ${AmountFormatter.ui(r.vehiclePrice, 'USD')}  |  Inicial: ${AmountFormatter.ui(r.downPayment, 'USD')}\n'
+                                                    'Financiado: ${AmountFormatter.ui(r.financedAmount, 'USD')}  |  Tasa: ${r.annualRate.toStringAsFixed(2)}% (ef. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} años\n'
+                                                    '$payment\n'
+                                                    'Interés total: ${AmountFormatter.ui(r.totalInterest, 'USD')}  |  Costo total: ${AmountFormatter.ui(r.totalCost, 'USD')}'
+                                                    '${r.taxAmount > 0 ? "\nImpuesto: ${AmountFormatter.ui(r.taxAmount, 'USD')}" : ""}\n\n'
+                                                    '📄 Exporta el reporte completo en PDF →'
+                                                : 'Auto Loan USA\n'
+                                                    'Vehicle: ${AmountFormatter.ui(r.vehiclePrice, 'USD')}  |  Down: ${AmountFormatter.ui(r.downPayment, 'USD')}\n'
+                                                    'Financed: ${AmountFormatter.ui(r.financedAmount, 'USD')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
+                                                    '$payment\n'
+                                                    'Total Interest: ${AmountFormatter.ui(r.totalInterest, 'USD')}  |  Total Cost: ${AmountFormatter.ui(r.totalCost, 'USD')}'
+                                                    '${r.taxAmount > 0 ? "\nTax: ${AmountFormatter.ui(r.taxAmount, 'USD')}" : ""}\n\n'
+                                                    '📄 Export the full PDF report in the app →',
+                                          );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(isSpanishShare
+                                                    ? 'Compartido exitosamente'
+                                                    : 'Shared successfully'),
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                duration: const Duration(
+                                                  seconds: 2,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (_) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(isSpanishShare
+                                                    ? 'Error al compartir'
+                                                    : 'Share failed'),
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.share_rounded),
+                                      label: Text(l10n.share),
+                                    ),
+                                  ),
+                                  if (hasFull) ...[
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () async {
+                                          final isEsPdf =
+                                              Localizations.localeOf(context)
+                                                      .languageCode ==
+                                                  'es';
+                                          try {
+                                            await PdfExportService.exportLoanPdf(
+                                              title: l10n.appNameUS,
+                                              currencySymbol: '\$',
+                                              loanAmount: r.financedAmount,
+                                              annualRate: r.effectiveRate,
+                                              termMonths: r.termMonths,
+                                              downPayment: r.downPayment,
+                                              isSpanish: isEsPdf,
+                                              summary: [
+                                                MapEntry(
+                                                  l10n.vehiclePrice,
+                                                  AmountFormatter.ui(
+                                                    r.vehiclePrice,
+                                                    'USD',
+                                                  ),
+                                                ),
+                                                if (r.tradeInValue > 0)
+                                                  MapEntry(
+                                                    l10n.tradeInValue,
+                                                    '-${AmountFormatter.ui(r.tradeInValue, 'USD')}',
+                                                  ),
+                                                MapEntry(
+                                                  l10n.downPayment,
+                                                  AmountFormatter.ui(
+                                                    r.downPayment,
+                                                    'USD',
+                                                  ),
+                                                ),
+                                                if (r.dealerFees > 0)
+                                                  MapEntry(
+                                                    l10n.dealerFees,
+                                                    AmountFormatter.ui(
+                                                      r.dealerFees,
+                                                      'USD',
+                                                    ),
+                                                  ),
+                                                MapEntry(
+                                                  l10n.taxAmount,
+                                                  AmountFormatter.ui(
+                                                    r.taxAmount,
+                                                    'USD',
+                                                  ),
+                                                ),
+                                                MapEntry(
+                                                  l10n.financedAmount,
+                                                  AmountFormatter.ui(
+                                                    r.financedAmount,
+                                                    'USD',
+                                                  ),
+                                                ),
+                                                MapEntry(
+                                                  l10n.annualRate,
+                                                  '${r.annualRate.toStringAsFixed(2)}%',
+                                                ),
+                                                MapEntry(
+                                                  l10n.effectiveRate,
+                                                  '${r.effectiveRate.toStringAsFixed(2)}%',
+                                                ),
+                                                MapEntry(
+                                                  l10n.termMonths,
+                                                  '${r.termMonths} mo',
+                                                ),
+                                                MapEntry(
+                                                  paymentLabelFor(
+                                                    l10n,
+                                                    p.frequency,
+                                                  ),
+                                                  AmountFormatter.ui(
+                                                    r.displayPayment,
+                                                    'USD',
+                                                  ),
+                                                ),
+                                                if (!p.frequency.isMonthly)
+                                                  MapEntry(
+                                                    '${l10n.monthlyPayment} (equiv.)',
+                                                    AmountFormatter.ui(
+                                                      r.monthlyPayment,
+                                                      'USD',
+                                                    ),
+                                                  ),
+                                              ],
+                                            );
+                                            AnalyticsService.instance
+                                                .logPdfExported('us');
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(isEsPdf
+                                                      ? 'PDF exportado exitosamente'
+                                                      : 'PDF exported successfully'),
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  duration: const Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          } catch (_) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(isEsPdf
+                                                      ? 'Error al exportar'
+                                                      : 'Export failed'),
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        icon: const Icon(Icons.picture_as_pdf),
+                                        label: Text(l10n.exportPdf),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            'For informational purposes only. Not financial advice.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: AppTextSize.xs,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.55),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),
@@ -766,176 +983,7 @@ class _USResults extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        OutlinedButton.icon(
-          onPressed: () async {
-            HapticFeedback.lightImpact();
-            final payment =
-                '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'USD')}';
-            final isSpanishShare =
-                Localizations.localeOf(context).languageCode == 'es';
-            try {
-              await Share.share(
-                isSpanishShare
-                    ? 'Préstamo Auto EE.UU.\n'
-                        'Vehículo: ${AmountFormatter.ui(r.vehiclePrice, 'USD')}  |  Inicial: ${AmountFormatter.ui(r.downPayment, 'USD')}\n'
-                        'Financiado: ${AmountFormatter.ui(r.financedAmount, 'USD')}  |  Tasa: ${r.annualRate.toStringAsFixed(2)}% (ef. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} años\n'
-                        '$payment\n'
-                        'Interés total: ${AmountFormatter.ui(r.totalInterest, 'USD')}  |  Costo total: ${AmountFormatter.ui(r.totalCost, 'USD')}'
-                        '${r.taxAmount > 0 ? "\nImpuesto: ${AmountFormatter.ui(r.taxAmount, 'USD')}" : ""}\n\n'
-                        '📄 Exporta el reporte completo en PDF →'
-                    : 'Auto Loan USA\n'
-                        'Vehicle: ${AmountFormatter.ui(r.vehiclePrice, 'USD')}  |  Down: ${AmountFormatter.ui(r.downPayment, 'USD')}\n'
-                        'Financed: ${AmountFormatter.ui(r.financedAmount, 'USD')}  |  Rate: ${r.annualRate.toStringAsFixed(2)}% (eff. ${r.effectiveRate.toStringAsFixed(2)}%)  |  ${r.termMonths ~/ 12} yr\n'
-                        '$payment\n'
-                        'Total Interest: ${AmountFormatter.ui(r.totalInterest, 'USD')}  |  Total Cost: ${AmountFormatter.ui(r.totalCost, 'USD')}'
-                        '${r.taxAmount > 0 ? "\nTax: ${AmountFormatter.ui(r.taxAmount, 'USD')}" : ""}\n\n'
-                        '📄 Export the full PDF report in the app →',
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isSpanishShare
-                        ? 'Compartido exitosamente'
-                        : 'Shared successfully'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              }
-            } catch (_) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isSpanishShare
-                        ? 'Error al compartir'
-                        : 'Share failed'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            }
-          },
-          icon: const Icon(Icons.share_rounded),
-          label: Text(l10n.share),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         if (hasFull) ...[
-          OutlinedButton.icon(
-            onPressed: () {
-              AnalyticsService.instance.logAmortizationViewed('us');
-              adService.showInterstitialThen(() {
-                if (context.mounted) {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (_, __, ___) => AmortizationScreen(
-                        loanAmount: r.financedAmount,
-                        annualRate: r.effectiveRate,
-                        termMonths: r.termMonths,
-                        downPayment: r.downPayment,
-                        isBiWeekly: p.isBiWeekly,
-                      ),
-                      transitionsBuilder: (_, anim, __, child) =>
-                          FadeTransition(opacity: anim, child: child),
-                      transitionDuration: AppDuration.base,
-                    ),
-                  );
-                }
-              });
-            },
-            icon: const Icon(Icons.table_chart),
-            label: Text(l10n.amortization),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          OutlinedButton.icon(
-            onPressed: () async {
-              final isEsPdf =
-                  Localizations.localeOf(context).languageCode == 'es';
-              try {
-                await PdfExportService.exportLoanPdf(
-                  title: l10n.appNameUS,
-                  currencySymbol: '\$',
-                  loanAmount: r.financedAmount,
-                  annualRate: r.effectiveRate,
-                  termMonths: r.termMonths,
-                  downPayment: r.downPayment,
-                  isSpanish: isEsPdf,
-                  summary: [
-                    MapEntry(
-                      l10n.vehiclePrice,
-                      AmountFormatter.ui(r.vehiclePrice, 'USD'),
-                    ),
-                    if (r.tradeInValue > 0)
-                      MapEntry(
-                        l10n.tradeInValue,
-                        '-${AmountFormatter.ui(r.tradeInValue, 'USD')}',
-                      ),
-                    MapEntry(
-                      l10n.downPayment,
-                      AmountFormatter.ui(r.downPayment, 'USD'),
-                    ),
-                    if (r.dealerFees > 0)
-                      MapEntry(
-                        l10n.dealerFees,
-                        AmountFormatter.ui(r.dealerFees, 'USD'),
-                      ),
-                    MapEntry(
-                      l10n.taxAmount,
-                      AmountFormatter.ui(r.taxAmount, 'USD'),
-                    ),
-                    MapEntry(
-                      l10n.financedAmount,
-                      AmountFormatter.ui(r.financedAmount, 'USD'),
-                    ),
-                    MapEntry(
-                      l10n.annualRate,
-                      '${r.annualRate.toStringAsFixed(2)}%',
-                    ),
-                    MapEntry(
-                      l10n.effectiveRate,
-                      '${r.effectiveRate.toStringAsFixed(2)}%',
-                    ),
-                    MapEntry(l10n.termMonths, '${r.termMonths} mo'),
-                    MapEntry(
-                      paymentLabelFor(l10n, p.frequency),
-                      AmountFormatter.ui(r.displayPayment, 'USD'),
-                    ),
-                    if (!p.frequency.isMonthly)
-                      MapEntry(
-                        '${l10n.monthlyPayment} (equiv.)',
-                        AmountFormatter.ui(r.monthlyPayment, 'USD'),
-                      ),
-                  ],
-                );
-                AnalyticsService.instance.logPdfExported('us');
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isEsPdf
-                          ? 'PDF exportado exitosamente'
-                          : 'PDF exported successfully'),
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              } catch (_) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isEsPdf
-                          ? 'Error al exportar'
-                          : 'Export failed'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              }
-            },
-            icon: const Icon(Icons.picture_as_pdf),
-            label: Text(l10n.exportPdf),
-          ),
-          const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () {
               Navigator.push(
@@ -964,17 +1012,6 @@ class _USResults extends StatelessWidget {
             onUnlock: () => PaywallSoft.show(context),
           ),
         ],
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          'For informational purposes only. Not financial advice.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: AppTextSize.xs,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.55),
-          ),
-        ),
       ],
     );
   }

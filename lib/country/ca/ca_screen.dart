@@ -248,21 +248,9 @@ class _CACalculatorTab extends StatelessWidget {
                         // ── Hero result ───────────────────────────────────
                         if (p.result != null)
                           CalcwisePageEntrance(
-                            child: Column(
-                              children: [
-                                CalcwiseStaggerItem(
-                                  index: 0,
-                                  child: _CAResults(p: p, adService: adService),
-                                ),
-                                CalcwiseStaggerItem(
-                                  index: 1,
-                                  child: SaveScenarioButton(
-                                    onSave: (label) => context
-                                        .read<CAProvider>()
-                                        .saveScenario(label: label),
-                                  ),
-                                ),
-                              ],
+                            child: CalcwiseStaggerItem(
+                              index: 0,
+                              child: _CAResults(p: p, adService: adService),
                             ),
                           )
                         else
@@ -320,6 +308,15 @@ class _CACalculatorTab extends StatelessWidget {
                         _CALeaseSection(p: p),
                         _CATradeInSection(p: p),
                         _CAAffordabilitySection(p: p),
+                        // ── Bottom action bar (Save) ──────────────────────
+                        if (p.result != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          SaveScenarioButton(
+                            onSave: (label) => context
+                                .read<CAProvider>()
+                                .saveScenario(label: label),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.listBottomInset),
                       ],
                     ),
