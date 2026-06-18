@@ -90,10 +90,13 @@ class _CAScreenState extends State<CAScreen> {
     if (i > 0) {
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
-      if (trigger == PaywallTrigger.hard)
+      if (trigger == PaywallTrigger.hard) {
+        AnalyticsService.instance.logPaywallShown('hard');
         PaywallHard.show(context);
-      else if (trigger == PaywallTrigger.soft)
+      } else if (trigger == PaywallTrigger.soft) {
+        AnalyticsService.instance.logPaywallShown('soft');
         PaywallSoft.show(context);
+      }
       if (!mounted) return;
     }
     setState(() {
