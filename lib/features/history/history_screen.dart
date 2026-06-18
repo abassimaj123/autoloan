@@ -246,17 +246,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     context: context,
                     builder: (_) => AlertDialog(
                       title: Text(l10n.clearHistory),
-                      content: Text(
-                        'Clear all ${_all.length} calculation${_all.length == 1 ? "" : "s"}? This cannot be undone.',
-                      ),
+                      content: Text(l10n.historyClearAll(_all.length)),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
+                          child: Text(l10n.historyCancel),
                         ),
                         FilledButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Clear'),
+                          child: Text(l10n.historyClearAction),
                         ),
                       ],
                     ),
@@ -309,7 +307,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (pinned.isNotEmpty) ...[
           _SectionHeader(
             icon: Icons.bookmark_rounded,
-            label: 'Saved Scenarios',
+            label: l10n.historySavedScenarios,
           ),
           ...pinned.map(
             (e) => _HistoryCard(
@@ -326,7 +324,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (shownAutoSaves.isNotEmpty)
           _SectionHeader(
             icon: Icons.history_rounded,
-            label: 'Recent Calculations',
+            label: l10n.historyRecentCalc,
           ),
 
         // ── Approaching-limit nudge ──
@@ -357,8 +355,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'History limit reached (${freemiumService.historyLimit}). '
-                      'Upgrade to keep all future calculations.',
+                      l10n.historyLimitNudge(freemiumService.historyLimit),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(
                           context,
@@ -413,7 +410,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     horizontal: AppSpacing.md,
                   ),
                   child: Text(
-                    '$locked older record${locked > 1 ? 's' : ''} locked',
+                    l10n.historyLockedCount(locked),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -453,17 +450,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   context: context,
                   builder: (_) => AlertDialog(
                     title: Text(l10n.clearHistory),
-                    content: Text(
-                      'Clear all ${_all.length} calculation${_all.length == 1 ? '' : 's'}? This cannot be undone.',
-                    ),
+                    content: Text(l10n.historyClearAll(_all.length)),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(l10n.historyCancel),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Clear'),
+                        child: Text(l10n.historyClearAction),
                       ),
                     ],
                   ),
@@ -518,19 +513,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
         await history.rename(id, label.trim());
         _load();
       case _CardAction.delete:
+        final l10n = AppLocalizations.of(context)!;
         final confirm = await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            title: const Text('Delete entry'),
-            content: const Text('Remove this calculation? Cannot be undone.'),
+            title: Text(l10n.historyDeleteTitle),
+            content: Text(l10n.historyDeleteConfirm),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10n.historyCancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete'),
+                child: Text(l10n.historyDelete),
               ),
             ],
           ),
@@ -543,25 +539,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<String?> _showRenameDialog(String current) async {
+    final l10n = AppLocalizations.of(context)!;
     final ctrl = TextEditingController(text: current);
     return showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Rename scenario'),
+        title: Text(l10n.historyRenameTitle),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Scenario name'),
+          decoration: InputDecoration(hintText: l10n.historyRenameHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.historyCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, ctrl.text),
-            child: const Text('Save'),
+            child: Text(l10n.historyRename),
           ),
         ],
       ),
@@ -734,34 +731,37 @@ class _HistoryCard extends StatelessWidget {
                     iconSize: 18,
                     padding: EdgeInsets.zero,
                     onSelected: onAction,
-                    itemBuilder: (_) => [
-                      if (_isPinned)
-                        const PopupMenuItem(
-                          value: _CardAction.unpin,
+                    itemBuilder: (ctx) {
+                      final l = AppLocalizations.of(ctx)!;
+                      return [
+                        if (_isPinned)
+                          PopupMenuItem(
+                            value: _CardAction.unpin,
+                            child: ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.bookmark_remove_outlined),
+                              title: Text(l.historyRemovePin),
+                            ),
+                          ),
+                        if (_isPinned)
+                          PopupMenuItem(
+                            value: _CardAction.rename,
+                            child: ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.edit_outlined),
+                              title: Text(l.historyRename),
+                            ),
+                          ),
+                        PopupMenuItem(
+                          value: _CardAction.delete,
                           child: ListTile(
                             dense: true,
-                            leading: Icon(Icons.bookmark_remove_outlined),
-                            title: Text('Remove pin'),
+                            leading: const Icon(Icons.delete_outline),
+                            title: Text(l.historyDelete),
                           ),
                         ),
-                      if (_isPinned)
-                        const PopupMenuItem(
-                          value: _CardAction.rename,
-                          child: ListTile(
-                            dense: true,
-                            leading: Icon(Icons.edit_outlined),
-                            title: Text('Rename'),
-                          ),
-                        ),
-                      const PopupMenuItem(
-                        value: _CardAction.delete,
-                        child: ListTile(
-                          dense: true,
-                          leading: Icon(Icons.delete_outline),
-                          title: Text('Delete'),
-                        ),
-                      ),
-                    ],
+                      ];
+                    },
                   ),
                 ],
               ),

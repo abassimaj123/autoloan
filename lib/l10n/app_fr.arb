@@ -210,5 +210,67 @@
   "exportPdf": "Exporter PDF",
   "exportPdfPro": "Exporter PDF — PRO",
   "cashBackVsLowApr": "Remise vs Taux Bas",
-  "affordabilityGuide": "Guide d'accessibilité financière"
+  "affordabilityGuide": "Guide d'accessibilité financière",
+  "settingsPremium": "Premium",
+  "settingsPrivacySettings": "Paramètres de confidentialité",
+  "historySavedScenarios": "Scénarios sauvegardés",
+  "historyRecentCalc": "Calculs récents",
+  "historyClearAll": "Effacer {count} calculs ? Cette action est irréversible.",
+  "@historyClearAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyCancel": "Annuler",
+  "historyClearAction": "Effacer",
+  "historyLimitNudge": "Limite d'historique atteinte ({limit}). Passez à Premium pour conserver vos calculs.",
+  "@historyLimitNudge": {
+    "placeholders": {
+      "limit": { "type": "int" }
+    }
+  },
+  "historyLockedCount": "{count} enregistrements plus anciens verrouillés",
+  "@historyLockedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyDeleteTitle": "Supprimer l'entrée",
+  "historyDeleteConfirm": "Supprimer ce calcul ? Action irréversible.",
+  "historyDelete": "Supprimer",
+  "historyRename": "Renommer",
+  "historyRenameTitle": "Renommer le scénario",
+  "historyRenameHint": "Nom du scénario",
+  "historyRemovePin": "Retirer l'épingle",
+  "histDetailAnnualRate": "Taux annuel",
+  "histDetailProvince": "Province",
+  "histDetailTotalCost": "Coût total du prêt",
+  "histDetailTitle": "Détail du prêt {country}",
+  "@histDetailTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailSummaryTitle": "Prêt auto {country} — Résumé",
+  "@histDetailSummaryTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailFooter": "Calculé avec Auto Loan {country}",
+  "@histDetailFooter": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "amortScheduleTab": "Tableau",
+  "amortPayoffChart": "Graphique de remboursement",
+  "amortRemainingBalance": "Solde restant dans le temps",
+  "amortRemainingBalanceLegend": "Solde restant",
+  "amortNoData": "Aucune donnée à afficher.",
+  "amortShareSchedule": "Partager le tableau",
+  "amortBiWkPayment": "Paie. bi-sem.",
+  "amortBiWeeklyHeader": "Paiement bihebdomadaire",
+  "pdfExportSuccess": "PDF exporté avec succès",
+  "pdfExportFailed": "Exportation échouée"
 }

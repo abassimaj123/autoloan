@@ -335,8 +335,8 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                             AnalyticsService.instance.logPdfExported('early_payoff');
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('PDF exported successfully'),
+                                SnackBar(
+                                  content: Text(l10n.pdfExportSuccess),
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -344,8 +344,8 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                           } catch (_) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Export failed'),
+                                SnackBar(
+                                  content: Text(l10n.pdfExportFailed),
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );

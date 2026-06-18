@@ -210,5 +210,67 @@
   "exportPdf": "Export PDF",
   "exportPdfPro": "Export PDF — PRO",
   "cashBackVsLowApr": "Cash-Back vs Low-APR",
-  "affordabilityGuide": "Affordability Guide"
+  "affordabilityGuide": "Affordability Guide",
+  "settingsPremium": "Premium",
+  "settingsPrivacySettings": "Privacy Settings",
+  "historySavedScenarios": "Saved Scenarios",
+  "historyRecentCalc": "Recent Calculations",
+  "historyClearAll": "Clear all {count} calculations? This cannot be undone.",
+  "@historyClearAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyCancel": "Cancel",
+  "historyClearAction": "Clear",
+  "historyLimitNudge": "History limit reached ({limit}). Upgrade to keep all future calculations.",
+  "@historyLimitNudge": {
+    "placeholders": {
+      "limit": { "type": "int" }
+    }
+  },
+  "historyLockedCount": "{count} older records locked",
+  "@historyLockedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyDeleteTitle": "Delete entry",
+  "historyDeleteConfirm": "Remove this calculation? Cannot be undone.",
+  "historyDelete": "Delete",
+  "historyRename": "Rename",
+  "historyRenameTitle": "Rename scenario",
+  "historyRenameHint": "Scenario name",
+  "historyRemovePin": "Remove pin",
+  "histDetailAnnualRate": "Annual Rate",
+  "histDetailProvince": "Province",
+  "histDetailTotalCost": "Total Cost of Loan",
+  "histDetailTitle": "{country} Loan Detail",
+  "@histDetailTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailSummaryTitle": "Auto Loan {country} — Loan Summary",
+  "@histDetailSummaryTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailFooter": "Calculated with Auto Loan {country}",
+  "@histDetailFooter": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "amortScheduleTab": "Schedule",
+  "amortPayoffChart": "Payoff Chart",
+  "amortRemainingBalance": "Remaining Balance Over Time",
+  "amortRemainingBalanceLegend": "Remaining Balance",
+  "amortNoData": "No data to display.",
+  "amortShareSchedule": "Share Schedule",
+  "amortBiWkPayment": "Bi-wk Payment",
+  "amortBiWeeklyHeader": "Bi-weekly payment",
+  "pdfExportSuccess": "PDF exported successfully",
+  "pdfExportFailed": "Export failed"
 }

@@ -1227,6 +1227,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Affordability Guide'**
   String get affordabilityGuide;
+
+  /// No description provided for @settingsPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get settingsPremium;
+
+  /// No description provided for @settingsPrivacySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Settings'**
+  String get settingsPrivacySettings;
+
+  /// No description provided for @historySavedScenarios.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Scenarios'**
+  String get historySavedScenarios;
+
+  /// No description provided for @historyRecentCalc.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Calculations'**
+  String get historyRecentCalc;
+
+  /// No description provided for @historyClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all {count} calculations? This cannot be undone.'**
+  String historyClearAll(int count);
+
+  /// No description provided for @historyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get historyCancel;
+
+  /// No description provided for @historyClearAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get historyClearAction;
+
+  /// No description provided for @historyLimitNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'History limit reached ({limit}). Upgrade to keep all future calculations.'**
+  String historyLimitNudge(int limit);
+
+  /// No description provided for @historyLockedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} older records locked'**
+  String historyLockedCount(int count);
+
+  /// No description provided for @historyDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry'**
+  String get historyDeleteTitle;
+
+  /// No description provided for @historyDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this calculation? Cannot be undone.'**
+  String get historyDeleteConfirm;
+
+  /// No description provided for @historyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get historyDelete;
+
+  /// No description provided for @historyRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get historyRename;
+
+  /// No description provided for @historyRenameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename scenario'**
+  String get historyRenameTitle;
+
+  /// No description provided for @historyRenameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario name'**
+  String get historyRenameHint;
+
+  /// No description provided for @historyRemovePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove pin'**
+  String get historyRemovePin;
+
+  /// No description provided for @histDetailAnnualRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual Rate'**
+  String get histDetailAnnualRate;
+
+  /// No description provided for @histDetailProvince.
+  ///
+  /// In en, this message translates to:
+  /// **'Province'**
+  String get histDetailProvince;
+
+  /// No description provided for @histDetailTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cost of Loan'**
+  String get histDetailTotalCost;
+
+  /// No description provided for @histDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{country} Loan Detail'**
+  String histDetailTitle(String country);
+
+  /// No description provided for @histDetailSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Loan {country} — Loan Summary'**
+  String histDetailSummaryTitle(String country);
+
+  /// No description provided for @histDetailFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated with Auto Loan {country}'**
+  String histDetailFooter(String country);
+
+  /// No description provided for @amortScheduleTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get amortScheduleTab;
+
+  /// No description provided for @amortPayoffChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Payoff Chart'**
+  String get amortPayoffChart;
+
+  /// No description provided for @amortRemainingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance Over Time'**
+  String get amortRemainingBalance;
+
+  /// No description provided for @amortRemainingBalanceLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance'**
+  String get amortRemainingBalanceLegend;
+
+  /// No description provided for @amortNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data to display.'**
+  String get amortNoData;
+
+  /// No description provided for @amortShareSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Schedule'**
+  String get amortShareSchedule;
+
+  /// No description provided for @amortBiWkPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Bi-wk Payment'**
+  String get amortBiWkPayment;
+
+  /// No description provided for @amortBiWeeklyHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Bi-weekly payment'**
+  String get amortBiWeeklyHeader;
+
+  /// No description provided for @pdfExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF exported successfully'**
+  String get pdfExportSuccess;
+
+  /// No description provided for @pdfExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get pdfExportFailed;
 }
 
 class _AppLocalizationsDelegate

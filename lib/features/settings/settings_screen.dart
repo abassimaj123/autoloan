@@ -31,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
         ValueListenableBuilder<bool>(
           valueListenable: freemiumService.hasFullAccessNotifier,
           builder: (context, isPremium, _) => CalcwiseSettingsSection(
-            title: 'Premium',
+            title: l10n.settingsPremium,
             children: isPremium
                 ? [
                     ListTile(
@@ -174,7 +174,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             CalcwiseSettingsTile(
               icon: Icons.manage_search_rounded,
-              label: 'Privacy Settings',
+              label: l10n.settingsPrivacySettings,
               onTap: showCalcwisePrivacyOptions,
             ),
             const CalcwiseRateAppTile(),

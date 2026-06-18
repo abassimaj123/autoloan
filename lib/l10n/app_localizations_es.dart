@@ -602,4 +602,113 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get affordabilityGuide => 'Guía de Asequibilidad';
+
+  @override
+  String get settingsPremium => 'Premium';
+
+  @override
+  String get settingsPrivacySettings => 'Configuración de privacidad';
+
+  @override
+  String get historySavedScenarios => 'Escenarios guardados';
+
+  @override
+  String get historyRecentCalc => 'Cálculos recientes';
+
+  @override
+  String historyClearAll(int count) {
+    return '¿Borrar $count cálculos? No se puede deshacer.';
+  }
+
+  @override
+  String get historyCancel => 'Cancelar';
+
+  @override
+  String get historyClearAction => 'Borrar';
+
+  @override
+  String historyLimitNudge(int limit) {
+    return 'Límite de historial alcanzado ($limit). Actualice para conservar los cálculos.';
+  }
+
+  @override
+  String historyLockedCount(int count) {
+    return '$count registros anteriores bloqueados';
+  }
+
+  @override
+  String get historyDeleteTitle => 'Eliminar entrada';
+
+  @override
+  String get historyDeleteConfirm =>
+      '¿Eliminar este cálculo? No se puede deshacer.';
+
+  @override
+  String get historyDelete => 'Eliminar';
+
+  @override
+  String get historyRename => 'Renombrar';
+
+  @override
+  String get historyRenameTitle => 'Renombrar escenario';
+
+  @override
+  String get historyRenameHint => 'Nombre del escenario';
+
+  @override
+  String get historyRemovePin => 'Quitar marcador';
+
+  @override
+  String get histDetailAnnualRate => 'Tasa anual';
+
+  @override
+  String get histDetailProvince => 'Provincia';
+
+  @override
+  String get histDetailTotalCost => 'Costo total del préstamo';
+
+  @override
+  String histDetailTitle(String country) {
+    return 'Detalle del préstamo $country';
+  }
+
+  @override
+  String histDetailSummaryTitle(String country) {
+    return 'Préstamo Auto $country — Resumen';
+  }
+
+  @override
+  String histDetailFooter(String country) {
+    return 'Calculado con Auto Loan $country';
+  }
+
+  @override
+  String get amortScheduleTab => 'Tabla';
+
+  @override
+  String get amortPayoffChart => 'Gráfico de amortización';
+
+  @override
+  String get amortRemainingBalance => 'Saldo restante en el tiempo';
+
+  @override
+  String get amortRemainingBalanceLegend => 'Saldo restante';
+
+  @override
+  String get amortNoData => 'Sin datos para mostrar.';
+
+  @override
+  String get amortShareSchedule => 'Compartir tabla';
+
+  @override
+  String get amortBiWkPayment => 'Pago quincenal';
+
+  @override
+  String get amortBiWeeklyHeader => 'Pago quincenal';
+
+  @override
+  String get pdfExportSuccess => 'PDF exportado con éxito';
+
+  @override
+  String get pdfExportFailed => 'Error al exportar';
 }

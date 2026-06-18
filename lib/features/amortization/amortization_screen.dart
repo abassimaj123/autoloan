@@ -245,8 +245,8 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
       AnalyticsService.instance.logPdfExported('amortization');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('PDF exported successfully'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.pdfExportSuccess),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -254,8 +254,8 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Export failed'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.pdfExportFailed),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -341,7 +341,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
         : insuranceMonthly;
 
     final l10n = AppLocalizations.of(context)!;
-    final periodLabel = isBiWeekly ? 'Bi-wk' : l10n.month;
+    final periodLabel = isBiWeekly ? l10n.amortBiWkPayment : l10n.month;
 
     return DefaultTabController(
       length: 2,
@@ -364,16 +364,16 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
               button: true,
               child: IconButton(
                 icon: const Icon(Icons.share_rounded),
-                tooltip: 'Share Schedule',
+                tooltip: l10n.amortShareSchedule,
                 onPressed: () =>
                     _shareSchedule(rows, fmt2, currencySymbol, l10n),
               ),
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.table_chart), text: 'Schedule'),
-              Tab(icon: Icon(Icons.show_chart), text: 'Payoff Chart'),
+              Tab(icon: const Icon(Icons.table_chart), text: l10n.amortScheduleTab),
+              Tab(icon: const Icon(Icons.show_chart), text: l10n.amortPayoffChart),
             ],
           ),
         ),
@@ -396,7 +396,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                 // Summary header
                 Semantics(
                   label:
-                      '${isBiWeekly ? "Bi-weekly payment" : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
+                      '${isBiWeekly ? l10n.amortBiWeeklyHeader : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
                       '${l10n.totalInterest}: ${fmt.format(rows.fold(0.0, (s, r) => s + r.interest))}. '
                       '${l10n.totalCostShort}: ${fmt.format(totalCost)}',
                   child: Container(
@@ -412,7 +412,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                           children: [
                             Expanded(
                               child: _HeaderCell(
-                                isBiWeekly ? 'Bi-wk Payment' : l10n.payment,
+                                isBiWeekly ? l10n.amortBiWkPayment : l10n.payment,
                                 fmt2.format(
                                   rows.isEmpty ? 0 : rows.first.payment,
                                 ),
@@ -607,8 +607,9 @@ class _PayoffChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (rows.isEmpty) {
-      return const Center(child: Text('No data to display.'));
+      return Center(child: Text(l10n.amortNoData));
     }
 
     final primary = Theme.of(context).colorScheme.primary;
@@ -645,7 +646,7 @@ class _PayoffChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Remaining Balance Over Time',
+            l10n.amortRemainingBalance,
             style: Theme.of(
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -663,7 +664,7 @@ class _PayoffChart extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Remaining Balance',
+                l10n.amortRemainingBalanceLegend,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme
@@ -682,7 +683,7 @@ class _PayoffChart extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Interest',
+                l10n.interest,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme

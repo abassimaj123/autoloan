@@ -754,6 +754,7 @@ class _CAResults extends StatelessWidget {
     CACalculation r,
     bool hasFull,
   ) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     return SectionCard(
       title: l10n.results,
       children: [
@@ -763,7 +764,7 @@ class _CAResults extends StatelessWidget {
           value: AmountFormatter.ui(r.displayPayment, 'CAD'),
           rawValue: r.displayPayment,
           valueFormatter: (v) => AmountFormatter.ui(v, 'CAD'),
-          secondary: 'Principal & Interest',
+          secondary: isFr ? 'Capital et intérêts' : 'Principal & Interest',
           stats: [
             (label: l10n.totalInterest, value: AmountFormatter.ui(r.totalInterest, 'CAD')),
             (label: l10n.totalCost, value: AmountFormatter.ui(r.totalCost, 'CAD')),
@@ -1016,7 +1017,7 @@ class _CAResults extends StatelessWidget {
         ],
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'For informational purposes only. Not financial advice.',
+          isFr ? 'À titre informatif seulement. Non un conseil financier.' : 'For informational purposes only. Not financial advice.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: AppTextSize.xs,
@@ -1069,6 +1070,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
   @override
   Widget build(BuildContext context) {
     final r = widget.p.result;
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
 
     return SectionCard(
       title: AppLocalizations.of(context)!.leaseVsBuy,
@@ -1079,7 +1081,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               value: _expanded,
               onChanged: (v) => setState(() => _expanded = v),
             ),
-            const Expanded(child: Text('Show Lease vs Buy')),
+            Expanded(child: Text(isFr ? 'Afficher location vs achat' : 'Show Lease vs Buy')),
           ],
         ),
         if (_expanded) ...[
@@ -1091,7 +1093,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Flexible(child: Text('Residual Value %', overflow: TextOverflow.ellipsis)),
+                  Flexible(child: Text(isFr ? 'Valeur résiduelle %' : 'Residual Value %', overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 8),
                   Text(
                     '${_residualPercent.toStringAsFixed(0)}%',
@@ -1116,10 +1118,10 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
           TextFormField(
             initialValue: (_moneyFactor * 2400).toStringAsFixed(2),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Equivalent Annual Rate % (÷2400 = money factor)',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(
+            decoration: InputDecoration(
+              labelText: isFr ? 'Taux annuel équivalent % (÷2400 = facteur monétaire)' : 'Equivalent Annual Rate % (÷2400 = money factor)',
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
                 vertical: 12,
                 horizontal: 16,
               ),
@@ -1163,7 +1165,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
               _calculate();
             },
             icon: const Icon(Icons.compare),
-            label: const Text('Compare'),
+            label: Text(isFr ? 'Comparer' : 'Compare'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
@@ -1188,10 +1190,10 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                 value: _overageExpanded,
                 onChanged: (v) => setState(() => _overageExpanded = v),
               ),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Km Overage Calculator',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  isFr ? 'Calculateur de dépassement km' : 'Km Overage Calculator',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -1199,7 +1201,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
           if (_overageExpanded) ...[
             const SizedBox(height: AppSpacing.sm),
             _TcoSlider(
-              label: 'Annual km allowance',
+              label: isFr ? 'Allocation km annuelle' : 'Annual km allowance',
               value: _annualKmAllowance,
               min: 10000,
               max: 40000,
@@ -1209,7 +1211,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
             ),
             const SizedBox(height: AppSpacing.sm),
             _TcoSlider(
-              label: 'Estimated annual km driven',
+              label: isFr ? 'Km annuels estimés parcourus' : 'Estimated annual km driven',
               value: _estimatedAnnualKm,
               min: 5000,
               max: 60000,
@@ -1219,7 +1221,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
             ),
             const SizedBox(height: AppSpacing.sm),
             _TcoSlider(
-              label: 'Overage fee (¢/km)',
+              label: isFr ? 'Frais de dépassement (¢/km)' : 'Overage fee (¢/km)',
               value: _overageFeeCentsPerKm,
               min: 8,
               max: 25,
@@ -1231,6 +1233,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
             const SizedBox(height: AppSpacing.md),
             Builder(
               builder: (ctx) {
+                final isFrCtx = Localizations.localeOf(ctx).languageCode == 'fr';
                 final leaseYears = _leaseTerm / 12;
                 final overagePerYear = (_estimatedAnnualKm - _annualKmAllowance)
                     .clamp(0.0, double.infinity);
@@ -1257,9 +1260,9 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'No overage — estimated km within allowance.',
+                            isFrCtx ? 'Aucun dépassement — km estimés dans les limites.' : 'No overage — estimated km within allowance.',
                           ),
                         ),
                       ],
@@ -1284,7 +1287,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Estimated overage: ${overagePerYear.toStringAsFixed(0)} km/year',
+                            isFrCtx ? 'Dépassement estimé : ${overagePerYear.toStringAsFixed(0)} km/an' : 'Estimated overage: ${overagePerYear.toStringAsFixed(0)} km/year',
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -1295,7 +1298,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Projected overage cost over lease: ${AmountFormatter.ui(totalOverageCost, 'CAD')}',
+                            isFrCtx ? 'Coût de dépassement projeté sur le bail : ${AmountFormatter.ui(totalOverageCost, 'CAD')}' : 'Projected overage cost over lease: ${AmountFormatter.ui(totalOverageCost, 'CAD')}',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1304,7 +1307,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                                 ),
                           ),
                           Text(
-                            'Monthly cost of overage: ${AmountFormatter.ui(monthlyOverageCost, 'CAD')}/mo',
+                            isFrCtx ? 'Coût mensuel de dépassement : ${AmountFormatter.ui(monthlyOverageCost, 'CAD')}/mois' : 'Monthly cost of overage: ${AmountFormatter.ui(monthlyOverageCost, 'CAD')}/mo',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1318,7 +1321,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Consider increasing your km allowance or choosing a different plan.',
+                      isFrCtx ? 'Augmentez votre allocation km ou choisissez un autre forfait.' : 'Consider increasing your km allowance or choosing a different plan.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
@@ -1350,6 +1353,7 @@ class _ComparisonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     // Buy total cost over the same lease term (partial buy)
     final buyTotalOverLeaseTerm = buyMonthly * leaseTermMonths;
     final diff = lease.totalLeaseCost - buyTotalOverLeaseTerm;
@@ -1365,7 +1369,7 @@ class _ComparisonCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _ComparisonColumn(
-                  label: 'Lease ($leaseTermMonths mo)',
+                  label: isFr ? 'Location ($leaseTermMonths mo)' : 'Lease ($leaseTermMonths mo)',
                   monthly: AmountFormatter.ui(lease.monthlyLease, 'CAD'),
                   total: AmountFormatter.ui(lease.totalLeaseCost, 'CAD'),
                   highlight: leaseWins,
@@ -1374,11 +1378,11 @@ class _ComparisonCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _ComparisonColumn(
-                  label: 'Buy ($buyTermMonths mo)',
+                  label: isFr ? 'Achat ($buyTermMonths mo)' : 'Buy ($buyTermMonths mo)',
                   monthly: AmountFormatter.ui(buyMonthly, 'CAD'),
                   total: AmountFormatter.ui(buyTotalOverLeaseTerm, 'CAD'),
                   highlight: !leaseWins,
-                  footnote: 'over $leaseTermMonths mo',
+                  footnote: isFr ? 'sur $leaseTermMonths mo' : 'over $leaseTermMonths mo',
                 ),
               ),
             ],
@@ -1393,8 +1397,12 @@ class _ComparisonCard extends StatelessWidget {
           ),
           child: Text(
             leaseWins
-                ? 'Lease saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months'
-                : 'Buy saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months',
+                ? (isFr
+                    ? 'Location économise ${AmountFormatter.ui(absDiff, 'CAD')} sur $leaseTermMonths mois'
+                    : 'Lease saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months')
+                : (isFr
+                    ? 'Achat économise ${AmountFormatter.ui(absDiff, 'CAD')} sur $leaseTermMonths mois'
+                    : 'Buy saves ${AmountFormatter.ui(absDiff, 'CAD')} over $leaseTermMonths months'),
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -1403,8 +1411,11 @@ class _ComparisonCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Residual: ${AmountFormatter.ui(lease.residualValue, 'CAD')} · '
-          'Money factor: ${lease.moneyFactor.toStringAsFixed(5)}',
+          isFr
+              ? 'Valeur résiduelle : ${AmountFormatter.ui(lease.residualValue, 'CAD')} · '
+                'Facteur monétaire : ${lease.moneyFactor.toStringAsFixed(5)}'
+              : 'Residual: ${AmountFormatter.ui(lease.residualValue, 'CAD')} · '
+                'Money factor: ${lease.moneyFactor.toStringAsFixed(5)}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -1432,6 +1443,7 @@ class _ComparisonColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final color = highlight
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.onSurfaceVariant;
@@ -1464,14 +1476,14 @@ class _ComparisonColumn extends StatelessWidget {
             ),
           ),
           Text(
-            '/month',
+            isFr ? '/mois' : '/month',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Total: $total',
+            isFr ? 'Total : $total' : 'Total: $total',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: color),
@@ -1529,11 +1541,13 @@ class _CATcoSectionState extends State<_CATcoSection> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final l10n = AppLocalizations.of(context)!;
     final r = widget.p.result!;
     final termYears = r.termMonths ~/ 12;
 
     return SectionCard(
-      title: AppLocalizations.of(context)!.totalCostOfOwnership,
+      title: l10n.totalCostOfOwnership,
       children: [
         Row(
           children: [
@@ -1541,13 +1555,13 @@ class _CATcoSectionState extends State<_CATcoSection> {
               value: _expanded,
               onChanged: (v) => setState(() => _expanded = v),
             ),
-            const Expanded(child: Text('Calculate true ownership cost')),
+            Expanded(child: Text(isFr ? 'Calculer le coût total de possession' : 'Calculate true ownership cost')),
           ],
         ),
         if (_expanded) ...[
           const SizedBox(height: AppSpacing.md),
           _TcoSlider(
-            label: 'Annual km driven',
+            label: isFr ? 'Km annuels parcourus' : 'Annual km driven',
             value: _annualKm,
             min: 5000,
             max: 50000,
@@ -1557,7 +1571,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Fuel consumption (L/100km)',
+            label: isFr ? 'Consommation d\'essence (L/100km)' : 'Fuel consumption (L/100km)',
             value: _fuelPer100km,
             min: 4,
             max: 20,
@@ -1567,7 +1581,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Fuel price (C\$/L)',
+            label: isFr ? 'Prix du carburant (C\$/L)' : 'Fuel price (C\$/L)',
             value: _fuelPrice,
             min: 1.00,
             max: 2.50,
@@ -1577,7 +1591,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Annual insurance (C\$)',
+            label: isFr ? 'Assurance annuelle (C\$)' : 'Annual insurance (C\$)',
             value: _annualInsurance,
             min: 600,
             max: 5000,
@@ -1587,7 +1601,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           ),
           const SizedBox(height: AppSpacing.sm),
           _TcoSlider(
-            label: 'Annual maintenance (C\$)',
+            label: isFr ? 'Entretien annuel (C\$)' : 'Annual maintenance (C\$)',
             value: _annualMaint,
             min: 200,
             max: 3000,
@@ -1602,7 +1616,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
               _calculate();
             },
             icon: const Icon(Icons.calculate_outlined),
-            label: const Text('Calculate TCO'),
+            label: Text(isFr ? 'Calculer le CPT' : 'Calculate TCO'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
@@ -1611,25 +1625,27 @@ class _CATcoSectionState extends State<_CATcoSection> {
             const SizedBox(height: AppSpacing.lg),
             const Divider(),
             ResultTile(
-              label: 'Net vehicle cost',
+              label: isFr ? 'Coût net du véhicule' : 'Net vehicle cost',
               value: AmountFormatter.formatInteger(_tco!.netVehicleCost),
             ),
             ResultTile(
-              label: 'Total interest',
+              label: l10n.totalInterest,
               value: AmountFormatter.formatInteger(_tco!.totalInterest),
             ),
-            ResultTile(label: 'Total fuel', value: AmountFormatter.formatInteger(_tco!.totalFuel)),
+            ResultTile(label: l10n.totalFuel, value: AmountFormatter.formatInteger(_tco!.totalFuel)),
             ResultTile(
-              label: 'Total insurance',
+              label: l10n.totalInsurance,
               value: AmountFormatter.formatInteger(_tco!.totalInsurance),
             ),
             ResultTile(
-              label: 'Total maintenance',
+              label: l10n.totalMaintenance,
               value: AmountFormatter.formatInteger(_tco!.totalMaintenance),
             ),
             const Divider(height: 8),
             ResultTile(
-              label: 'True cost of ownership over $termYears years',
+              label: isFr
+                  ? 'Coût total de possession sur $termYears ans'
+                  : 'True cost of ownership over $termYears years',
               value: AmountFormatter.formatInteger(_tco!.grandTotal),
               isHighlight: true,
             ),
@@ -1736,8 +1752,10 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final l10n = AppLocalizations.of(context)!;
     return SectionCard(
-      title: AppLocalizations.of(context)!.tradeInValue,
+      title: l10n.tradeInValue,
       children: [
         Row(
           children: [
@@ -1745,13 +1763,13 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
               value: _expanded,
               onChanged: (v) => setState(() => _expanded = v),
             ),
-            const Expanded(child: Text('Show Trade-In Calculator')),
+            Expanded(child: Text(isFr ? 'Afficher le calculateur de reprise' : 'Show Trade-In Calculator')),
           ],
         ),
         if (_expanded) ...[
           const SizedBox(height: AppSpacing.md),
           CurrencySliderInput(
-            label: 'Trade-in value',
+            label: l10n.tradeInValue,
             value: _tradeInValue,
             min: 0,
             max: 30000,
@@ -1761,7 +1779,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
           ),
           const SizedBox(height: AppSpacing.md),
           CurrencySliderInput(
-            label: 'Remaining balance on current loan',
+            label: isFr ? 'Solde restant sur le prêt actuel' : 'Remaining balance on current loan',
             value: _remaining,
             min: 0,
             max: 30000,
@@ -1776,7 +1794,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
               _compute();
             },
             icon: const Icon(Icons.calculate_outlined),
-            label: const Text('Calculate Trade-In'),
+            label: Text(isFr ? 'Calculer la reprise' : 'Calculate Trade-In'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
@@ -1795,8 +1813,12 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
               ),
               child: Text(
                 _result!.netTradeIn >= 0
-                    ? 'Equity of ${AmountFormatter.formatInteger(_result!.netTradeIn)} applied to down payment'
-                    : 'Negative equity of ${AmountFormatter.formatInteger(_result!.netTradeIn.abs())} added to loan',
+                    ? (isFr
+                        ? 'Valeur nette de ${AmountFormatter.formatInteger(_result!.netTradeIn)} appliquée à la mise de fonds'
+                        : 'Equity of ${AmountFormatter.formatInteger(_result!.netTradeIn)} applied to down payment')
+                    : (isFr
+                        ? 'Valeur nette négative de ${AmountFormatter.formatInteger(_result!.netTradeIn.abs())} ajoutée au prêt'
+                        : 'Negative equity of ${AmountFormatter.formatInteger(_result!.netTradeIn.abs())} added to loan'),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: _result!.netTradeIn >= 0
@@ -1807,15 +1829,15 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
             ),
             const SizedBox(height: AppSpacing.sm),
             ResultTile(
-              label: 'Net trade-in',
+              label: isFr ? 'Valeur nette de reprise' : 'Net trade-in',
               value: AmountFormatter.formatInteger(_result!.netTradeIn),
             ),
             ResultTile(
-              label: 'Effective down payment',
+              label: isFr ? 'Mise de fonds effective' : 'Effective down payment',
               value: AmountFormatter.formatInteger(_result!.effectiveDownPayment),
             ),
             ResultTile(
-              label: 'Adjusted loan amount',
+              label: isFr ? 'Montant du prêt ajusté' : 'Adjusted loan amount',
               value: AmountFormatter.formatInteger(_result!.adjustedLoanAmount),
               isHighlight: true,
             ),
@@ -1832,12 +1854,14 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
                 setState(() => _expanded = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Down payment updated to ${AmountFormatter.formatInteger(dp)}'),
+                    content: Text(isFr
+                        ? 'Mise de fonds mise à jour à ${AmountFormatter.formatInteger(dp)}'
+                        : 'Down payment updated to ${AmountFormatter.formatInteger(dp)}'),
                   ),
                 );
               },
               icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Apply to Calculator'),
+              label: Text(isFr ? 'Appliquer au calculateur' : 'Apply to Calculator'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(44),
               ),
@@ -1866,6 +1890,8 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
 
   @override
   Widget build(BuildContext context) {
+    final isFr = Localizations.localeOf(context).languageCode == 'fr';
+    final l10n = AppLocalizations.of(context)!;
     final p = widget.p;
     final maxRecommended = _monthlyIncome * 0.15;
     final maxVehicle = maxAffordablePrice(
@@ -1877,24 +1903,24 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
 
     // Traffic-light: compare actual monthly payment vs income
     final CACalculation? r = p.result;
-    Color? _trafficColor;
-    String _trafficLabel = '';
+    Color? trafficColor;
+    String trafficLabel = '';
     if (r != null) {
       final ratio = r.monthlyPayment / _monthlyIncome;
       if (ratio < 0.12) {
-        _trafficColor = CalcwiseTheme.of(context).successGreen;
-        _trafficLabel = 'Comfortable (< 12% of income)';
+        trafficColor = CalcwiseTheme.of(context).successGreen;
+        trafficLabel = isFr ? 'Confortable (< 12% du revenu)' : 'Comfortable (< 12% of income)';
       } else if (ratio <= 0.18) {
-        _trafficColor = CalcwiseTheme.of(context).warningOrange;
-        _trafficLabel = 'Moderate (12–18% of income)';
+        trafficColor = CalcwiseTheme.of(context).warningOrange;
+        trafficLabel = isFr ? 'Modéré (12–18% du revenu)' : 'Moderate (12–18% of income)';
       } else {
-        _trafficColor = CalcwiseTheme.of(context).errorRed;
-        _trafficLabel = 'Over budget (> 18% of income)';
+        trafficColor = CalcwiseTheme.of(context).errorRed;
+        trafficLabel = isFr ? 'Hors budget (> 18% du revenu)' : 'Over budget (> 18% of income)';
       }
     }
 
     return SectionCard(
-      title: AppLocalizations.of(context)!.affordabilityGuide,
+      title: l10n.affordabilityGuide,
       children: [
         Row(
           children: [
@@ -1902,7 +1928,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
               value: _expanded,
               onChanged: (v) => setState(() => _expanded = v),
             ),
-            const Expanded(child: Text('Show Affordability Guide')),
+            Expanded(child: Text(isFr ? 'Afficher le guide d\'accessibilité' : 'Show Affordability Guide')),
           ],
         ),
         if (_expanded) ...[
@@ -1914,7 +1940,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Flexible(child: Text('Gross monthly income', overflow: TextOverflow.ellipsis)),
+                  Flexible(child: Text(isFr ? 'Revenu mensuel brut' : 'Gross monthly income', overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 8),
                   Text(
                     AmountFormatter.formatInteger(_monthlyIncome),
@@ -1956,11 +1982,15 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
           ResultTile(
-            label: 'Recommended max payment (15% of income)',
-            value: '${AmountFormatter.ui(maxRecommended, 'CAD')}/mo',
+            label: isFr
+                ? 'Paiement max recommandé (15% du revenu)'
+                : 'Recommended max payment (15% of income)',
+            value: '${AmountFormatter.ui(maxRecommended, 'CAD')}/${isFr ? 'mois' : 'mo'}',
           ),
           ResultTile(
-            label: 'Max affordable vehicle (at current rate/term)',
+            label: isFr
+                ? 'Véhicule max abordable (au taux/terme actuel)'
+                : 'Max affordable vehicle (at current rate/term)',
             value: AmountFormatter.formatInteger(maxVehicle),
             isHighlight: true,
           ),
@@ -1973,17 +2003,19 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: _trafficColor,
+                    color: trafficColor,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Your payment ${AmountFormatter.ui(r.monthlyPayment, 'CAD')}/mo — $_trafficLabel',
+                    isFr
+                        ? 'Votre paiement ${AmountFormatter.ui(r.monthlyPayment, 'CAD')}/mois — $trafficLabel'
+                        : 'Your payment ${AmountFormatter.ui(r.monthlyPayment, 'CAD')}/mo — $trafficLabel',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: _trafficColor,
+                      color: trafficColor,
                     ),
                   ),
                 ),
@@ -1992,7 +2024,9 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
           ] else ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Calculate a loan above to see your payment rating.',
+              isFr
+                  ? 'Calculez un prêt ci-dessus pour voir votre cote de paiement.'
+                  : 'Calculate a loan above to see your payment rating.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

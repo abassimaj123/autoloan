@@ -210,5 +210,67 @@
   "exportPdf": "Exportar PDF",
   "exportPdfPro": "Exportar PDF — PRO",
   "cashBackVsLowApr": "Reembolso vs Tasa Baja",
-  "affordabilityGuide": "Guía de Asequibilidad"
+  "affordabilityGuide": "Guía de Asequibilidad",
+  "settingsPremium": "Premium",
+  "settingsPrivacySettings": "Configuración de privacidad",
+  "historySavedScenarios": "Escenarios guardados",
+  "historyRecentCalc": "Cálculos recientes",
+  "historyClearAll": "¿Borrar {count} cálculos? No se puede deshacer.",
+  "@historyClearAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyCancel": "Cancelar",
+  "historyClearAction": "Borrar",
+  "historyLimitNudge": "Límite de historial alcanzado ({limit}). Actualice para conservar los cálculos.",
+  "@historyLimitNudge": {
+    "placeholders": {
+      "limit": { "type": "int" }
+    }
+  },
+  "historyLockedCount": "{count} registros anteriores bloqueados",
+  "@historyLockedCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyDeleteTitle": "Eliminar entrada",
+  "historyDeleteConfirm": "¿Eliminar este cálculo? No se puede deshacer.",
+  "historyDelete": "Eliminar",
+  "historyRename": "Renombrar",
+  "historyRenameTitle": "Renombrar escenario",
+  "historyRenameHint": "Nombre del escenario",
+  "historyRemovePin": "Quitar marcador",
+  "histDetailAnnualRate": "Tasa anual",
+  "histDetailProvince": "Provincia",
+  "histDetailTotalCost": "Costo total del préstamo",
+  "histDetailTitle": "Detalle del préstamo {country}",
+  "@histDetailTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailSummaryTitle": "Préstamo Auto {country} — Resumen",
+  "@histDetailSummaryTitle": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "histDetailFooter": "Calculado con Auto Loan {country}",
+  "@histDetailFooter": {
+    "placeholders": {
+      "country": { "type": "String" }
+    }
+  },
+  "amortScheduleTab": "Tabla",
+  "amortPayoffChart": "Gráfico de amortización",
+  "amortRemainingBalance": "Saldo restante en el tiempo",
+  "amortRemainingBalanceLegend": "Saldo restante",
+  "amortNoData": "Sin datos para mostrar.",
+  "amortShareSchedule": "Compartir tabla",
+  "amortBiWkPayment": "Pago quincenal",
+  "amortBiWeeklyHeader": "Pago quincenal",
+  "pdfExportSuccess": "PDF exportado con éxito",
+  "pdfExportFailed": "Error al exportar"
 }

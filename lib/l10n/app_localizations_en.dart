@@ -595,4 +595,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get affordabilityGuide => 'Affordability Guide';
+
+  @override
+  String get settingsPremium => 'Premium';
+
+  @override
+  String get settingsPrivacySettings => 'Privacy Settings';
+
+  @override
+  String get historySavedScenarios => 'Saved Scenarios';
+
+  @override
+  String get historyRecentCalc => 'Recent Calculations';
+
+  @override
+  String historyClearAll(int count) {
+    return 'Clear all $count calculations? This cannot be undone.';
+  }
+
+  @override
+  String get historyCancel => 'Cancel';
+
+  @override
+  String get historyClearAction => 'Clear';
+
+  @override
+  String historyLimitNudge(int limit) {
+    return 'History limit reached ($limit). Upgrade to keep all future calculations.';
+  }
+
+  @override
+  String historyLockedCount(int count) {
+    return '$count older records locked';
+  }
+
+  @override
+  String get historyDeleteTitle => 'Delete entry';
+
+  @override
+  String get historyDeleteConfirm =>
+      'Remove this calculation? Cannot be undone.';
+
+  @override
+  String get historyDelete => 'Delete';
+
+  @override
+  String get historyRename => 'Rename';
+
+  @override
+  String get historyRenameTitle => 'Rename scenario';
+
+  @override
+  String get historyRenameHint => 'Scenario name';
+
+  @override
+  String get historyRemovePin => 'Remove pin';
+
+  @override
+  String get histDetailAnnualRate => 'Annual Rate';
+
+  @override
+  String get histDetailProvince => 'Province';
+
+  @override
+  String get histDetailTotalCost => 'Total Cost of Loan';
+
+  @override
+  String histDetailTitle(String country) {
+    return '$country Loan Detail';
+  }
+
+  @override
+  String histDetailSummaryTitle(String country) {
+    return 'Auto Loan $country — Loan Summary';
+  }
+
+  @override
+  String histDetailFooter(String country) {
+    return 'Calculated with Auto Loan $country';
+  }
+
+  @override
+  String get amortScheduleTab => 'Schedule';
+
+  @override
+  String get amortPayoffChart => 'Payoff Chart';
+
+  @override
+  String get amortRemainingBalance => 'Remaining Balance Over Time';
+
+  @override
+  String get amortRemainingBalanceLegend => 'Remaining Balance';
+
+  @override
+  String get amortNoData => 'No data to display.';
+
+  @override
+  String get amortShareSchedule => 'Share Schedule';
+
+  @override
+  String get amortBiWkPayment => 'Bi-wk Payment';
+
+  @override
+  String get amortBiWeeklyHeader => 'Bi-weekly payment';
+
+  @override
+  String get pdfExportSuccess => 'PDF exported successfully';
+
+  @override
+  String get pdfExportFailed => 'Export failed';
 }

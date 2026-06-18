@@ -14,13 +14,15 @@ import '../../widgets/paywall_hard.dart';
 // ─── PDF isolate helpers (top-level — required by Isolate.run) ───────────────
 
 class _HistoryDetailPdfParams {
-  final String country;
+  final String summaryTitle;
+  final String footer;
   final String? timestamp;
   final List<String> rowLabels;
   final List<String> rowValues;
 
   const _HistoryDetailPdfParams({
-    required this.country,
+    required this.summaryTitle,
+    required this.footer,
     required this.timestamp,
     required this.rowLabels,
     required this.rowValues,
@@ -39,7 +41,7 @@ Future<Uint8List> _buildHistoryDetailPdf(_HistoryDetailPdfParams p) async {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            'Auto Loan ${p.country} — Loan Summary',
+            p.summaryTitle,
             style: pw.TextStyle(fontSize: AppTextSize.title, fontWeight: pw.FontWeight.bold),
           ),
           if (ts != null)
@@ -76,7 +78,7 @@ Future<Uint8List> _buildHistoryDetailPdf(_HistoryDetailPdfParams p) async {
           pw.Divider(),
           pw.SizedBox(height: 8),
           pw.Text(
-            'Calculated with Auto Loan ${p.country}',
+            p.footer,
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey),
           ),
         ],
@@ -104,30 +106,30 @@ class HistoryDetailScreen extends StatelessWidget {
     return v == null ? null : (v as num).toDouble();
   }
 
-  List<({String label, String value})> get _rows {
+  List<({String label, String value})> _buildRows(AppLocalizations l10n) {
     final rows = <({String label, String value})>[];
     void add(String label, String? val) {
       if (val != null) rows.add((label: label, value: val));
     }
 
     add(
-      'Vehicle Price',
+      l10n.vehiclePrice,
       _amt('vehiclePrice') != null ? _fmt.format(_amt('vehiclePrice')!) : null,
     );
     add(
-      'Trade-in Value',
+      l10n.tradeInValue,
       (_amt('tradeInValue') ?? 0) > 0
           ? _fmt.format(_amt('tradeInValue')!)
           : null,
     );
     add(
-      'Down Payment',
+      l10n.downPayment,
       (_amt('downPayment') ?? 0) > 0
           ? _fmt.format(_amt('downPayment')!)
           : null,
     );
     add(
-      'Loan Amount',
+      l10n.loanAmount,
       _amt('loanAmount') != null
           ? _fmt.format(_amt('loanAmount')!)
           : (_amt('financedAmount') != null
@@ -135,78 +137,90 @@ class HistoryDetailScreen extends StatelessWidget {
               : null),
     );
     add(
-      'Loan Term',
+      l10n.termMonths,
       entry['termMonths'] != null ? '${entry['termMonths']} months' : null,
     );
     add(
-      'Annual Rate',
+      l10n.histDetailAnnualRate,
       _amt('annualRate') != null
           ? '${_amt('annualRate')!.toStringAsFixed(2)}%'
           : null,
     );
     add(
-      'Effective Rate',
+      l10n.effectiveRate,
       _amt('effectiveRate') != null
           ? '${_amt('effectiveRate')!.toStringAsFixed(2)}%'
           : null,
     );
-    add('Province', entry['provinceCode'] as String?);
+    add(l10n.histDetailProvince, entry['provinceCode'] as String?);
     add(
-      'Monthly Payment',
+      l10n.monthlyPayment,
       _amt('monthlyPayment') != null
           ? _fmt.format(_amt('monthlyPayment')!)
           : null,
     );
     add(
-      'Bi-weekly Payment',
+      l10n.biWeeklyPayment,
       _amt('biWeeklyPayment') != null
           ? _fmt.format(_amt('biWeeklyPayment')!)
           : null,
     );
     add(
-      'Total Interest',
+      l10n.totalInterest,
       _amt('totalInterest') != null
           ? _fmt.format(_amt('totalInterest')!)
           : null,
     );
     add(
-      'Total Cost of Loan',
+      l10n.histDetailTotalCost,
       _amt('totalCost') != null ? _fmt.format(_amt('totalCost')!) : null,
     );
     return rows;
   }
 
-  String _buildShareText() {
+  String _buildShareText(
+    List<({String label, String value})> rows,
+    String summaryTitle,
+    String footer,
+  ) {
     final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     const sep = '─────────────────────';
     final buf = StringBuffer();
-    buf.writeln('Auto Loan $_country — Loan Summary');
+    buf.writeln(summaryTitle);
     if (ts != null) buf.writeln(dateFmt.format(ts));
     buf.writeln(sep);
-    for (final r in _rows) {
+    for (final r in rows) {
       final pad = ' ' * ((28 - r.label.length).clamp(1, 20));
       buf.writeln('${r.label}$pad${r.value}');
     }
     buf.writeln(sep);
-    buf.write('Calculated with Auto Loan $_country');
+    buf.write(footer);
     return buf.toString();
   }
 
-  Future<void> _shareSummary() async {
+  Future<void> _shareSummary(
+    List<({String label, String value})> rows,
+    String summaryTitle,
+    String footer,
+  ) async {
     await Share.share(
-      _buildShareText(),
-      subject: 'Auto Loan $_country Summary',
+      _buildShareText(rows, summaryTitle, footer),
+      subject: summaryTitle,
     );
   }
 
-  Future<void> _exportPdf() async {
-    final rows = _rows;
+  Future<void> _exportPdf(
+    List<({String label, String value})> rows,
+    String summaryTitle,
+    String footer,
+  ) async {
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     final ts2 = ts != null ? DateFormat('yyyyMMdd').format(ts) : 'export';
 
     final params = _HistoryDetailPdfParams(
-      country: _country,
+      summaryTitle: summaryTitle,
+      footer: footer,
       timestamp: entry['timestamp'] as String?,
       rowLabels: rows.map((r) => r.label).toList(),
       rowValues: rows.map((r) => r.value).toList(),
@@ -234,15 +248,18 @@ class HistoryDetailScreen extends StatelessWidget {
         final l10n = AppLocalizations.of(context)!;
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
+        final rows = _buildRows(l10n);
+        final summaryTitle = l10n.histDetailSummaryTitle(_country);
+        final footer = l10n.histDetailFooter(_country);
         return Scaffold(
           appBar: AppBar(
-            title: Text('$_country Loan Detail'),
+            title: Text(l10n.histDetailTitle(_country)),
             centerTitle: false,
             actions: [
               IconButton(
                 icon: const Icon(Icons.share_rounded),
                 tooltip: l10n.share,
-                onPressed: _shareSummary,
+                onPressed: () => _shareSummary(rows, summaryTitle, footer),
               ),
             ],
           ),
@@ -271,7 +288,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
-                    children: _rows
+                    children: rows
                         .map(
                           (r) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
@@ -315,7 +332,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: _shareSummary,
+                      onPressed: () => _shareSummary(rows, summaryTitle, footer),
                       icon: const Icon(Icons.share_rounded),
                       label: Text(l10n.share),
                       style: OutlinedButton.styleFrom(
@@ -327,7 +344,7 @@ class HistoryDetailScreen extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: hasFull
-                          ? _exportPdf
+                          ? () => _exportPdf(rows, summaryTitle, footer)
                           : () => PaywallHard.show(context),
                       icon: const Icon(Icons.picture_as_pdf_rounded),
                       label: Text(hasFull ? l10n.exportPdf : l10n.exportPdfPro),
