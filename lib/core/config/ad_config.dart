@@ -110,7 +110,4 @@ class AdConfig {
       ? _appIdTestIOS
       : (_prodAppIdIOS.isNotEmpty ? _prodAppIdIOS : _appIdTestIOS);
 
-  // Interstitial/rewarded thresholds — shared across all flavors
-  static const int calcThreshold = 8;
-  static const int cooldownMinutes = 5;
 }
