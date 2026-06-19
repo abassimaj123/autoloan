@@ -16,6 +16,7 @@ import '../../features/amortization/amortization_screen.dart';
 import '../../features/cashback_vs_lowapr/cashback_vs_lowapr_screen.dart';
 import '../../features/history/history_screen.dart';
 import 'package:share_plus/share_plus.dart' show Share;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/pdf/pdf_export_service.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/compare/compare_screen.dart';
@@ -108,11 +109,19 @@ class _CAScreenState extends State<CAScreen> {
   void _debouncedCalculate() {
     if (!_validated) setState(() => _validated = true);
     _debounce?.cancel();
-    _debounce = Timer(AppDuration.page, () {
+    _debounce = Timer(AppDuration.page, () async {
       if (!mounted) return;
       final p = context.read<CAProvider>();
       p.calculate();
       p.scheduleAutoSave();
+      // Wire logFirstCalculate — call exactly once per install
+      if (p.result != null) {
+        final prefs = await SharedPreferences.getInstance();
+        if (prefs.getBool('first_calc_done') != true) {
+          await prefs.setBool('first_calc_done', true);
+          AnalyticsService.instance.logFirstCalculate();
+        }
+      }
     });
   }
 

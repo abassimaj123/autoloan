@@ -9,6 +9,7 @@
 import 'dart:async' show Completer, unawaited;
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'core/firebase/firebase_options.dart';
 import 'package:flutter/services.dart';
@@ -88,9 +89,11 @@ void main() async {
     analytics: AnalyticsService.instance,
   );
   await adService.initialize();
-  unawaited(MobileAds.instance.updateRequestConfiguration(
-    RequestConfiguration(testDeviceIds: ['FD16D4616C3A21C3ACE5E48F8DC9C1DC']),
-  ));
+  if (kDebugMode) {
+    await MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(testDeviceIds: ['FD16D4616C3A21C3ACE5E48F8DC9C1DC']),
+    );
+  }
 
   // 3. App data
   final prefs = await SharedPreferences.getInstance();
