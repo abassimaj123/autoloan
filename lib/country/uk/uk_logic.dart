@@ -273,8 +273,7 @@ class UKCalculation {
       } else {
         final rWk = annualRate / 52 / 100;
         final powWk = pow(1 + rWk, nWk).toDouble();
-        final pvGmfv =
-            gmfvAmount / pow(1 + annualRate / 12 / 100, termMonths).toDouble();
+        final pvGmfv = gmfvAmount / powWk;
         weeklyLoanPayment = (loanAmount - pvGmfv) * (rWk * powWk) / (powWk - 1);
       }
     }
