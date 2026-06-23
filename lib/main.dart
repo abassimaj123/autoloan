@@ -110,6 +110,7 @@ void main() async {
     freemium: freemiumService,
   );
   AnalyticsService.instance.setUserPremium(freemiumService.hasFullAccess);
+  unawaited(AnalyticsService.instance.initialize());
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
   final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
