@@ -541,7 +541,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<String?> _showRenameDialog(String current) async {
     final l10n = AppLocalizations.of(context)!;
     final ctrl = TextEditingController(text: current);
-    return showDialog<String>(
+    final label = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(l10n.historyRenameTitle),
@@ -563,6 +563,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
     );
+    ctrl.dispose();
+    return label;
   }
 }
 
