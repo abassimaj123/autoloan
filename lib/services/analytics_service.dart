@@ -79,8 +79,6 @@ class AnalyticsService extends CalcwiseAnalytics {
       log('upgrade_tapped', {'source': source});
   Future<void> logFeatureGated(String feature) =>
       log('feature_gated', {'feature': feature});
-  Future<void> logPaywallShown(String type) =>
-      log('paywall_shown', {'type': type});
 
   // ── AutoLoan domain events (Phase 2) ──────────────────────────────────────
 

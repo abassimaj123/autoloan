@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/freemium/iap_service.dart';
 import '../core/locale_notifier.dart';
-import '../services/analytics_service.dart';
 
 class PaywallHard extends StatelessWidget {
   const PaywallHard({super.key});
@@ -17,7 +16,6 @@ class PaywallHard extends StatelessWidget {
   }
 
   static Future<void> show(BuildContext context) {
-    AnalyticsService.instance.logPaywallShown('hard');
     final localeNotifier =
         Provider.of<LocaleNotifier>(context, listen: false);
     final isFrench = localeNotifier.isFrench;
