@@ -15,6 +15,7 @@ import '../../core/freemium/freemium_service.dart';
 import '../../core/freemium/iap_service.dart';
 import '../../core/locale_notifier.dart';
 import '../../services/analytics_service.dart';
+import '../../widgets/paywall_hard.dart';
 
 class SettingsScreen extends StatelessWidget {
   final String flavor;
@@ -52,7 +53,7 @@ class SettingsScreen extends StatelessWidget {
                       label: _premiumLabel(flavor, l10n),
                       subtitle: l10n.settingsPremiumSubtitle,
                       trailing: _premiumPrice(flavor),
-                      onTap: () => IAPService.instance.buy(),
+                      onTap: () => PaywallHard.show(context),
                     ),
                     CalcwiseSettingsTile(
                       icon: Icons.restore,

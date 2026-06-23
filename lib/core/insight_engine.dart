@@ -90,7 +90,7 @@ class InsightEngine {
           title: isFr ? 'Durée courte' : 'Short Loan Term',
           body: isFr
               ? 'Durée courte (${termMonths ~/ 12} ans) — moins de risque d\'être sous l\'eau.'
-              : 'Short loan term (${termMonths ~/ 12} yr) reduces interest cost and underwater risk.',
+              : 'Short loan term (${termMonths ~/ 12} year) reduces interest cost and underwater risk.',
         ),
       );
     }
@@ -149,7 +149,7 @@ class InsightEngine {
           title: isFr ? 'Coût total estimé' : 'Estimated Total Cost',
           body: isFr
               ? 'Prix + intérêts + coûts estimés ≈ ${fmtC(tco)} sur $termYears ans.'
-              : 'Price + interest + est. running costs ≈ ${fmtC(tco)} over $termYears yrs.',
+              : 'Price + interest + est. running costs ≈ ${fmtC(tco)} over $termYears years.',
         ),
       );
     }

@@ -1008,12 +1008,7 @@ class _USResults extends StatelessWidget {
             label: Text(l10n.earlyPayoff),
           ),
         ] else ...[
-          CalcwisePremiumGate(
-            title: l10n.results,
-            description: l10n.unlockFull,
-            price: IAPService.instance.localizedPrice,
-            onUnlock: () => PaywallSoft.show(context),
-          ),
+          _EarlyPayoffTeaser(onUnlock: () => PaywallSoft.show(context)),
         ],
       ],
     );
@@ -1653,14 +1648,8 @@ class _USRefiTab extends StatelessWidget {
                         ),
                       ),
                       if (!hasFull)
-                        CalcwisePremiumGate(
-                          title: isSpanish
-                              ? 'Calculadora de Refinanciamiento'
-                              : 'Refinancing Calculator',
-                          description: isSpanish
-                              ? '¿Vale la pena refinanciar? Compara tu préstamo actual con una nueva oferta y calcula cuándo recuperas los costos.'
-                              : 'Is refinancing worth it? Compare your current loan against a new offer and find your break-even point.',
-                          price: IAPService.instance.localizedPrice,
+                        _RefiTeaser(
+                          isSpanish: isSpanish,
                           onUnlock: () => PaywallSoft.show(context),
                         )
                       else if (p.result != null)
@@ -2389,14 +2378,50 @@ class _PremiumToolCard extends StatelessWidget {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
-        return hasFull
-            ? _buildUnlockedCard(context, cs)
-            : CalcwisePremiumGate(
-                title: label,
-                description: description,
-                price: IAPService.instance.localizedPrice,
-                onUnlock: () => PaywallSoft.show(context),
-              );
+        if (hasFull) return _buildUnlockedCard(context, cs);
+        return GestureDetector(
+          onTap: () => PaywallSoft.show(context),
+          child: Stack(
+            children: [
+              Opacity(
+                opacity: 0.38,
+                child: _buildUnlockedCard(context, cs),
+              ),
+              Positioned.fill(
+                child: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: AppSpacing.md),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.lock_outline,
+                            color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Unlock',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -2465,6 +2490,210 @@ class _PremiumToolCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Early Payoff teaser ────────────────────────────────────────────────────────
+/// Shows a greyed-out "Early Payoff" button with a lock badge so free users
+/// understand exactly what they would unlock.
+class _EarlyPayoffTeaser extends StatelessWidget {
+  final VoidCallback onUnlock;
+  const _EarlyPayoffTeaser({required this.onUnlock});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onUnlock,
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          // Greyed-out copy of the unlocked button
+          IgnorePointer(
+            child: Opacity(
+              opacity: 0.35,
+              child: OutlinedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.rocket_launch_rounded),
+                label: const Text('Early Payoff'),
+              ),
+            ),
+          ),
+          // Lock badge
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: cs.primary,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock_outline, color: Colors.white, size: 14),
+                SizedBox(width: 4),
+                Text(
+                  'Unlock',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Refi teaser ───────────────────────────────────────────────────────────────
+/// Shows a dimmed preview of the refi form skeleton + a centered unlock button
+/// so the user sees the tool shape and understands what they would get.
+class _RefiTeaser extends StatelessWidget {
+  final bool isSpanish;
+  final VoidCallback onUnlock;
+  const _RefiTeaser({required this.isSpanish, required this.onUnlock});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Stack(
+      children: [
+        // Dimmed preview skeleton
+        Opacity(
+          opacity: 0.28,
+          child: IgnorePointer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _FakeInputRow(
+                    label: isSpanish ? 'Saldo actual' : 'Current balance'),
+                const SizedBox(height: AppSpacing.sm),
+                _FakeInputRow(
+                    label: isSpanish ? 'Tasa actual (%)' : 'Current rate (%)'),
+                const SizedBox(height: AppSpacing.sm),
+                _FakeInputRow(
+                    label: isSpanish ? 'Nueva tasa (%)' : 'New rate (%)'),
+                const SizedBox(height: AppSpacing.sm),
+                _FakeInputRow(
+                    label: isSpanish
+                        ? 'Plazo restante (meses)'
+                        : 'Months remaining'),
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                  child: Column(
+                    children: [
+                      _FakeResultRow(
+                          label: isSpanish ? 'Ahorro mensual' : 'Monthly savings'),
+                      const Divider(height: 16),
+                      _FakeResultRow(
+                          label: isSpanish
+                              ? 'Punto de equilibrio'
+                              : 'Break-even point'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Lock overlay button
+        Positioned.fill(
+          child: Center(
+            child: GestureDetector(
+              onTap: onUnlock,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: cs.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cs.primary.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_outline,
+                        color: Colors.white, size: 18),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      isSpanish
+                          ? 'Desbloquear Calculadora'
+                          : 'Unlock Refinancing Calculator',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FakeInputRow extends StatelessWidget {
+  final String label;
+  const _FakeInputRow({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        border: Border.all(color: cs.outline),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      alignment: Alignment.centerLeft,
+      child: Text(label,
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
+    );
+  }
+}
+
+class _FakeResultRow extends StatelessWidget {
+  final String label;
+  const _FakeResultRow({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+        Container(
+          width: 72,
+          height: 14,
+          decoration: BoxDecoration(
+            color: cs.outlineVariant,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ],
     );
   }
 }

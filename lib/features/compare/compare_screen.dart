@@ -659,13 +659,119 @@ class _GatedCompareResults extends StatelessWidget {
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         if (!hasFull) {
           final l10n = AppLocalizations.of(context)!;
+          final paymentLabel =
+              isBiWeekly ? l10n.biWeeklyPayment : l10n.monthlyPayment;
+          final cs = Theme.of(context).colorScheme;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: CalcwisePremiumGate(
-              title: l10n.compareLoans,
-              description: l10n.unlockFull,
-              price: IAPService.instance.localizedPrice,
-              onUnlock: () => PaywallSoft.show(context),
+            child: Stack(
+              children: [
+                // Dimmed preview: first 2 rows of the real results card
+                Opacity(
+                  opacity: 0.28,
+                  child: IgnorePointer(
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(paymentLabel,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium),
+                                Row(
+                                  children: [
+                                    Container(
+                                        width: 60,
+                                        height: 14,
+                                        color: cs.outlineVariant),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Container(
+                                        width: 60,
+                                        height: 14,
+                                        color: cs.outlineVariant),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(l10n.totalInterest,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium),
+                                Row(
+                                  children: [
+                                    Container(
+                                        width: 60,
+                                        height: 14,
+                                        color: cs.outlineVariant),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Container(
+                                        width: 60,
+                                        height: 14,
+                                        color: cs.outlineVariant),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 16),
+                            Container(
+                              height: 14,
+                              width: double.infinity,
+                              color: cs.outlineVariant,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Lock overlay
+                Positioned.fill(
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () => PaywallSoft.show(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                            vertical: AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: cs.primary,
+                          borderRadius: BorderRadius.circular(AppRadius.xl),
+                          boxShadow: [
+                            BoxShadow(
+                              color: cs.primary.withValues(alpha: 0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.lock_outline,
+                                color: Colors.white, size: 18),
+                            SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'Unlock Comparison',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }
