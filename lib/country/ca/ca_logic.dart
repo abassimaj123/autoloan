@@ -29,6 +29,7 @@ double maxAffordablePrice({
   required double annualRate,
   required int termMonths,
   required double downPayment,
+  double taxRate = 0,
 }) {
   final maxPmt = monthlyIncome * 0.15;
   double loanPV;
@@ -38,7 +39,9 @@ double maxAffordablePrice({
     final r = annualRate / 12 / 100;
     loanPV = maxPmt * (1 - pow(1 + r, -termMonths)) / r;
   }
-  return loanPV + downPayment;
+  // availableForLoan = loanPV; max vehicle price before tax = (loanPV + downPayment) / (1 + taxRate)
+  final divisor = taxRate > 0 ? (1 + taxRate) : 1.0;
+  return (loanPV + downPayment) / divisor;
 }
 
 // ── CA Lease Calculation ───────────────────────────────────────────────────────
@@ -133,6 +136,7 @@ class CATcoCalculation {
     required double totalInterest,
     required double vehiclePrice,
     required double downPayment,
+    double taxRate = 0,
   }) {
     final termYears = termMonths / 12;
     final totalFuel = annualKm / 100 * fuelPer100km * fuelPricePerL * termYears;
@@ -142,7 +146,8 @@ class CATcoCalculation {
     // downPayment is NOT subtracted here — the user already paid it, so it IS
     // part of total cost.  vehiclePrice here already represents the full cost
     // (trade-in is handled at the loan level in CA).
-    final netVehicleCost = vehiclePrice;
+    // Include provincial/HST tax in the vehicle cost.
+    final netVehicleCost = vehiclePrice * (1 + taxRate);
     final grandTotal =
         totalFuel +
         totalInsurance +

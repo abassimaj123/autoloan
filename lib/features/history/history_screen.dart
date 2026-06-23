@@ -641,6 +641,8 @@ class _HistoryCard extends StatelessWidget {
     final termMonths = entry['termMonths'] as int?;
     final rate = _d('annualRate') ?? _d('effectiveRate') ?? 0;
     final province = entry['provinceCode'] as String?;
+    final freqName = entry['frequency'] as String?;
+    final isBiWeeklyEntry = freqName == 'biWeekly';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -713,7 +715,7 @@ class _HistoryCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     child: Text(
-                      '${fmtDec.format(biWeekly ?? payment)}/mo',
+                      '${fmtDec.format(biWeekly ?? payment)}/${isBiWeeklyEntry ? '2wk' : 'mo'}',
                       style: TextStyle(
                         fontSize: AppTextSize.md,
                         fontWeight: FontWeight.bold,

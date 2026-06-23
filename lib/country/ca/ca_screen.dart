@@ -1536,6 +1536,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
 
   void _calculate() {
     final r = widget.p.result!;
+    final province = caProvinceByCode(widget.p.provinceCode);
     setState(() {
       _tco = CATcoCalculation.calculate(
         annualKm: _annualKm,
@@ -1547,6 +1548,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
         totalInterest: r.totalInterest,
         vehiclePrice: r.vehiclePrice,
         downPayment: r.downPayment,
+        taxRate: province.totalRate,
       );
     });
   }
@@ -1911,6 +1913,7 @@ class _CAAffordabilitySectionState extends State<_CAAffordabilitySection> {
       annualRate: p.annualRate,
       termMonths: p.termMonths,
       downPayment: p.dpAmount,
+      taxRate: caProvinceByCode(p.provinceCode).totalRate,
     );
 
     // Traffic-light: compare actual monthly payment vs income

@@ -113,9 +113,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            ndk {
-                debugSymbolLevel = "FULL"
-            }
+            // No debugSymbolLevel — bundling FULL native symbols added ~395MB of
+            // *.so.dbg to the AAB (133MB vs ~52MB for sibling apps). Upload native
+            // debug symbols separately in Play Console if symbolication is needed.
         }
     }
 

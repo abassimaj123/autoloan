@@ -250,7 +250,7 @@ class UKCalculation {
         final rBi = annualRate / 26 / 100;
         final powBi = pow(1 + rBi, nBi).toDouble();
         final pvGmfv =
-            gmfvAmount / pow(1 + annualRate / 12 / 100, termMonths).toDouble();
+            gmfvAmount / pow(1 + rBi, nBi).toDouble();
         biWeeklyLoanPayment =
             (loanAmount - pvGmfv) * (rBi * powBi) / (powBi - 1);
       }
