@@ -101,6 +101,7 @@ class CurrencyTextInput extends StatefulWidget {
   final String symbol;
   final String? helperText;
   final String? errorText;
+  final String locale;
 
   const CurrencyTextInput({
     super.key,
@@ -110,6 +111,7 @@ class CurrencyTextInput extends StatefulWidget {
     this.symbol = '\$',
     this.helperText,
     this.errorText,
+    this.locale = 'en_US',
   });
 
   @override
@@ -146,7 +148,7 @@ class _CurrencyTextInputState extends State<CurrencyTextInput> {
     return TextFormField(
       controller: _ctrl,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [CurrencyInputFormatter(locale: 'en_US')],
+      inputFormatters: [CurrencyInputFormatter(locale: widget.locale)],
       decoration: InputDecoration(
         labelText: widget.label,
         prefixText: '${widget.symbol} ',

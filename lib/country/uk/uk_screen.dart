@@ -352,6 +352,7 @@ class _UKVehicleSection extends StatelessWidget {
           label: '${l10n.vehiclePrice} (VAT incl.)',
           value: p.vehiclePrice,
           symbol: '£',
+          locale: 'en_GB',
           onChanged: (v) {
             p.setVehiclePrice(v);
             onCalculate();
