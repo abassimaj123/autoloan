@@ -1,5 +1,6 @@
 import 'dart:isolate';
 import 'dart:typed_data';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -277,6 +278,7 @@ class _HistoryPdfParams {
 // ─────────────────────────────────────────────────────────────────────────────
 
 Future<Uint8List> _buildLoanPdf(_LoanPdfParams p) async {
+  await initializeDateFormatting();
   final rows = buildSchedule(
     loanAmount: p.loanAmount,
     annualRate: p.annualRate,
@@ -394,6 +396,7 @@ Future<Uint8List> _buildLoanPdf(_LoanPdfParams p) async {
 }
 
 Future<Uint8List> _buildLoanComparisonPdf(_LoanComparisonPdfParams p) async {
+  await initializeDateFormatting();
   final fmt = NumberFormat.currency(symbol: p.currency, decimalDigits: 2);
 
   final tSummary = p.isFrench ? 'Résumé' : (p.isSpanish ? 'Resumen' : 'Summary');
@@ -532,6 +535,7 @@ Future<Uint8List> _buildLoanComparisonPdf(_LoanComparisonPdfParams p) async {
 }
 
 Future<Uint8List> _buildTotalCostPdf(_TotalCostPdfParams p) async {
+  await initializeDateFormatting();
   final fmt = NumberFormat.currency(symbol: p.currency, decimalDigits: 0);
   final fmt2 = NumberFormat.currency(symbol: p.currency, decimalDigits: 2);
 
@@ -631,6 +635,7 @@ Future<Uint8List> _buildTotalCostPdf(_TotalCostPdfParams p) async {
 }
 
 Future<Uint8List> _buildLeaseVsBuyPdf(_LeaseVsBuyPdfParams p) async {
+  await initializeDateFormatting();
   final fmt = NumberFormat.currency(symbol: p.currency, decimalDigits: 2);
   final fmt0 = NumberFormat.currency(symbol: p.currency, decimalDigits: 0);
 
@@ -821,6 +826,7 @@ Future<Uint8List> _buildLeaseVsBuyPdf(_LeaseVsBuyPdfParams p) async {
 }
 
 Future<Uint8List> _buildCashbackVsLowAprPdf(_CashbackVsLowAprPdfParams p) async {
+  await initializeDateFormatting();
   final fmt = NumberFormat.currency(symbol: p.currency, decimalDigits: 2);
   final fmt0 = NumberFormat.currency(symbol: p.currency, decimalDigits: 0);
 
@@ -964,6 +970,7 @@ Future<Uint8List> _buildCashbackVsLowAprPdf(_CashbackVsLowAprPdfParams p) async 
 }
 
 Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
+  await initializeDateFormatting();
   final fmt = NumberFormat.currency(symbol: p.currency, decimalDigits: 2);
   final fmt0 = NumberFormat.currency(symbol: p.currency, decimalDigits: 0);
 
@@ -1117,6 +1124,7 @@ Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
 }
 
 Future<Uint8List> _buildHistoryPdf(_HistoryPdfParams p) async {
+  await initializeDateFormatting();
   final ts = DateTime.tryParse(p.timestamp ?? '');
   final dateFmt = DateFormat('MMM d, yyyy');
 
