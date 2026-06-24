@@ -89,6 +89,7 @@ class _CAScreenState extends State<CAScreen> {
       AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
+      context.read<CalcwiseAdService>().onAction();
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
       if (trigger == PaywallTrigger.hard) {
