@@ -15,6 +15,10 @@ class PaywallHard extends StatelessWidget {
     cw.PaywallHard.registerPrice(priceNotifier);
   }
 
+  static void setAnalytics(cw.CalcwiseAnalytics analytics) {
+    cw.PaywallHard.setAnalytics(analytics);
+  }
+
   static Future<void> show(BuildContext context) {
     final localeNotifier =
         Provider.of<LocaleNotifier>(context, listen: false);

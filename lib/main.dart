@@ -36,6 +36,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
 import 'services/analytics_service.dart';
+import 'widgets/paywall_hard.dart';
+import 'widgets/paywall_soft.dart';
 import 'core/config/ad_config.dart';
 import 'core/locale_notifier.dart';
 import 'core/freemium/freemium_service.dart';
@@ -139,6 +141,8 @@ void main() async {
     adService: adService,
     freemium: freemiumService,
   );
+  PaywallHard.setAnalytics(AnalyticsService.instance);
+  PaywallSoft.setAnalytics(AnalyticsService.instance);
   runApp(
     AutoLoanApp(
       prefs: prefs,
