@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/paywall_soft.dart';
+import '../../widgets/paywall_hard.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../../core/freemium/iap_service.dart';
 import '../../country/ca/ca_provider.dart';
@@ -17,8 +18,9 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseAdFooter,
         ComparisonView,
         ComparisonScenario,
-        ResultHasher;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+        ResultHasher,
+        PaywallTrigger;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../main.dart' show smartHistoryService, paywallSession;
 import '../../services/analytics_service.dart';
 import '../pdf/pdf_export_service.dart';
@@ -159,7 +161,10 @@ class _CompareScreenState extends State<CompareScreen> {
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
     _adService.onSave();
-    paywallSession.recordAction().ignore();
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+    if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
   }
 
   Future<void> _exportPdf(BuildContext context) async {

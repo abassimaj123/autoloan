@@ -10,8 +10,10 @@ import '../../services/analytics_service.dart';
 import '../../main.dart' show smartHistoryService, paywallSession;
 import '../history/history_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart'
-    show CalcwiseAdFooter, ResultHasher;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+    show CalcwiseAdFooter, ResultHasher, PaywallTrigger;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
+import '../../widgets/paywall_soft.dart';
+import '../../widgets/paywall_hard.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../pdf/pdf_export_service.dart';
 
@@ -83,7 +85,10 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
     _adService.onSave();
-    paywallSession.recordAction().ignore();
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+    if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
   }
 
   @override

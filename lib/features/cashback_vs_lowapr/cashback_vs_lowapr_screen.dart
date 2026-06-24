@@ -153,7 +153,10 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
     _adService.onSave();
-    paywallSession.recordAction().ignore();
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+    if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
   }
 
   Future<void> _exportPdf(
