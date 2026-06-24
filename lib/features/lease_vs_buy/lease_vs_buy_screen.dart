@@ -262,6 +262,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
         isFrench: langCode == 'fr',
         isSpanish: langCode == 'es',
       );
+      AnalyticsService.instance.logPdfExported(widget.flavor);
     } catch (_) {}
   }
 

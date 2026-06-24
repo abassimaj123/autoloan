@@ -187,6 +187,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
         isFrench: isFrench,
         isSpanish: isSpanish,
       );
+      AnalyticsService.instance.logPdfExported(widget.flavor);
     } catch (_) {}
   }
 

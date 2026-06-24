@@ -191,6 +191,7 @@ class _CompareScreenState extends State<CompareScreen> {
         isFrench: langCode == 'fr',
         isSpanish: langCode == 'es',
       );
+      AnalyticsService.instance.logPdfExported(widget.flavor);
     } catch (_) {}
   }
 

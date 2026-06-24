@@ -237,6 +237,7 @@ class HistoryDetailScreen extends StatelessWidget {
       bytes: bytes,
       filename: 'autoloan_${_country.toLowerCase()}_$ts2.pdf',
     );
+    AnalyticsService.instance.logPdfExported(_country.toLowerCase());
   }
 
   @override
