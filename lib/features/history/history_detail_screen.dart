@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
@@ -205,6 +206,7 @@ class HistoryDetailScreen extends StatelessWidget {
     String summaryTitle,
     String footer,
   ) async {
+    HapticFeedback.mediumImpact();
     await Share.share(
       _buildShareText(rows, summaryTitle, footer),
       subject: summaryTitle,
@@ -216,6 +218,7 @@ class HistoryDetailScreen extends StatelessWidget {
     String summaryTitle,
     String footer,
   ) async {
+    HapticFeedback.mediumImpact();
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     final ts2 = ts != null ? DateFormat('yyyyMMdd').format(ts) : 'export';
 

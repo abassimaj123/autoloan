@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'history_detail_screen.dart';
+import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, CalcwiseAdFooter;
@@ -133,6 +135,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView('history');
     Future.microtask(_load);
     HistoryScreen.refreshNotifier.addListener(_load);
   }
@@ -260,6 +263,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   );
                   if (confirm == true) {
+                    HapticFeedback.mediumImpact();
                     await history.clear();
                     if (!mounted) return;
                     widget.onClear?.call();
@@ -465,6 +469,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 );
                 if (confirm == true) {
+                  HapticFeedback.mediumImpact();
                   await history.clear();
                   if (!mounted) return;
                   _load();
@@ -505,6 +510,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     switch (action) {
       case _CardAction.unpin:
+        HapticFeedback.mediumImpact();
         await history.unpin(id);
         if (!mounted) return;
         _load();
@@ -537,6 +543,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         );
         if (confirm == true) {
+          HapticFeedback.mediumImpact();
           await history.delete(id);
           if (!mounted) return;
           _load();
@@ -563,7 +570,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(l10n.historyCancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, ctrl.text),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(context, ctrl.text);
+            },
             child: Text(l10n.historyRename),
           ),
         ],

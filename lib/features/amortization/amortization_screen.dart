@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui' show FontFeature;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
@@ -163,6 +164,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     String symbol,
     AppLocalizations l10n,
   ) {
+    HapticFeedback.mediumImpact();
     if (rows.isEmpty) return;
     final totalInterest = rows.fold(0.0, (s, r) => s + r.interest);
     final totalPaid = rows.fold(0.0, (s, r) => s + r.payment);
@@ -200,6 +202,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     BuildContext context,
     AppLocalizations l10n,
   ) async {
+    HapticFeedback.mediumImpact();
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final rows = buildSchedule(
       loanAmount: loanAmount,
@@ -269,6 +272,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     List<AmortizationRow> rows,
     String? label,
   ) async {
+    HapticFeedback.mediumImpact();
     if (rows.isEmpty) return;
     final totalInterest = rows.fold(0.0, (s, r) => s + r.interest);
     final totalPaid = rows.fold(0.0, (s, r) => s + r.payment);

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
@@ -43,6 +44,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
   static double _roundTo(double v, double step) => (v / step).round() * step;
 
   Future<void> _saveScenario(String? label) async {
+    HapticFeedback.mediumImpact();
     final result = _compute(_extraMonthly);
     final hash = ResultHasher.hashMixed({
       'loanAmount': _roundTo(widget.loanAmount, 1000),
@@ -300,6 +302,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
                       padding: const EdgeInsets.only(top: AppSpacing.sm),
                       child: OutlinedButton.icon(
                         onPressed: () async {
+                          HapticFeedback.mediumImpact();
                           final isFr =
                               Localizations.localeOf(context).languageCode == 'fr';
                           try {

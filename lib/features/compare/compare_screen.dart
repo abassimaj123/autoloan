@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -111,6 +112,7 @@ class _CompareScreenState extends State<CompareScreen> {
   }
 
   Future<void> _saveScenario(String? label) async {
+    HapticFeedback.mediumImpact();
     if (_resA == null || _resB == null) return;
     final hash = ResultHasher.hashMixed({
       'loanAmount': _roundTo(
@@ -161,6 +163,7 @@ class _CompareScreenState extends State<CompareScreen> {
   }
 
   Future<void> _exportPdf(BuildContext context) async {
+    HapticFeedback.mediumImpact();
     if (_resA == null || _resB == null) return;
     final langCode = Localizations.localeOf(context).languageCode;
     final l10n = AppLocalizations.of(context)!;
