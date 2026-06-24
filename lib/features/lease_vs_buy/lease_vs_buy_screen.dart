@@ -222,6 +222,8 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
         estimatedMiles: _estimatedMiles,
       );
     });
+    AnalyticsService.instance.maybeLogFirstCalculate();
+    _adService.onAction();
     _scheduleAutoSave();
   }
 

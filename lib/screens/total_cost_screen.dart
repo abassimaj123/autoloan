@@ -309,6 +309,8 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
         costPerMonth: costPerMonth,
       );
     });
+    AnalyticsService.instance.maybeLogFirstCalculate();
+    _adService.onAction();
     _scheduleAutoSave();
   }
 
