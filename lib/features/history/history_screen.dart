@@ -117,6 +117,7 @@ class _ShimmerBox extends StatelessWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   bool _loading = true;
   List<Map<String, dynamic>> _all = [];
+  String _searchQuery = '';
 
   String get _flag {
     switch (widget.country) {
@@ -183,11 +184,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         final autoSaves =
             _all.where((e) => e['isPinned'] != true).toList();
-        final pinned = _all.where((e) => e['isPinned'] == true).toList();
-        final shownAutoSaves = hasFull
+        final pinned = _all
+            .where((e) => e['isPinned'] == true && _matchesQuery(e))
+            .toList();
+        final shownAutoSavesBase = hasFull
             ? autoSaves
             : autoSaves.take(freemiumService.historyLimit).toList();
-        final locked = autoSaves.length - shownAutoSaves.length;
+        final shownAutoSaves = _searchQuery.isEmpty
+            ? shownAutoSavesBase
+            : shownAutoSavesBase.where(_matchesQuery).toList();
+        final locked = autoSaves.length - shownAutoSavesBase.length;
 
         if (!widget.showAppBar) {
           return _buildBody(
@@ -308,7 +314,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        // ── Pinned scenarios ─────────────────────────────���───────────────
+        CalcwiseSearchBar(
+          onChanged: (q) => setState(() => _searchQuery = q),
+        ),
+        if (_searchQuery.isNotEmpty && pinned.isEmpty && shownAutoSaves.isEmpty)
+          CalcwiseEmptyState(
+            icon: Icons.search_off_rounded,
+            title: 'No results',
+            body: 'Try a different search term',
+          ),
+        // ── Pinned scenarios ─────────────────────────────────────────────
         if (pinned.isNotEmpty) ...[
           _SectionHeader(
             icon: Icons.bookmark_rounded,
@@ -549,6 +564,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
           _load();
         }
     }
+  }
+
+  bool _matchesQuery(Map<String, dynamic> e) {
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    final label = (e['pinLabel'] as String? ?? '').toLowerCase();
+    final price = ((e['vehiclePrice'] as num?) ?? 0).toDouble();
+    final priceStr = price.toStringAsFixed(0).toLowerCase();
+    return label.contains(q) || priceStr.contains(q);
   }
 
   Future<String?> _showRenameDialog(String current) async {
