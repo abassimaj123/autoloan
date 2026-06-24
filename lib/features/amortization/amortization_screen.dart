@@ -13,7 +13,10 @@ import '../../services/analytics_service.dart';
 import '../history/history_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, CalcwiseAdService, AppSpacing, AppRadius,
-        CalcwiseChartTokens, ResultHasher, CalcwisePageEntrance, CalcwiseChartReveal;
+        CalcwiseChartTokens, ResultHasher, CalcwisePageEntrance, CalcwiseChartReveal,
+        PaywallTrigger;
+import '../../widgets/paywall_soft.dart';
+import '../../widgets/paywall_hard.dart';
 import '../../core/freemium/freemium_service.dart';
 import '../pdf/pdf_export_service.dart';
 
@@ -313,7 +316,10 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
     _adService.onSave();
-    paywallSession.recordAction().ignore();
+    final trigger = await paywallSession.recordAction();
+    if (!mounted) return;
+    if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
+    if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
   }
 
   @override
