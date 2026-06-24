@@ -809,7 +809,7 @@ class _UKQuickToolsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         OutlinedButton.icon(
           onPressed: () {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             Navigator.push(
               context,
               PageRouteBuilder(
@@ -998,7 +998,7 @@ class _UKResults extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () async {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             final payment = r.isPcp && p.frequency.isMonthly
                 ? 'PCP payment: ${AmountFormatter.ui(r.monthlyPayment, 'GBP')}'
                 : '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'GBP')}';
@@ -1654,7 +1654,7 @@ class _UKTcoSectionState extends State<_UKTcoSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.calculate_outlined),
@@ -2042,7 +2042,7 @@ class _UKEarlySettlementSectionState extends State<_UKEarlySettlementSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.receipt_long_rounded),
@@ -2272,7 +2272,7 @@ class _PremiumToolCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          HapticFeedback.lightImpact();
+          HapticFeedback.mediumImpact();
           onTap();
         },
         child: Padding(

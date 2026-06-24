@@ -360,7 +360,7 @@ class _USCalculatorTab extends StatelessWidget {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () async {
-                                        HapticFeedback.lightImpact();
+                                        HapticFeedback.mediumImpact();
                                         final payment =
                                             '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'USD')}';
                                         final isSpanishShare =
@@ -828,7 +828,7 @@ class _USQuickToolsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         OutlinedButton.icon(
           onPressed: () {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             Navigator.push(
               context,
               PageRouteBuilder(
@@ -1177,7 +1177,7 @@ class _USLeaseSectionState extends State<_USLeaseSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.compare),
@@ -1787,7 +1787,7 @@ class _USTcoSectionState extends State<_USTcoSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.calculate_outlined),
@@ -2088,7 +2088,7 @@ class _USAffordabilityReverseSolverSectionState
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.calculate_outlined),
@@ -2436,7 +2436,7 @@ class _PremiumToolCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          HapticFeedback.lightImpact();
+          HapticFeedback.mediumImpact();
           onTap();
         },
         child: Padding(

@@ -651,7 +651,7 @@ class _CAQuickToolsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         OutlinedButton.icon(
           onPressed: () {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             Navigator.push(
               context,
               PageRouteBuilder(
@@ -831,7 +831,7 @@ class _CAResults extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
           onPressed: () async {
-            HapticFeedback.lightImpact();
+            HapticFeedback.mediumImpact();
             final payment =
                 '${paymentLabelFor(l10n, p.frequency)}: ${AmountFormatter.ui(r.displayPayment, 'CAD')}';
             final isFrenchShare =
@@ -1173,7 +1173,7 @@ class _CALeaseSectionState extends State<_CALeaseSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.compare),
@@ -1626,7 +1626,7 @@ class _CATcoSectionState extends State<_CATcoSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _calculate();
             },
             icon: const Icon(Icons.calculate_outlined),
@@ -1804,7 +1804,7 @@ class _CATradeInSectionState extends State<_CATradeInSection> {
           const SizedBox(height: AppSpacing.md),
           FilledButton.icon(
             onPressed: () {
-              HapticFeedback.lightImpact();
+              HapticFeedback.mediumImpact();
               _compute();
             },
             icon: const Icon(Icons.calculate_outlined),
@@ -2104,7 +2104,7 @@ class _PremiumToolCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          HapticFeedback.lightImpact();
+          HapticFeedback.mediumImpact();
           onTap();
         },
         child: Padding(
