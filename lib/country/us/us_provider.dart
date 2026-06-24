@@ -118,7 +118,7 @@ class USProvider extends ChangeNotifier {
     _history.addAutoSave('us', _buildData(), hash);
     HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('us');
-    _ads.onAction();
+    _ads.onSave();
   }
 
   /// Immediately pin the current result as a named scenario.
@@ -131,8 +131,9 @@ class USProvider extends ChangeNotifier {
       'termMonths': termMonths,
     });
     await _history.saveScenario('us', _buildData(), hash, label: label);
+    HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('us');
-    _ads.onAction();
+    _ads.onSave();
     notifyListeners();
   }
 

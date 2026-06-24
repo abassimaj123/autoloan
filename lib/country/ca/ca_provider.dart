@@ -170,6 +170,7 @@ class CAProvider extends ChangeNotifier {
       'province': provinceCode,
     });
     await _history.saveScenario('ca', _buildData(), hash, label: label);
+    HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('ca');
     _ads.onSave();
     notifyListeners();

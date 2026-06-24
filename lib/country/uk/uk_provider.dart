@@ -152,7 +152,7 @@ class UKProvider extends ChangeNotifier {
     _history.addAutoSave('uk', _buildData(), hash);
     HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('uk');
-    _ads.onAction();
+    _ads.onSave();
   }
 
   /// Immediately pin the current result as a named scenario.
@@ -165,8 +165,9 @@ class UKProvider extends ChangeNotifier {
       'termMonths': termMonths,
     });
     await _history.saveScenario('uk', _buildData(), hash, label: label);
+    HistoryScreen.refreshNotifier.value++;
     AnalyticsService.instance.logHistorySaved('uk');
-    _ads.onAction();
+    _ads.onSave();
     notifyListeners();
   }
 
