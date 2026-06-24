@@ -485,6 +485,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                     FilledButton.icon(
                       onPressed: () async {
                         HapticFeedback.mediumImpact();
+                        _adService.onAction();
                         await _checkPaywall();
                         if (!mounted) return;
                         _calculate();
