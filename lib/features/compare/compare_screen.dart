@@ -746,8 +746,9 @@ class _GatedCompareResults extends StatelessWidget {
                 // Lock overlay
                 Positioned.fill(
                   child: Center(
-                    child: GestureDetector(
+                    child: InkWell(
                       onTap: () => PaywallSoft.show(context),
+                      borderRadius: BorderRadius.circular(AppRadius.xl),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.xl,
