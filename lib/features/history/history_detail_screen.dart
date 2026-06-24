@@ -30,6 +30,7 @@ class _HistoryDetailPdfParams {
 }
 
 Future<Uint8List> _buildHistoryDetailPdf(_HistoryDetailPdfParams p) async {
+  await initializeDateFormatting();
   final ts = DateTime.tryParse(p.timestamp ?? '');
   final dateFmt = DateFormat('MMM d, yyyy');
 
