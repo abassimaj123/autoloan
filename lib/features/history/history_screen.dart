@@ -261,6 +261,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   );
                   if (confirm == true) {
                     await history.clear();
+                    if (!mounted) return;
                     widget.onClear?.call();
                     _load();
                   }
@@ -465,8 +466,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 );
                 if (confirm == true) {
                   await history.clear();
+                  if (!mounted) return;
                   _load();
-                  if (context.mounted) Navigator.pop(context);
+                  Navigator.pop(context);
                 }
               },
             ),
@@ -504,13 +506,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     switch (action) {
       case _CardAction.unpin:
         await history.unpin(id);
+        if (!mounted) return;
         _load();
       case _CardAction.rename:
         final label = await _showRenameDialog(
           entry['pinLabel'] as String? ?? '',
         );
         if (label == null) return;
+        if (!mounted) return;
         await history.rename(id, label.trim());
+        if (!mounted) return;
         _load();
       case _CardAction.delete:
         final l10n = AppLocalizations.of(context)!;
@@ -533,6 +538,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         );
         if (confirm == true) {
           await history.delete(id);
+          if (!mounted) return;
           _load();
         }
     }
