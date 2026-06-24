@@ -22,6 +22,7 @@ class _HistoryDetailPdfParams {
   final String? timestamp;
   final List<String> rowLabels;
   final List<String> rowValues;
+  final String locale;
 
   const _HistoryDetailPdfParams({
     required this.summaryTitle,
@@ -29,13 +30,14 @@ class _HistoryDetailPdfParams {
     required this.timestamp,
     required this.rowLabels,
     required this.rowValues,
+    required this.locale,
   });
 }
 
 Future<Uint8List> _buildHistoryDetailPdf(_HistoryDetailPdfParams p) async {
   await initializeDateFormatting();
   final ts = DateTime.tryParse(p.timestamp ?? '');
-  final dateFmt = DateFormat('MMM d, yyyy');
+  final dateFmt = DateFormat('MMM d, yyyy', p.locale);
 
   final pdf = pw.Document();
   pdf.addPage(
@@ -186,8 +188,9 @@ class HistoryDetailScreen extends StatelessWidget {
     List<({String label, String value})> rows,
     String summaryTitle,
     String footer,
+    String locale,
   ) {
-    final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
+    final dateFmt = DateFormat('MMM d, yyyy · HH:mm', locale);
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     const sep = '─────────────────────';
     final buf = StringBuffer();
@@ -207,10 +210,11 @@ class HistoryDetailScreen extends StatelessWidget {
     List<({String label, String value})> rows,
     String summaryTitle,
     String footer,
+    String locale,
   ) async {
     HapticFeedback.mediumImpact();
     await Share.share(
-      _buildShareText(rows, summaryTitle, footer),
+      _buildShareText(rows, summaryTitle, footer, locale),
       subject: summaryTitle,
     );
   }
@@ -219,6 +223,7 @@ class HistoryDetailScreen extends StatelessWidget {
     List<({String label, String value})> rows,
     String summaryTitle,
     String footer,
+    String locale,
   ) async {
     HapticFeedback.mediumImpact();
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
@@ -230,6 +235,7 @@ class HistoryDetailScreen extends StatelessWidget {
       timestamp: entry['timestamp'] as String?,
       rowLabels: rows.map((r) => r.label).toList(),
       rowValues: rows.map((r) => r.value).toList(),
+      locale: locale,
     );
 
     final bytes = await Isolate.run(() => _buildHistoryDetailPdf(params));
@@ -243,7 +249,6 @@ class HistoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFmt = DateFormat('MMM d, yyyy · HH:mm');
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
 
     return ListenableBuilder(
@@ -252,6 +257,8 @@ class HistoryDetailScreen extends StatelessWidget {
         freemiumService.isRewardedNotifier,
       ]),
       builder: (context, _) {
+        final locale = Localizations.localeOf(context).languageCode;
+        final dateFmt = DateFormat('MMM d, yyyy · HH:mm', locale);
         final l10n = AppLocalizations.of(context)!;
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
@@ -266,7 +273,7 @@ class HistoryDetailScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.share_rounded),
                 tooltip: l10n.share,
-                onPressed: () => _shareSummary(rows, summaryTitle, footer),
+                onPressed: () => _shareSummary(rows, summaryTitle, footer, locale),
               ),
             ],
           ),
@@ -339,7 +346,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => _shareSummary(rows, summaryTitle, footer),
+                      onPressed: () => _shareSummary(rows, summaryTitle, footer, locale),
                       icon: const Icon(Icons.share_rounded),
                       label: Text(l10n.share),
                       style: OutlinedButton.styleFrom(
@@ -351,7 +358,7 @@ class HistoryDetailScreen extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: hasFull
-                          ? () => _exportPdf(rows, summaryTitle, footer)
+                          ? () => _exportPdf(rows, summaryTitle, footer, locale)
                           : () => PaywallHard.show(context),
                       icon: const Icon(Icons.picture_as_pdf_rounded),
                       label: Text(hasFull ? l10n.exportPdf : l10n.exportPdfPro),

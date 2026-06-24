@@ -259,20 +259,6 @@ class _LoanComparePdfParams {
   });
 }
 
-class _HistoryPdfParams {
-  final String country;
-  final String? timestamp;
-  final List<String> rowLabels;
-  final List<String> rowValues;
-
-  const _HistoryPdfParams({
-    required this.country,
-    required this.timestamp,
-    required this.rowLabels,
-    required this.rowValues,
-  });
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Top-level builders — run inside Isolate.run()
 // ─────────────────────────────────────────────────────────────────────────────
@@ -318,7 +304,7 @@ Future<Uint8List> _buildLoanPdf(_LoanPdfParams p) async {
             style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(
-            DateFormat.yMMMMd().format(DateTime.now()),
+            DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
           ),
         ],
@@ -430,7 +416,7 @@ Future<Uint8List> _buildLoanComparisonPdf(_LoanComparisonPdfParams p) async {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(p.title, style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold)),
-              pw.Text(DateFormat.yMMMMd().format(DateTime.now()),
+              pw.Text(DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
             ],
           ),
@@ -575,7 +561,7 @@ Future<Uint8List> _buildTotalCostPdf(_TotalCostPdfParams p) async {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(p.title, style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold)),
-              pw.Text(DateFormat.yMMMMd().format(DateTime.now()),
+              pw.Text(DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
             ],
           ),
@@ -685,7 +671,7 @@ Future<Uint8List> _buildLeaseVsBuyPdf(_LeaseVsBuyPdfParams p) async {
             children: [
               pw.Text(p.title,
                   style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold)),
-              pw.Text(DateFormat.yMMMMd().format(DateTime.now()),
+              pw.Text(DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
             ],
           ),
@@ -866,7 +852,7 @@ Future<Uint8List> _buildCashbackVsLowAprPdf(_CashbackVsLowAprPdfParams p) async 
             children: [
               pw.Text(p.title,
                   style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold)),
-              pw.Text(DateFormat.yMMMMd().format(DateTime.now()),
+              pw.Text(DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
             ],
           ),
@@ -1015,7 +1001,7 @@ Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
             children: [
               pw.Text(p.title,
                   style: pw.TextStyle(fontSize: AppTextSize.body, fontWeight: pw.FontWeight.bold)),
-              pw.Text(DateFormat.yMMMMd().format(DateTime.now()),
+              pw.Text(DateFormat.yMMMMd(p.isFrench ? 'fr' : (p.isSpanish ? 'es' : 'en')).format(DateTime.now()),
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
             ],
           ),
@@ -1123,64 +1109,6 @@ Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
   return await pdf.save();
 }
 
-Future<Uint8List> _buildHistoryPdf(_HistoryPdfParams p) async {
-  await initializeDateFormatting();
-  final ts = DateTime.tryParse(p.timestamp ?? '');
-  final dateFmt = DateFormat('MMM d, yyyy');
-
-  final pdf = pw.Document();
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      build: (_) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text(
-            'Auto Loan ${p.country} — Loan Summary',
-            style: pw.TextStyle(fontSize: AppTextSize.title, fontWeight: pw.FontWeight.bold),
-          ),
-          if (ts != null)
-            pw.Text(
-              dateFmt.format(ts),
-              style: const pw.TextStyle(fontSize: AppTextSize.xs, color: PdfColors.grey600),
-            ),
-          pw.SizedBox(height: 16),
-          pw.Divider(),
-          pw.SizedBox(height: 8),
-          pw.Table(
-            columnWidths: const {
-              0: pw.FlexColumnWidth(2),
-              1: pw.FlexColumnWidth(2),
-            },
-            children: List.generate(p.rowLabels.length, (i) {
-              return pw.TableRow(
-                children: [
-                  pw.Padding(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                    child: pw.Text(p.rowLabels[i],
-                        style: const pw.TextStyle(color: PdfColors.grey700, fontSize: AppTextSize.xs)),
-                  ),
-                  pw.Padding(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                    child: pw.Text(p.rowValues[i],
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: AppTextSize.xs)),
-                  ),
-                ],
-              );
-            }),
-          ),
-          pw.SizedBox(height: 16),
-          pw.Divider(),
-          pw.SizedBox(height: 8),
-          pw.Text('Calculated with Auto Loan ${p.country}',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
-        ],
-      ),
-    ),
-  );
-
-  return await pdf.save();
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared PDF widget helpers (top-level so they are accessible from isolate)

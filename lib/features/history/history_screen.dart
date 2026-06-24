@@ -648,7 +648,7 @@ class _HistoryCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final fmt = NumberFormat.currency(symbol: currency, decimalDigits: 0);
     final fmtDec = NumberFormat.currency(symbol: currency, decimalDigits: 2);
-    final dateFmt = DateFormat('MMM d, y');
+    final dateFmt = DateFormat('MMM d, y', Localizations.localeOf(context).languageCode);
     final timeFmt = DateFormat('HH:mm');
 
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
