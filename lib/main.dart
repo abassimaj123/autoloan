@@ -7,6 +7,7 @@
 // TODO: iOS — add flavor scheme scripts (FLAVOR env var via xcconfig)
 // ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async' show Completer, unawaited;
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -67,6 +68,9 @@ const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'CA');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('en_US', null);
+  await initializeDateFormatting('en_CA', null);
+  await initializeDateFormatting('en_GB', null);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   unawaited(CalcwiseRemoteConfig.initialize());
