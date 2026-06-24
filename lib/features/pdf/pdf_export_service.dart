@@ -309,15 +309,7 @@ Future<Uint8List> _buildLoanPdf(_LoanPdfParams p) async {
           ),
         ],
       ),
-      footer: (ctx) => pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.end,
-        children: [
-          pw.Text(
-            '${ctx.pageNumber} / ${ctx.pagesCount}',
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
-          ),
-        ],
-      ),
+      footer: (ctx) => PdfBrandHelper.footer(ctx, 'AutoLoan'),
       build: (context) => [
         pw.SizedBox(height: 8),
         pw.Container(
@@ -391,11 +383,6 @@ Future<Uint8List> _buildLoanComparisonPdf(_LoanComparisonPdfParams p) async {
   final tTotalInterest = p.isFrench ? 'Intérêt total' : (p.isSpanish ? 'Interés total' : 'Total Interest');
   final tTotalCostLabel = p.isFrench ? 'Coût total' : (p.isSpanish ? 'Costo total' : 'Total Cost');
   final tBestDeal = p.isFrench ? 'Meilleure offre' : (p.isSpanish ? 'Mejor oferta' : 'Best Deal');
-  final tFooter = p.isFrench
-      ? 'À titre informatif seulement. Les taux et frais varient selon le prêteur.'
-      : (p.isSpanish
-          ? 'Solo con fines informativos. Las tasas y cargos varían según el prestamista.'
-          : 'For informational purposes only. Rates and fees vary by lender.');
   final tMo = p.isFrench ? 'mois' : (p.isSpanish ? 'mes' : 'mo');
 
   final loanLabels = <String>[];
@@ -511,7 +498,7 @@ Future<Uint8List> _buildLoanComparisonPdf(_LoanComparisonPdfParams p) async {
             ),
           ),
           pw.Spacer(),
-          pw.Text(tFooter, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          PdfBrandHelper.footer(context, 'AutoLoan'),
         ],
       ),
     ),
@@ -542,12 +529,6 @@ Future<Uint8List> _buildTotalCostPdf(_TotalCostPdfParams p) async {
   final tMonthlyCost = p.isFrench ? 'Coût mensuel réel' : (p.isSpanish ? 'Costo mensual real' : 'Monthly True Cost');
   final tYr = p.isFrench ? 'ans' : (p.isSpanish ? 'años' : 'yr');
   final tMo = p.isFrench ? 'mois' : (p.isSpanish ? 'mes' : 'mo');
-  final tFooter = p.isFrench
-      ? 'À titre informatif seulement. La dépréciation varie selon la marque, le modèle et les ${p.distUnit} parcourus.'
-      : (p.isSpanish
-          ? 'Solo con fines informativos. La depreciación varía según la marca, modelo y ${p.distUnit} recorridos.'
-          : 'For informational purposes only. Depreciation estimates vary by vehicle make, model, and ${p.distUnit} driven.');
-
   final pdf = pw.Document();
 
   pdf.addPage(
@@ -611,7 +592,7 @@ Future<Uint8List> _buildTotalCostPdf(_TotalCostPdfParams p) async {
             ),
           ),
           pw.Spacer(),
-          pw.Text(tFooter, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          PdfBrandHelper.footer(context, 'AutoLoan'),
         ],
       ),
     ),
@@ -649,11 +630,6 @@ Future<Uint8List> _buildLeaseVsBuyPdf(_LeaseVsBuyPdfParams p) async {
   final tWinner = p.leaseIsChEaper
       ? (p.isFrench ? 'LOUER est plus avantageux' : (p.isSpanish ? 'ARRENDAR es más ventajoso' : 'LEASING is the better deal'))
       : (p.isFrench ? 'ACHETER est plus avantageux' : (p.isSpanish ? 'COMPRAR es más ventajoso' : 'BUYING is the better deal'));
-  final tFooter = p.isFrench
-      ? "À titre informatif seulement. Les frais de dépassement de kilométrage peuvent s'appliquer."
-      : (p.isSpanish
-          ? 'Solo con fines informativos. Pueden aplicarse cargos por exceso de millaje.'
-          : 'For informational purposes only. Mileage overage fees may apply.');
   final tMo = p.isFrench ? 'mois' : (p.isSpanish ? 'mes' : 'mo');
   final tYr = p.isFrench ? 'ans' : (p.isSpanish ? 'años' : 'yr');
 
@@ -802,7 +778,7 @@ Future<Uint8List> _buildLeaseVsBuyPdf(_LeaseVsBuyPdfParams p) async {
             ),
           ),
           pw.Spacer(),
-          pw.Text(tFooter, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          PdfBrandHelper.footer(context, 'AutoLoan'),
         ],
       ),
     ),
@@ -831,11 +807,6 @@ Future<Uint8List> _buildCashbackVsLowAprPdf(_CashbackVsLowAprPdfParams p) async 
   final tWinnerLabel = p.aWins
       ? (p.isFrench ? 'Scénario A — Remise' : (p.isSpanish ? 'Escenario A — Reembolso' : 'Scenario A — Cash-Back'))
       : (p.isFrench ? 'Scénario B — Taux bas' : (p.isSpanish ? 'Escenario B — Tasa Baja' : 'Scenario B — Low APR'));
-  final tFooter = p.isFrench
-      ? 'À titre informatif seulement. Ne constitue pas un conseil financier.'
-      : (p.isSpanish
-          ? 'Solo con fines informativos. No es asesoramiento financiero.'
-          : 'For informational purposes only. Not financial advice.');
   final tMo = p.isFrench ? 'mois' : (p.isSpanish ? 'mes' : 'mo');
 
   final pdf = pw.Document();
@@ -946,7 +917,7 @@ Future<Uint8List> _buildCashbackVsLowAprPdf(_CashbackVsLowAprPdfParams p) async 
             ),
           ),
           pw.Spacer(),
-          pw.Text(tFooter, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          PdfBrandHelper.footer(context, 'AutoLoan'),
         ],
       ),
     ),
@@ -976,11 +947,6 @@ Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
   final tTotalCost = p.isFrench ? 'Coût total' : (p.isSpanish ? 'Costo total' : 'Total Cost');
   final tBestDeal = p.isFrench ? 'Meilleure offre' : (p.isSpanish ? 'Mejor oferta' : 'Best Deal');
   final tSavings = p.isFrench ? 'Économies' : (p.isSpanish ? 'Ahorros' : 'Savings');
-  final tFooter = p.isFrench
-      ? 'À titre informatif seulement. Les taux et frais varient selon le prêteur.'
-      : (p.isSpanish
-          ? 'Solo con fines informativos. Las tasas y cargos varían según el prestamista.'
-          : 'For informational purposes only. Rates and fees vary by lender.');
   final tMo = p.isFrench ? 'mois' : (p.isSpanish ? 'mes' : 'mo');
 
   final loanAmount = (p.vehiclePrice - p.downPayment).clamp(0.0, double.infinity);
@@ -1100,7 +1066,7 @@ Future<Uint8List> _buildLoanComparePdf(_LoanComparePdfParams p) async {
             ),
           ),
           pw.Spacer(),
-          pw.Text(tFooter, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          PdfBrandHelper.footer(context, 'AutoLoan'),
         ],
       ),
     ),
