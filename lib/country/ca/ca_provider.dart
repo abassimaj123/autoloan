@@ -133,6 +133,7 @@ class CAProvider extends ChangeNotifier {
       termMonths: termMonths,
     );
     AnalyticsService.instance.maybeLogFirstCalculate();
+    _ads.onAction();
     notifyListeners();
   }
 

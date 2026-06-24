@@ -207,6 +207,7 @@ class _CompareScreenState extends State<CompareScreen> {
       _resA = _LoanResult.compute(loanAmount, rateA, termA, isBiWeekly);
       _resB = _LoanResult.compute(loanAmount, rateB, termB, isBiWeekly);
     });
+    _adService.onAction();
     _scheduleAutoSave();
   }
 
