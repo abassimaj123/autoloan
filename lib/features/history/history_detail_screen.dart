@@ -97,9 +97,12 @@ Future<Uint8List> _buildHistoryDetailPdf(_HistoryDetailPdfParams p) async {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class HistoryDetailScreen extends StatelessWidget {
+class HistoryDetailScreen extends StatefulWidget {
   final Map<String, dynamic> entry;
   const HistoryDetailScreen({super.key, required this.entry});
+
+  @override
+  State<HistoryDetailScreen> createState() => _HistoryDetailScreenState();
 
   String get _country => (entry['country'] as String? ?? '').toUpperCase();
   String get _currency => _country == 'UK' ? '£' : '\$';
@@ -247,8 +250,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AnalyticsService.instance.logPdfExported(_country.toLowerCase());
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _build(BuildContext context) {
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
 
     return ListenableBuilder(
@@ -375,4 +377,15 @@ class HistoryDetailScreen extends StatelessWidget {
       },
     );
   }
+}
+
+class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.logScreenView('history_detail');
+  }
+
+  @override
+  Widget build(BuildContext context) => widget._build(context);
 }
