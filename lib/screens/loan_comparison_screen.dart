@@ -265,6 +265,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     super.initState();
     AnalyticsService.instance.logScreenView('loan_comparison');
     _recalc();
+    unawaited(_checkPaywall());
   }
 
   void _recalc() {
@@ -274,12 +275,6 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
       _r3 = _LoanResult.compute(_amount3, _rate3, _term3);
     });
     _scheduleAutoSave();
-  }
-
-  /// Called from input change handlers (after frame, so context is valid).
-  void _recalcAndPaywall() {
-    _recalc();
-    unawaited(_checkPaywall());
   }
 
   /// Index (0,1,2) of the loan with lowest totalCost.
@@ -362,7 +357,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                         if (i == 1) _amount2 = v;
                         if (i == 2) _amount3 = v;
                       });
-                      _recalcAndPaywall();
+                      _recalc();
                     },
                     onRateChanged: (v) {
                       setState(() {
@@ -370,7 +365,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                         if (i == 1) _rate2 = v;
                         if (i == 2) _rate3 = v;
                       });
-                      _recalcAndPaywall();
+                      _recalc();
                     },
                     onTermChanged: (v) {
                       setState(() {
@@ -378,7 +373,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
                         if (i == 1) _term2 = v;
                         if (i == 2) _term3 = v;
                       });
-                      _recalcAndPaywall();
+                      _recalc();
                     },
                   ),
                   const SizedBox(height: AppSpacing.sm),
