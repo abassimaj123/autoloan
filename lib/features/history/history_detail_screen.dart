@@ -10,6 +10,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../core/freemium/freemium_service.dart';
+import '../../services/analytics_service.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
 import '../../widgets/paywall_hard.dart';
 
