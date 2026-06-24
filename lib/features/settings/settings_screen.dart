@@ -17,9 +17,19 @@ import '../../core/locale_notifier.dart';
 import '../../services/analytics_service.dart';
 import '../../widgets/paywall_hard.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   final String flavor;
   const SettingsScreen({super.key, required this.flavor});
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.instance.logScreenView('settings');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +60,9 @@ class SettingsScreen extends StatelessWidget {
                 : [
                     CalcwiseSettingsTile(
                       icon: Icons.star_rounded,
-                      label: _premiumLabel(flavor, l10n),
+                      label: _premiumLabel(widget.flavor,l10n),
                       subtitle: l10n.settingsPremiumSubtitle,
-                      trailing: _premiumPrice(flavor),
+                      trailing: _premiumPrice(widget.flavor),
                       onTap: () => PaywallHard.show(context),
                     ),
                     CalcwiseSettingsTile(
@@ -66,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
         const Divider(),
 
         // ── Language (CA only) ─────────────────────────────────────
-        if (flavor == 'ca') ...[
+        if (widget.flavor == 'ca') ...[
           CalcwiseSettingsSection(
             title: l10n.settingsLanguage,
             children: [
@@ -214,7 +224,7 @@ class SettingsScreen extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
-                '${_appName(flavor, l10n)} v1.0.0',
+                '${_appName(widget.flavor, l10n)} v1.0.0',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
