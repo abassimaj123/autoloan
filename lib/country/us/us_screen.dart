@@ -101,7 +101,6 @@ class _USScreenState extends State<USScreen> {
       AnalyticsService.instance.logTabChanged('history');
     }
     if (i > 0) {
-      context.read<CalcwiseAdService>().onAction();
       final trigger = await paywallSession.recordAction();
       if (!mounted) return;
       if (trigger == PaywallTrigger.hard) {

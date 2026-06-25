@@ -90,6 +90,8 @@ void main() async {
       bannerAndroid: adConfig.bannerId,
       interstitialAndroid: adConfig.interId,
       rewardedAndroid: adConfig.rewardedId,
+      calcThreshold: 7,
+      cooldownMinutes: 5,
     ),
     freemium: freemiumService,
     analytics: AnalyticsService.instance,
