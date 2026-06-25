@@ -250,8 +250,6 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
             _rateA = p.annualRate;
           });
       }
-      // Record initial action (screen opened = 1 action)
-      unawaited(_checkPaywall());
     });
   }
 
