@@ -286,7 +286,6 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
       _maintenance = 80;
     }
     _calculate();
-    unawaited(_checkPaywall());
   }
 
   void _calculate() {

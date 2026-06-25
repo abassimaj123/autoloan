@@ -268,7 +268,6 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     super.initState();
     AnalyticsService.instance.logScreenView('loan_comparison');
     _recalc();
-    unawaited(_checkPaywall());
   }
 
   void _recalc() {
