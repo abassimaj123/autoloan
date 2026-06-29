@@ -31,7 +31,8 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseRewardAdSheet,
         CalcwiseTax,
         calcwiseTaxRemoteFetch,
-        CalcwiseRemoteConfig;
+        CalcwiseRemoteConfig,
+        CalcwiseThemeFactory;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'l10n/app_localizations.dart';
 import 'services/crashlytics_service.dart';
@@ -42,9 +43,6 @@ import 'core/config/ad_config.dart';
 import 'core/locale_notifier.dart';
 import 'core/freemium/freemium_service.dart';
 import 'core/freemium/iap_service.dart' show IAPService, iapErrorNotifier, iapRestoreResultNotifier;
-import 'core/theme/theme_ca.dart';
-import 'core/theme/theme_uk.dart';
-import 'core/theme/theme_us.dart';
 // AdService removed — using CalcwiseAdService from calcwise_core
 import 'services/history_service.dart';
 import 'services/autoloan_database_adapter.dart';
@@ -254,27 +252,20 @@ class AutoLoanApp extends StatelessWidget {
     );
   }
 
-  ThemeData get _theme {
-    switch (flavor) {
-      case 'uk':
-        return ThemeUK.theme;
-      case 'us':
-        return ThemeUS.theme;
-      default:
-        return ThemeCA.theme;
-    }
-  }
+  // ── Brand colors ──────────────────────────────────────────────────────────
+  // All flavors share the same navy-blue primary; accents differ CA/UK vs US.
+  static const Color _primary = Color(0xFF0D47A1);
+  static const Color _accentCaUk = Color(0xFFC62828);
+  static const Color _accentUs = Color(0xFFB71C1C);
 
-  ThemeData get _darkTheme {
-    switch (flavor) {
-      case 'uk':
-        return ThemeUK.dark;
-      case 'us':
-        return ThemeUS.dark;
-      default:
-        return ThemeCA.dark;
-    }
-  }
+  Color get _flavorAccent =>
+      flavor == 'us' ? _accentUs : _accentCaUk;
+
+  ThemeData get _theme =>
+      CalcwiseThemeFactory.buildLight(primary: _primary, accent: _flavorAccent);
+
+  ThemeData get _darkTheme =>
+      CalcwiseThemeFactory.buildDark(primary: _primary, accent: _flavorAccent);
 
   String get _appTitle {
     switch (flavor) {

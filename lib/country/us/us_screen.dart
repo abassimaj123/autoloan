@@ -2410,7 +2410,7 @@ class _PremiumToolCard extends StatelessWidget {
                           'Unlock',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: AppTextSize.sm,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2538,7 +2538,7 @@ class _EarlyPayoffTeaser extends StatelessWidget {
                   'Unlock',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: AppTextSize.sm,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -2668,7 +2668,7 @@ class _FakeInputRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       alignment: Alignment.centerLeft,
       child: Text(label,
-          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
+          style: TextStyle(color: cs.onSurfaceVariant, fontSize: AppTextSize.body)),
     );
   }
 }
@@ -2684,7 +2684,7 @@ class _FakeResultRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: AppTextSize.md)),
         Container(
           width: 72,
           height: 14,
