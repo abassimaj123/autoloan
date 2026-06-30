@@ -131,7 +131,7 @@ void main() {
       expect(r.vedMonthly, 0);
     });
 
-    test('petrolLarge VED = £360/yr → £30.00/mo (DVLA 2025/26)', () {
+    test('petrolLarge VED = £195/yr → £16.25/mo (DVLA 2025/26 standard rate)', () {
       // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,

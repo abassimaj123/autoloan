@@ -61,6 +61,9 @@ final paywallSession = PaywallSessionService(
 // via AutoLoanDatabaseAdapter. Initialized lazily after HistoryService is available.
 late final SmartHistoryService smartHistoryService;
 
+// Global locale notifier — initialized in main() before runApp(); used by splash.
+late final LocaleNotifier localeNotifier;
+
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
 //   TODO: iOS — pass via xcconfig: DART_DEFINES or --dart-define in scheme
@@ -71,6 +74,8 @@ void main() async {
   await initializeDateFormatting('en_US', null);
   await initializeDateFormatting('en_CA', null);
   await initializeDateFormatting('en_GB', null);
+  await initializeDateFormatting('fr', null);
+  await initializeDateFormatting('fr_CA', null);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   unawaited(CalcwiseRemoteConfig.initialize());
@@ -119,7 +124,7 @@ void main() async {
   unawaited(AnalyticsService.instance.initialize());
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
-  final localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
+  localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
 
   // Initial system UI style — brightness-aware update happens in MaterialApp builder
   SystemChrome.setSystemUIOverlayStyle(

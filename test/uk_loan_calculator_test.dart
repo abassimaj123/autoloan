@@ -123,11 +123,11 @@ void main() {
       );
     });
 
-    test('[UK-2a] VED Petrol >1000cc = £360/yr', () {
+    test('[UK-2a] VED Petrol >1000cc = £195/yr', () {
       expect(
         VehicleType.petrolLarge.vedAnnual,
-        closeTo(360.0, 0.01),
-        reason: '[UK-2a] vedAnnual petrolLarge = £360',
+        closeTo(195.0, 0.01),
+        reason: '[UK-2a] vedAnnual petrolLarge = £195 (DVLA 2025/26 standard rate)',
       );
     });
 
@@ -149,15 +149,15 @@ void main() {
       );
     });
 
-    test('[UK-2d] Total VED 60 mois = £1,800.00', () {
+    test('[UK-2d] Total VED 60 mois = £975.00', () {
       expect(
         rWithVed.vedTotal,
-        closeTo(1800.00, 0.01),
-        reason: '[UK-2d] £360 × 5 ans = £1,800',
+        closeTo(975.00, 0.01),
+        reason: '[UK-2d] £195 × 5 ans = £975 (DVLA 2025/26)',
       );
     });
 
-    test('[UK-2e] Coût total avec VED = £30,504.86 (VED £360/yr × 5)', () {
+    test('[UK-2e] Coût total avec VED = ≈£29,679.86 (VED £195/yr × 5)', () {
       final expected = 25000.0 + rWithVed.totalInterest + rWithVed.vedTotal;
       expect(
         rWithVed.totalCost,
@@ -166,8 +166,8 @@ void main() {
       );
       expect(
         rWithVed.totalCost,
-        closeTo(30504.86, 1.00),
-        reason: '[UK-2e] Spec attendu ≈ £30,504.86 (VED £360 × 5 ans)',
+        closeTo(29679.86, 1.00),
+        reason: '[UK-2e] Spec attendu ≈ £29,679.86 (VED £195 × 5 ans)',
       );
     });
 
@@ -187,7 +187,7 @@ void main() {
 
   // ═══════════════════════════════════════════════════════════════════
   // UK — TOUS LES TYPES VED (CAS UK-3)
-  // Taux 2025/26 DVLA : petrolSmall £210, petrolLarge £360, dieselSurcharge £630, diesel/hybrid £190
+  // Taux 2025/26 DVLA : petrolSmall £195, petrolLarge £195, dieselSurcharge £630, diesel/hybrid £195
   // ═══════════════════════════════════════════════════════════════════
   group('UK — Types VED', () {
     void testVed(VehicleType type, double expectedAnnual, {double? customVed}) {
@@ -225,8 +225,8 @@ void main() {
       );
     }
 
-    testVed(VehicleType.petrolSmall, 210.0); // £210/yr → £17.50/mo (DVLA 2025/26)
-    testVed(VehicleType.petrolLarge, 360.0); // £360/yr → £30.00/mo (DVLA 2025/26)
+    testVed(VehicleType.petrolSmall, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26 standard rate)
+    testVed(VehicleType.petrolLarge, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26 standard rate)
     // EV standard (year 2+) rate is £195/yr in 2025/26; £10 is first-year only.
     // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
     testVed(VehicleType.electric, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26)

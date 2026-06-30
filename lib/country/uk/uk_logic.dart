@@ -66,9 +66,9 @@ extension VehicleTypeExt on VehicleType {
   String get label {
     switch (this) {
       case VehicleType.petrolSmall:
-        return 'Petrol < 1000cc (£210/yr)';
+        return 'Petrol < 1000cc (£195/yr)';
       case VehicleType.petrolLarge:
-        return 'Petrol > 1000cc (£360/yr)';
+        return 'Petrol > 1000cc (£195/yr)';
       case VehicleType.electric:
         return 'Electric (£195/yr)'; // EV: £10 first year only; £195/yr from year 2 (DVLA 2025/26)
       case VehicleType.diesel:
@@ -86,9 +86,9 @@ extension VehicleTypeExt on VehicleType {
   double get vedAnnual {
     switch (this) {
       case VehicleType.petrolSmall:
-        return 210.0;
+        return 195.0; // DVLA 2025/26 standard rate
       case VehicleType.petrolLarge:
-        return 360.0;
+        return 195.0; // DVLA 2025/26 standard rate
       case VehicleType.electric:
         return 195.0; // EV: £195/yr from year 2 onwards (DVLA 2025/26 — £10 first year via co2FirstYearVed)
       case VehicleType.diesel:

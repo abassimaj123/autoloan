@@ -4,6 +4,7 @@ import '../country/ca/ca_screen.dart';
 import '../country/uk/uk_screen.dart';
 import '../country/us/us_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../main.dart' show localeNotifier;
 
 const _flavor = String.fromEnvironment('FLAVOR', defaultValue: 'CA');
 
@@ -23,10 +24,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => CalcwiseSplash(
+  Widget build(BuildContext context) {
+    final isFr = _flavor.toLowerCase() == 'ca' && localeNotifier.isFrench;
+    return CalcwiseSplash(
     appName: 'Auto Loan',
-    tagline: 'Drive away with the best deal',
-    chips: ['Monthly Payment', 'Total Interest', 'Trade-In'],
+    tagline: isFr
+        ? 'Obtenez la meilleure offre de prêt auto'
+        : 'Drive away with the best deal',
+    chips: isFr
+        ? ['Paiement mensuel', 'Intérêts totaux', 'Reprise']
+        : ['Monthly Payment', 'Total Interest', 'Trade-In'],
     badgeSymbol: r'A%',
     badgeIcon: Icons.directions_car_rounded,
     backgroundColor: _flavorPrimary,
@@ -66,4 +73,5 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     },
   );
+  }
 }
