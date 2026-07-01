@@ -15,6 +15,9 @@ import 'package:calcwise_core/calcwise_core.dart'
 import 'package:calcwise_core/calcwise_core.dart'
     hide SectionCard, ResultTile, PaywallHard;
 import '../l10n/app_localizations.dart';
+import '../country/ca/ca_provider.dart';
+import '../country/uk/uk_provider.dart';
+import '../country/us/us_provider.dart';
 import '../services/analytics_service.dart';
 import '../widgets/paywall_soft.dart';
 import '../widgets/paywall_hard.dart';
@@ -267,6 +270,36 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
   void initState() {
     super.initState();
     AnalyticsService.instance.logScreenView('loan_comparison');
+    // Pre-fill Loan 1 ("your loan") from the main calculator provider so the
+    // user sees their own numbers instead of hardcoded defaults when opening
+    // this comparison tool. Loans 2 & 3 stay as sensible alternatives.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (widget.flavor) {
+        case 'ca':
+          final p = context.read<CAProvider>();
+          setState(() {
+            _amount1 = p.vehiclePrice;
+            _rate1 = p.annualRate;
+            _term1 = p.termMonths;
+          });
+        case 'uk':
+          final p = context.read<UKProvider>();
+          setState(() {
+            _amount1 = p.vehiclePrice;
+            _rate1 = p.annualRate;
+            _term1 = p.termMonths;
+          });
+        case 'us':
+          final p = context.read<USProvider>();
+          setState(() {
+            _amount1 = p.vehiclePrice;
+            _rate1 = p.annualRate;
+            _term1 = p.termMonths;
+          });
+      }
+      _recalc();
+    });
     _recalc();
   }
 
