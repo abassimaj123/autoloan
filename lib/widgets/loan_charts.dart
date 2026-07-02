@@ -41,47 +41,58 @@ class _LoanDonutChartState extends State<LoanDonutChart> {
       return const SizedBox.shrink();
     }
 
+    final compactFmt = NumberFormat.compactCurrency(
+      symbol: '\$',
+      decimalDigits: 0,
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           height: 180,
-          child: PieChart(
-            PieChartData(
-              pieTouchData: PieTouchData(
-                touchCallback: (event, response) {
-                  setState(() {
-                    if (!event.isInterestedForInteractions ||
-                        response == null ||
-                        response.touchedSection == null) {
-                      _touchedIndex = -1;
-                      return;
-                    }
-                    _touchedIndex =
-                        response.touchedSection!.touchedSectionIndex;
-                  });
-                },
+          child: Semantics(
+            label: 'Donut chart showing principal versus total interest. '
+                'Principal: ${compactFmt.format(widget.principal)}, '
+                'total interest: ${compactFmt.format(widget.totalInterest)}.',
+            excludeSemantics: true,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(
+                  touchCallback: (event, response) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          response == null ||
+                          response.touchedSection == null) {
+                        _touchedIndex = -1;
+                        return;
+                      }
+                      _touchedIndex =
+                          response.touchedSection!.touchedSectionIndex;
+                    });
+                  },
+                ),
+                centerSpaceRadius: CalcwiseChartTokens.donutCenterR,
+                sectionsSpace: 2,
+                sections: [
+                  PieChartSectionData(
+                    value: widget.principal,
+                    color: widget.primaryColor,
+                    radius: _touchedIndex == 0
+                        ? CalcwiseChartTokens.donutSectionR + 4
+                        : CalcwiseChartTokens.donutSectionR,
+                    showTitle: false,
+                  ),
+                  PieChartSectionData(
+                    value: widget.totalInterest,
+                    color: widget.accentColor,
+                    radius: _touchedIndex == 1
+                        ? CalcwiseChartTokens.donutSectionR + 4
+                        : CalcwiseChartTokens.donutSectionR,
+                    showTitle: false,
+                  ),
+                ],
               ),
-              centerSpaceRadius: CalcwiseChartTokens.donutCenterR,
-              sectionsSpace: 2,
-              sections: [
-                PieChartSectionData(
-                  value: widget.principal,
-                  color: widget.primaryColor,
-                  radius: _touchedIndex == 0
-                      ? CalcwiseChartTokens.donutSectionR + 4
-                      : CalcwiseChartTokens.donutSectionR,
-                  showTitle: false,
-                ),
-                PieChartSectionData(
-                  value: widget.totalInterest,
-                  color: widget.accentColor,
-                  radius: _touchedIndex == 1
-                      ? CalcwiseChartTokens.donutSectionR + 4
-                      : CalcwiseChartTokens.donutSectionR,
-                  showTitle: false,
-                ),
-              ],
             ),
           ),
         ),

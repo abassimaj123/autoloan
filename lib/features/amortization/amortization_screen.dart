@@ -793,7 +793,7 @@ class _PayoffChart extends StatelessWidget {
                       isCurved: true,
                       color: Theme.of(context).colorScheme.tertiary,
                       barWidth: 2,
-                      dashArray: [6, 3],
+                      dashArray: CalcwiseChartTokens.secondarySeriesDash,
                       dotData: const FlDotData(show: false),
                     ),
                   ],
