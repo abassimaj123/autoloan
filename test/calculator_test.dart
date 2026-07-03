@@ -228,7 +228,7 @@ void main() {
       );
     });
 
-    test('trade-in reduces financed amount', () {
+    test('trade-in reduces taxable price and financed amount', () {
       final noTrade = USCalculation.calculate(
         vehiclePrice: 25000,
         tradeInValue: 0,
@@ -249,9 +249,15 @@ void main() {
         termMonths: 48,
         creditScore: CreditScore.good,
       );
+      // Trade-in reduces taxable amount: tax on (25000-5000) not 25000
+      // noTrade: tax = 25000*0.07 = 1750, financed = 25000+1750+300-0-2500 = 24550
+      // withTrade: tax = 20000*0.07 = 1400, financed = 25000+1400+300-5000-2500 = 19200
+      // Difference in tax: 1750-1400 = 350, Plus trade-in offset = 5000 net savings
+      expect(withTrade.taxAmount, closeTo(1400, 0.01));
+      expect(noTrade.taxAmount, closeTo(1750, 0.01));
       expect(
         withTrade.financedAmount,
-        closeTo(noTrade.financedAmount - 5000, 0.01),
+        lessThan(noTrade.financedAmount),
       );
       expect(withTrade.monthlyPayment, lessThan(noTrade.monthlyPayment));
     });

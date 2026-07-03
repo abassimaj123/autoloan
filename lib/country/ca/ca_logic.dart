@@ -246,10 +246,13 @@ class CACalculation {
     required String provinceCode,
     required PaymentFrequency frequency,
     double insuranceMonthly = 0,
+    double tradeInValue = 0.0,
   }) {
     final province = caProvinceByCode(provinceCode);
-    final taxAmount = vehiclePrice * province.totalRate;
-    final loanAmount = (vehiclePrice + taxAmount - downPayment).clamp(
+    // In CA: trade-in reduces the taxable purchase price (sale price for tax purposes)
+    final taxablePrice = (vehiclePrice - tradeInValue).clamp(0.0, double.infinity);
+    final taxAmount = taxablePrice * province.totalRate;
+    final loanAmount = ((vehiclePrice - tradeInValue) + taxAmount - downPayment).clamp(
       0.0,
       double.infinity,
     );

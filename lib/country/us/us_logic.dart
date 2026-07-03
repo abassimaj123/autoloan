@@ -88,7 +88,9 @@ class USCalculation {
       0.0,
       30.0,
     );
-    final taxAmount = vehiclePrice * salesTaxPercent / 100;
+    // In US: trade-in reduces the taxable purchase price (applies to most states with sales tax)
+    final taxablePrice = (vehiclePrice - tradeInValue).clamp(0.0, double.infinity);
+    final taxAmount = taxablePrice * salesTaxPercent / 100;
     final financedAmount =
         (vehiclePrice + taxAmount + dealerFees - tradeInValue - downPayment)
             .clamp(0.0, double.infinity);

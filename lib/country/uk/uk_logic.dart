@@ -301,11 +301,14 @@ class UKCalculation {
           );
 
     // Standard: totalCost = vehiclePrice + interest + vedTotal
-    // PCP: totalCost = payments during term + vedTotal (not including GMFV — user may return)
-    final totalCost = vehiclePrice + totalInterest + vedTotal;
-    // PCP: cost if buying at end = downPayment + all monthly payments + GMFV
+    // PCP (if returning): totalCost = payments during term + vedTotal (not including GMFV — user may return)
+    // PCP (if buying): totalCost = downPayment + all monthly payments + GMFV + vedTotal
+    final totalCost = isPcp
+        ? downPayment + baseLoanPayment * termMonths + vedTotal
+        : vehiclePrice + totalInterest + vedTotal;
+    // PCP: cost if buying at end = totalCost + GMFV (GMFV not included in standard totalCost)
     final pcpTotalIfBuy = isPcp
-        ? downPayment + baseLoanPayment * termMonths + gmfvAmount + vedTotal
+        ? totalCost + gmfvAmount
         : 0.0;
 
     return UKCalculation(

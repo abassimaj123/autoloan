@@ -427,8 +427,10 @@ void main() {
   });
 
   // ── TEST 13 — US Trade-in ─────────────────────────────────────────────────
-  test('TEST 13 — US financed = price - tradeIn + fees + tax', () {
-    const usTax = 30000.0 * 0.08; // 2400
+  test('TEST 13 — US financed = price - tradeIn + fees + tax (trade-in reduces tax)', () {
+    // Trade-in reduces taxable purchase price
+    final taxablePrice = 30000.0 - 5000.0; // 25000
+    final usTax = taxablePrice * 0.08; // 2000 (not 2400)
     final r = USCalculation.calculate(
       vehiclePrice: 30000,
       tradeInValue: 5000,
@@ -440,9 +442,10 @@ void main() {
       creditScore: CreditScore.fair,
     );
 
-    // 30000 - 5000 + 500 + 2400 - 0 = 27900
+    // Tax on (30000 - 5000): 25000 × 0.08 = 2000
+    // financed = 30000 - 5000 + 500 + 2000 - 0 = 27500
     expect(r.taxAmount, closeTo(usTax, 0.01));
-    expect(r.financedAmount, closeTo(27900.0, 0.01));
+    expect(r.financedAmount, closeTo(27500.0, 0.01));
   });
 
   // ── TEST 14 — US Credit score rate adjustments ────────────────────────────

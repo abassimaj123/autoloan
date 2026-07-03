@@ -12,12 +12,25 @@ class LocaleNotifier extends ChangeNotifier {
     : _locale = _initLocale(_prefs, flavor);
 
   static Locale _initLocale(SharedPreferences prefs, String flavor) {
-    if (flavor != 'ca') return const Locale('en');
     final saved = prefs.getString(_keyLang);
     if (saved != null) return Locale(saved);
+
     final deviceLang =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    return deviceLang == 'fr' ? const Locale('fr') : const Locale('en');
+
+    switch (flavor) {
+      case 'ca':
+        // CA: French or English
+        return deviceLang == 'fr' ? const Locale('fr') : const Locale('en');
+      case 'us':
+        // US: Spanish or English
+        return deviceLang == 'es' ? const Locale('es') : const Locale('en');
+      case 'uk':
+        // UK: English only
+        return const Locale('en');
+      default:
+        return const Locale('en');
+    }
   }
 
   Locale get locale => _locale;

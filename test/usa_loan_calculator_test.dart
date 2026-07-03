@@ -198,7 +198,7 @@ void main() {
   // US — TRADE-IN (CAS US-5)
   // ═══════════════════════════════════════════════════════════════════
   group('US — Trade-in', () {
-    test('[US-5a] Taxe = 6% × \$35,000 = \$2,100.00', () {
+    test('[US-5a] Taxe = 6% × (\$35,000 − \$8,000 trade-in) = \$1,620.00', () {
       final r = USCalculation.calculate(
         vehiclePrice: 35000,
         tradeInValue: 8000,
@@ -209,14 +209,15 @@ void main() {
         termMonths: 48,
         creditScore: CreditScore.fair,
       );
+      // Trade-in reduces taxable purchase price
       expect(
         r.taxAmount,
-        closeTo(2100.00, 0.01),
-        reason: '[US-5a] 35000 × 6% = 2100',
+        closeTo(1620.00, 0.01),
+        reason: '[US-5a] (35000 − 8000) × 6% = 1620 (trade-in reduces tax)',
       );
     });
 
-    test('[US-5b] Montant financé avec trade-in = \$27,900.00', () {
+    test('[US-5b] Montant financé avec trade-in = \$27,420.00', () {
       final r = USCalculation.calculate(
         vehiclePrice: 35000,
         tradeInValue: 8000,
@@ -229,13 +230,13 @@ void main() {
       );
       expect(
         r.financedAmount,
-        closeTo(27900.00, 0.01),
-        reason: '[US-5b] 35000 + 2100 + 800 − 8000 − 2000 = 27900',
+        closeTo(27420.00, 0.01),
+        reason: '[US-5b] 35000 + 1620 + 800 − 8000 − 2000 = 27420',
       );
     });
 
     test(
-      '[US-5c] Paiement mensuel avec trade-in = PMT(27900, 5.9%/12, 48)',
+      '[US-5c] Paiement mensuel avec trade-in = PMT(27420, 5.9%/12, 48)',
       () {
         final r = USCalculation.calculate(
           vehiclePrice: 35000,
@@ -247,16 +248,16 @@ void main() {
           termMonths: 48,
           creditScore: CreditScore.fair,
         );
-        final expected = _pmt(27900.0, 5.9 / 12 / 100, 48);
+        final expected = _pmt(27420.0, 5.9 / 12 / 100, 48);
         expect(
           r.monthlyPayment,
           closeTo(expected, 0.01),
-          reason: '[US-5c] PMT(27900, 5.9%/12, 48)',
+          reason: '[US-5c] PMT(27420, 5.9%/12, 48)',
         );
       },
     );
 
-    test('[US-5d] Trade-in réduit le montant financé de \$8,000', () {
+    test('[US-5d] Trade-in réduit prix taxable ET montant financé', () {
       final noTrade = USCalculation.calculate(
         vehiclePrice: 35000,
         tradeInValue: 0,
@@ -277,10 +278,11 @@ void main() {
         termMonths: 48,
         creditScore: CreditScore.fair,
       );
+      // Trade-in impact: reduces both tax AND financed amount
+      expect(withTrade.taxAmount, lessThan(noTrade.taxAmount));
       expect(
         withTrade.financedAmount,
-        closeTo(noTrade.financedAmount - 8000, 0.01),
-        reason: '[US-5d] Trade-in réduit financedAmount de 8000',
+        lessThan(noTrade.financedAmount),
       );
       expect(
         withTrade.monthlyPayment,
