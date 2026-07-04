@@ -27,10 +27,58 @@ import '../core/freemium/freemium_service.dart';
 class HistoryService {
   static const _kEntries = 'loan_history_v2';
   static const _kNextId = 'loan_history_next_id';
+  static const _kLegacyEntries = 'loan_history'; // pre-1.0.5 key (no metadata)
 
   final SharedPreferences _prefs;
 
-  HistoryService(this._prefs);
+  HistoryService(this._prefs) {
+    _migrateLegacyIfNeeded();
+  }
+
+  /// One-time lazy migration from the pre-1.0.5 `loan_history` key.
+  ///
+  /// Legacy entries carried calculator fields + `country` + `timestamp` but
+  /// none of the v2 metadata (`id`, `inputHash`, `isPinned`, `pinLabel`,
+  /// `pinOrder`). Wrap each into the v2 shape, write under [_kEntries] and
+  /// delete the old key. Runs only when the v2 key is absent so it can never
+  /// clobber existing v2 data. SharedPreferences writes update the in-memory
+  /// cache synchronously, so subsequent sync reads see the migrated list.
+  void _migrateLegacyIfNeeded() {
+    if (_prefs.containsKey(_kEntries)) return;
+    final legacyRaw = _prefs.getStringList(_kLegacyEntries);
+    if (legacyRaw == null) return;
+
+    final epoch0 = DateTime.fromMillisecondsSinceEpoch(0).toIso8601String();
+    final migrated = <Map<String, dynamic>>[];
+    for (final raw in legacyRaw) {
+      Map<String, dynamic> entry;
+      try {
+        entry = jsonDecode(raw) as Map<String, dynamic>;
+      } catch (_) {
+        continue; // skip corrupt legacy entries
+      }
+      migrated.add({
+        ...entry,
+        'id': _nextId(),
+        'country': entry['country'] ?? 'ca',
+        // Legacy entries never stored an input hash; empty string never
+        // collides with real 8-char hashes used for dedup/promotion.
+        'inputHash': '',
+        'isPinned': false,
+        'pinLabel': null,
+        'pinOrder': 0,
+        // Missing timestamp → epoch 0 so migrated entries sort oldest.
+        'timestamp': entry['timestamp'] ?? epoch0,
+      });
+    }
+
+    // Fire-and-forget: in-memory cache is updated synchronously.
+    _prefs.setStringList(
+      _kEntries,
+      migrated.map((e) => jsonEncode(e)).toList(),
+    );
+    _prefs.remove(_kLegacyEntries);
+  }
 
   // ── Reads ─────────────────────────────────────────────────────────────────
 
