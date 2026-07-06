@@ -194,6 +194,15 @@ class CAProvider extends ChangeNotifier {
         'termMonths': termMonths,
         'annualRate': annualRate,
         'provinceCode': provinceCode,
+        'insuranceTotal': _result!.insuranceTotal,
+        'lifeDisability': insurance.lifeDisability,
+        if (insurance.lifeDisability)
+          'lifeDisabilityAmount': insurance.lifeDisabilityAmount,
+        'extendedWarranty': insurance.extendedWarranty,
+        if (insurance.extendedWarranty)
+          'warrantyAmount': insurance.warrantyAmount,
+        'gap': insurance.gap,
+        if (insurance.gap) 'gapAmount': insurance.gapAmount,
       };
 
   @override
