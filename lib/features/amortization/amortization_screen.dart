@@ -406,7 +406,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                 // Summary header
                 Semantics(
                   label:
-                      '${isBiWeekly ? l10n.amortBiWeeklyHeader : l10n.payment}: ${fmt2.format(rows.isEmpty ? 0 : rows.first.payment)}. '
+                      '${isBiWeekly ? l10n.amortBiWeeklyHeader : l10n.payment}: ${fmt.format(rows.isEmpty ? 0 : rows.first.payment)}. '
                       '${l10n.totalInterest}: ${fmt.format(rows.fold(0.0, (s, r) => s + r.interest))}. '
                       '${l10n.totalCostShort}: ${fmt.format(totalCost)}',
                   child: Container(
@@ -423,7 +423,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                             Expanded(
                               child: _HeaderCell(
                                 isBiWeekly ? l10n.amortBiWkPayment : l10n.payment,
-                                fmt2.format(
+                                fmt.format(
                                   rows.isEmpty ? 0 : rows.first.payment,
                                 ),
                               ),
@@ -448,7 +448,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                           const SizedBox(height: 4),
                           Center(
                             child: Text(
-                              '+ ${fmt2.format(insPerPeriod)}/period insurance · ${fmt.format(insuranceTotal)} total',
+                              '+ ${fmt.format(insPerPeriod)}/period insurance · ${fmt.format(insuranceTotal)} total',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(context)
@@ -507,11 +507,11 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
                           child: Row(
                             children: [
                               _DataCell('${row.period}', flex: 1),
-                              _DataCell(fmt2.format(row.payment), flex: 2),
-                              _DataCell(fmt2.format(row.principal), flex: 2),
-                              _DataCell(fmt2.format(row.interest), flex: 2),
+                              _DataCell(fmt.format(row.payment), flex: 2),
+                              _DataCell(fmt.format(row.principal), flex: 2),
+                              _DataCell(fmt.format(row.interest), flex: 2),
                               _DataCell(
-                                fmt2.format(row.balance),
+                                fmt.format(row.balance),
                                 flex: 2,
                                 bold: row.balance == 0,
                               ),
@@ -548,12 +548,18 @@ class _HeaderCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
