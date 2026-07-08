@@ -989,6 +989,34 @@ class _USResults extends StatelessWidget {
         if (hasFull) ...[
           OutlinedButton.icon(
             onPressed: () {
+              AnalyticsService.instance.logAmortizationViewed('us');
+              adService.showInterstitialThen(() {
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => AmortizationScreen(
+                        loanAmount: r.financedAmount,
+                        annualRate: r.effectiveRate,
+                        termMonths: r.termMonths,
+                        downPayment: r.downPayment,
+                        currencySymbol: '\$',
+                        isBiWeekly: p.isBiWeekly,
+                      ),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration: AppDuration.base,
+                    ),
+                  );
+                }
+              });
+            },
+            icon: const Icon(Icons.table_chart),
+            label: Text(l10n.amortization),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: () {
               Navigator.push(
                 context,
                 PageRouteBuilder(
@@ -1735,6 +1763,28 @@ class _USTcoSectionState extends State<_USTcoSection> {
         ),
         if (_expanded) ...[
           const SizedBox(height: AppSpacing.md),
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              freemiumService.hasFullAccessNotifier,
+              freemiumService.isRewardedNotifier,
+            ]),
+            builder: (context, _) {
+              final hasFull =
+                  freemiumService.hasFullAccess || freemiumService.isRewarded;
+              if (!hasFull) {
+                return _TcoLockedTeaser(onTap: () => PaywallSoft.show(context));
+              }
+              return _buildTcoContent();
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTcoContent() {
+    final termYears = widget.p.result!.termMonths ~/ 12;
+    return Column(children: [
           _USTcoRow(
             label: 'Annual miles driven',
             value: _annualMiles,
@@ -1823,8 +1873,38 @@ class _USTcoSectionState extends State<_USTcoSection> {
               isHighlight: true,
             ),
           ],
-        ],
-      ],
+        ]);
+  }
+}
+
+class _TcoLockedTeaser extends StatelessWidget {
+  final VoidCallback onTap;
+  const _TcoLockedTeaser({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: cs.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline, color: cs.primary, size: 20),
+            const SizedBox(width: AppSpacing.sm),
+            const Expanded(
+              child: Text('Unlock the full cost breakdown with Premium'),
+            ),
+            Icon(Icons.chevron_right_rounded, color: cs.primary),
+          ],
+        ),
+      ),
     );
   }
 }
