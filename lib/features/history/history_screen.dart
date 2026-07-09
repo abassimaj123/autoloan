@@ -8,8 +8,10 @@ import '../../services/analytics_service.dart';
 import '../../services/history_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, CalcwiseAdFooter;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
+import 'package:calcwise_core/calcwise_core.dart'
+    hide SectionCard, ResultTile, PaywallHard;
 import '../../core/freemium/freemium_service.dart';
+import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
 import '../../core/freemium/iap_service.dart';
 
@@ -530,6 +532,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (!mounted) return;
         _load();
       case _CardAction.rename:
+        if (!freemiumService.hasFullAccess) {
+          await PaywallHard.show(context);
+          return;
+        }
         final label = await _showRenameDialog(
           entry['pinLabel'] as String? ?? '',
         );

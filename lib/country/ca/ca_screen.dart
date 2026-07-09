@@ -1557,8 +1557,6 @@ class _CATcoSectionState extends State<_CATcoSection> {
   Widget build(BuildContext context) {
     final isFr = Localizations.localeOf(context).languageCode == 'fr';
     final l10n = AppLocalizations.of(context)!;
-    final r = widget.p.result!;
-    final termYears = r.termMonths ~/ 12;
 
     return SectionCard(
       title: l10n.totalCostOfOwnership,
@@ -1574,6 +1572,31 @@ class _CATcoSectionState extends State<_CATcoSection> {
         ),
         if (_expanded) ...[
           const SizedBox(height: AppSpacing.md),
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              freemiumService.hasFullAccessNotifier,
+              freemiumService.isRewardedNotifier,
+            ]),
+            builder: (context, _) {
+              final hasFull =
+                  freemiumService.hasFullAccess || freemiumService.isRewarded;
+              if (!hasFull) {
+                return _TcoLockedTeaser(
+                  isFr: isFr,
+                  onTap: () => PaywallSoft.show(context),
+                );
+              }
+              return _buildTcoContent(isFr, l10n);
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTcoContent(bool isFr, AppLocalizations l10n) {
+    final termYears = widget.p.result!.termMonths ~/ 12;
+    return Column(children: [
           _TcoSlider(
             label: isFr ? 'Km annuels parcourus' : 'Annual km driven',
             value: _annualKm,
@@ -1664,8 +1687,41 @@ class _CATcoSectionState extends State<_CATcoSection> {
               isHighlight: true,
             ),
           ],
-        ],
-      ],
+        ]);
+  }
+}
+
+class _TcoLockedTeaser extends StatelessWidget {
+  final bool isFr;
+  final VoidCallback onTap;
+  const _TcoLockedTeaser({required this.isFr, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: cs.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline, color: cs.primary, size: 20),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(isFr
+                  ? 'Débloquez le calcul complet avec Premium'
+                  : 'Unlock the full cost breakdown with Premium'),
+            ),
+            Icon(Icons.chevron_right_rounded, color: cs.primary),
+          ],
+        ),
+      ),
     );
   }
 }
