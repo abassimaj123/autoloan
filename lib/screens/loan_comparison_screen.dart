@@ -13,7 +13,7 @@ import 'package:calcwise_core/calcwise_core.dart'
         AppTextSize,
         ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart'
-    hide SectionCard, ResultTile, PaywallHard;
+    hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../l10n/app_localizations.dart';
 import '../country/ca/ca_provider.dart';
 import '../country/uk/uk_provider.dart';
@@ -40,8 +40,6 @@ class LoanComparisonScreen extends StatefulWidget {
 }
 
 class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
-  late CalcwiseAdService _adService;
-
   // ── Loan 1 ─────────────────────────────────────────────────────────────────
   double _amount1 = 25000;
   double _rate1 = 5.9;
@@ -90,7 +88,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     final bestCost = costs[best];
     smartHistoryService.scheduleAutoSave(
       appKey: 'autoloan',
-      screenId: 'loan_comparison',
+      screenId: 'loan_comparison_${widget.flavor}',
       inputHash: hash,
       l1: {
         'loanCount': 3,
@@ -143,7 +141,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     final bestCost = costs[best];
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'loan_comparison',
+      screenId: 'loan_comparison_${widget.flavor}',
       inputHash: hash,
       l1: {
         'loanCount': 3,
@@ -181,7 +179,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
     );
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
@@ -255,14 +253,8 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
-  }
-
-  @override
   void dispose() {
-    smartHistoryService.cancelPendingSave('autoloan', 'loan_comparison');
+    smartHistoryService.cancelPendingSave('autoloan', 'loan_comparison_${widget.flavor}');
     super.dispose();
   }
 

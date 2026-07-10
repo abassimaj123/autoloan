@@ -35,6 +35,7 @@ class LocaleNotifier extends ChangeNotifier {
 
   Locale get locale => _locale;
   bool get isFrench => _locale.languageCode == 'fr';
+  bool get isSpanish => _locale.languageCode == 'es';
 
   void setLocale(Locale locale) {
     if (_locale == locale) return;

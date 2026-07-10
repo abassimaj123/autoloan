@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +11,7 @@ import '../../services/history_service.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdService, CalcwiseAdFooter;
 import 'package:calcwise_core/calcwise_core.dart'
-    hide SectionCard, ResultTile, PaywallHard;
+    hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../../core/freemium/freemium_service.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../widgets/paywall_soft.dart';
@@ -673,9 +675,34 @@ class _HistoryCard extends StatelessWidget {
   bool get _isPinned => entry['isPinned'] == true;
   String? get _pinLabel => entry['pinLabel'] as String?;
 
+  /// Feature screens (compare, cashback-vs-lowapr, lease-vs-buy,
+  /// loan-comparison, total-cost) save via l1_json/l2_json rather than the
+  /// flat 'vehiclePrice'/'monthlyPayment' fields this card assumes — reading
+  /// those keys off them silently returns 0. Detect that shape and render a
+  /// generic summary built from the entry's own l1_json instead of a
+  /// confidently-wrong "$0" card.
+  bool get _isCalcShape => entry['vehiclePrice'] != null;
+
+  Map<String, dynamic> _decodeL1() {
+    final raw = entry['l1_json'] as String?;
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  String _fmtL1Value(dynamic v, NumberFormat fmt) {
+    if (v is String) return v;
+    if (v is num) return fmt.format(v);
+    return '$v';
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    if (!_isCalcShape) return _buildGenericCard(context, cs);
     final fmt = NumberFormat.currency(symbol: currency, decimalDigits: 0);
     final fmtDec = NumberFormat.currency(symbol: currency, decimalDigits: 2);
     final dateFmt = DateFormat('MMM d, y', Localizations.localeOf(context).languageCode);
@@ -873,6 +900,136 @@ class _HistoryCard extends StatelessWidget {
                       size: 16,
                       color: cs.onSurfaceVariant,
                     ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenericCard(BuildContext context, ColorScheme cs) {
+    final fmt = NumberFormat.currency(symbol: currency, decimalDigits: 0);
+    final dateFmt = DateFormat('MMM d, y', Localizations.localeOf(context).languageCode);
+    final timeFmt = DateFormat('HH:mm');
+    final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
+    final l1 = _decodeL1();
+    final l1Entries = l1.entries.toList();
+    final screenId = entry['screen_id'] as String?;
+    final title = _isPinned && _pinLabel != null && _pinLabel!.isNotEmpty
+        ? _pinLabel!
+        : (l1Entries.isNotEmpty
+            ? '${l1Entries.first.key}: ${_fmtL1Value(l1Entries.first.value, fmt)}'
+            : (screenId ?? 'Saved scenario'));
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: _isPinned
+              ? cs.primary.withValues(alpha: 0.4)
+              : Theme.of(context).dividerColor,
+          width: _isPinned ? 1.5 : 1.0,
+        ),
+      ),
+      elevation: 0,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        onTap: () => Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => HistoryDetailScreen(entry: entry),
+            transitionsBuilder: (_, anim, __, child) =>
+                FadeTransition(opacity: anim, child: child),
+            transitionDuration: AppDuration.base,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.mdPlus),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (_isPinned) ...[
+                    Icon(Icons.bookmark_rounded, size: 14, color: cs.primary),
+                    const SizedBox(width: 4),
+                  ],
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  PopupMenuButton<_CardAction>(
+                    icon: Icon(Icons.more_vert, size: 18, color: cs.onSurfaceVariant),
+                    iconSize: 18,
+                    padding: EdgeInsets.zero,
+                    onSelected: onAction,
+                    itemBuilder: (ctx) {
+                      final l = AppLocalizations.of(ctx)!;
+                      return [
+                        if (_isPinned)
+                          PopupMenuItem(
+                            value: _CardAction.unpin,
+                            child: ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.bookmark_remove_outlined),
+                              title: Text(l.historyRemovePin),
+                            ),
+                          ),
+                        if (_isPinned)
+                          PopupMenuItem(
+                            value: _CardAction.rename,
+                            child: ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.edit_outlined),
+                              title: Text(l.historyRename),
+                            ),
+                          ),
+                        PopupMenuItem(
+                          value: _CardAction.delete,
+                          child: ListTile(
+                            dense: true,
+                            leading: const Icon(Icons.delete_outline),
+                            title: Text(l.historyDelete),
+                          ),
+                        ),
+                      ];
+                    },
+                  ),
+                ],
+              ),
+              if (l1Entries.length > 1) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: l1Entries.skip(1).take(3).map((e) => _Tag(
+                        icon: Icons.info_outline_rounded,
+                        label: '${e.key}: ${_fmtL1Value(e.value, fmt)}',
+                      )).toList(),
+                ),
+              ],
+              if (ts != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 12, color: cs.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${dateFmt.format(ts)} · ${timeFmt.format(ts)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.chevron_right_rounded, size: 16, color: cs.onSurfaceVariant),
                   ],
                 ),
               ],

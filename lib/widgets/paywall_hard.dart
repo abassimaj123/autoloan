@@ -22,10 +22,10 @@ class PaywallHard extends StatelessWidget {
   static Future<void> show(BuildContext context) {
     final localeNotifier =
         Provider.of<LocaleNotifier>(context, listen: false);
-    final isFrench = localeNotifier.isFrench;
     return cw.PaywallHard.show(
       context,
-      isFrench: isFrench,
+      isFrench: localeNotifier.isFrench,
+      isSpanish: localeNotifier.isSpanish,
       onPurchase: IAPService.instance.buy,
       onWatchAd: () => cw.CalcwiseRewardAdSheet.show(context),
     );

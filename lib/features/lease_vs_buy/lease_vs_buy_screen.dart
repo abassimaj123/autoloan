@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show ResultHasher;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/paywall_hard.dart';
@@ -34,8 +34,6 @@ class LeaseVsBuyScreen extends StatefulWidget {
 }
 
 class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
-  late CalcwiseAdService _adService;
-
   // ── Buy inputs ─────────────────────────────────────────────────────────────
   double _msrp = 35000;
   double _buyDown = 5000;
@@ -152,19 +150,13 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
     );
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
     if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
   }
   String get _distLabel => widget.flavor == 'ca' ? 'km' : 'miles';
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
-  }
 
   @override
   void initState() {
@@ -226,7 +218,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       );
     });
     AnalyticsService.instance.maybeLogFirstCalculate();
-    _adService.onAction();
+    context.read<CalcwiseAdService>().onAction();
     _scheduleAutoSave();
   }
 
@@ -491,7 +483,7 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
                     FilledButton.icon(
                       onPressed: () async {
                         HapticFeedback.mediumImpact();
-                        _adService.onAction();
+                        context.read<CalcwiseAdService>().onAction();
                         await _checkPaywall();
                         if (!mounted) return;
                         _calculate();

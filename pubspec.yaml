@@ -1,7 +1,7 @@
 name: auto_loan
 description: Auto Loan Calculator — CA / UK / US
 publish_to: 'none'
-version: 1.0.8+6
+version: 1.0.9+7
 
 environment:
   sdk: ^3.11.4

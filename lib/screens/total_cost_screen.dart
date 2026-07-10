@@ -13,7 +13,7 @@ import 'package:calcwise_core/calcwise_core.dart'
         CalcwiseChartTokens,
         ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart'
-    hide SectionCard, ResultTile, PaywallHard;
+    hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../l10n/app_localizations.dart';
 import '../services/analytics_service.dart';
 import '../widgets/shared_inputs.dart';
@@ -54,8 +54,6 @@ class TotalCostScreen extends StatefulWidget {
 }
 
 class _TotalCostScreenState extends State<TotalCostScreen> {
-  late CalcwiseAdService _adService;
-
   // ── Inputs ─────────────────────────────────────────────────────────────────
   late double _vehiclePrice;
   late double _monthlyPayment;
@@ -100,7 +98,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
     });
     smartHistoryService.scheduleAutoSave(
       appKey: 'autoloan',
-      screenId: 'total_cost',
+      screenId: 'total_cost_${widget.flavor}',
       inputHash: hash,
       l1: {
         'vehiclePrice': _vehiclePrice,
@@ -145,7 +143,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'total_cost',
+      screenId: 'total_cost_${widget.flavor}',
       inputHash: hash,
       l1: {
         'vehiclePrice': _vehiclePrice,
@@ -179,7 +177,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
     );
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
@@ -254,14 +252,8 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
-  }
-
-  @override
   void dispose() {
-    smartHistoryService.cancelPendingSave('autoloan', 'total_cost');
+    smartHistoryService.cancelPendingSave('autoloan', 'total_cost_${widget.flavor}');
     super.dispose();
   }
 
@@ -312,7 +304,7 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
       );
     });
     AnalyticsService.instance.maybeLogFirstCalculate();
-    _adService.onAction();
+    context.read<CalcwiseAdService>().onAction();
     _scheduleAutoSave();
   }
 

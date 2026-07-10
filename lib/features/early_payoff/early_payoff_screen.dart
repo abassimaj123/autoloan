@@ -11,7 +11,7 @@ import '../../main.dart' show smartHistoryService, paywallSession;
 import '../history/history_screen.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show CalcwiseAdFooter, ResultHasher, PaywallTrigger;
-import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard;
+import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../../widgets/paywall_soft.dart';
 import '../../widgets/paywall_hard.dart';
 import '../../core/freemium/freemium_service.dart';
@@ -40,7 +40,6 @@ class EarlyPayoffScreen extends StatefulWidget {
 }
 
 class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
-  late CalcwiseAdService _adService;
   double _extraMonthly = 100;
 
   static double _roundTo(double v, double step) => (v / step).round() * step;
@@ -56,7 +55,7 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'early_payoff',
+      screenId: 'early_payoff_${widget.flavor}',
       inputHash: hash,
       l1: {
         'loanAmount': widget.loanAmount,
@@ -84,17 +83,11 @@ class _EarlyPayoffScreenState extends State<EarlyPayoffScreen> {
     HistoryScreen.refreshNotifier.value++;
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
     if (trigger == PaywallTrigger.hard) PaywallHard.show(context);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
   }
 
   @override

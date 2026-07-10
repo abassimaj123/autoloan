@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:calcwise_core/calcwise_core.dart'
     show ResultHasher;
 import 'package:calcwise_core/calcwise_core.dart'
-    hide SectionCard, ResultTile, PaywallHard;
+    hide SectionCard, ResultTile, PaywallHard, PaywallSoft;
 import '../../l10n/app_localizations.dart';
 import '../../widgets/shared_inputs.dart';
 import '../../widgets/paywall_soft.dart';
@@ -38,8 +38,6 @@ class CashbackVsLowAprScreen extends StatefulWidget {
 }
 
 class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
-  late CalcwiseAdService _adService;
-
   // Shared inputs
   double _vehiclePrice = 35000;
   double _downPayment = 5000;
@@ -152,7 +150,7 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
     );
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);
@@ -208,12 +206,6 @@ class _CashbackVsLowAprScreenState extends State<CashbackVsLowAprScreen> {
   void dispose() {
     smartHistoryService.cancelPendingSave('autoloan', 'cashback_vs_lowapr_${widget.flavor}');
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
   }
 
   @override

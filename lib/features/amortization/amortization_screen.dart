@@ -136,8 +136,6 @@ class AmortizationScreen extends StatefulWidget {
 }
 
 class _AmortizationScreenState extends State<AmortizationScreen> {
-  late CalcwiseAdService _adService;
-
   // Expose widget fields for concise access
   double get loanAmount => widget.loanAmount;
   double get annualRate => widget.annualRate;
@@ -148,12 +146,6 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
   String get currencySymbol => widget.currencySymbol;
   bool get isBiWeekly => widget.isBiWeekly;
   String? get title => widget.title;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _adService = context.read<CalcwiseAdService>();
-  }
 
   @override
   void initState() {
@@ -315,7 +307,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     HistoryScreen.refreshNotifier.value++;
     try { AnalyticsService.instance.logSave(); } catch (_) {}
     try { AnalyticsService.instance.logHistorySaved(); } catch (_) {}
-    _adService.onSave();
+    context.read<CalcwiseAdService>().onSave();
     final trigger = await paywallSession.recordAction();
     if (!mounted) return;
     if (trigger == PaywallTrigger.soft) PaywallSoft.show(context);

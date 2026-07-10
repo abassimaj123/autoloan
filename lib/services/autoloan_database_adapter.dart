@@ -16,12 +16,29 @@ class AutoLoanDatabaseAdapter implements DatabaseAdapter {
 
   AutoLoanDatabaseAdapter(this._history);
 
+  /// [HistoryService] keys every entry by a bare country code ('ca'/'uk'/
+  /// 'us') — that's what history_screen.dart's per-country tab queries
+  /// against. Feature screens (compare, cashback-vs-lowapr, lease-vs-buy,
+  /// loan-comparison, total-cost) pass a compound `screenId` like
+  /// 'compare_ca' so SmartHistoryService can dedupe/ring-buffer each
+  /// feature independently. Extract the trailing country code here so those
+  /// entries land under the correct tab instead of an unmatched pseudo-
+  /// country ('compare_ca') that no tab ever queries — previously this
+  /// made every feature-screen save invisible in History.
+  String _countryFromScreenId(String screenId) {
+    for (final c in ['ca', 'uk', 'us']) {
+      if (screenId == c || screenId.endsWith('_$c')) return c;
+    }
+    return screenId; // fallback: unrecognized shape, behave as before
+  }
+
   // ── Insert ──────────────────────────────────────────────────────────────────
 
   @override
   Future<int> insertRow(Map<String, dynamic> row) async {
     final screenId = row['screen_id'] as String? ?? 'unknown';
     final appKey = row['app_key'] as String? ?? 'autoloan';
+    final country = _countryFromScreenId(screenId);
     final hash = (row['result_hash'] as String?) ?? '';
     final isPinned = (row['is_pinned'] as int? ?? 0) == 1;
     final pinLabel = row['pin_label'] as String?;
@@ -36,15 +53,15 @@ class AutoLoanDatabaseAdapter implements DatabaseAdapter {
     };
 
     if (isPinned) {
-      await _history.saveScenario(screenId, data, hash, label: pinLabel);
+      await _history.saveScenario(country, data, hash, label: pinLabel);
     } else {
-      await _history.addAutoSave(screenId, data, hash);
+      await _history.addAutoSave(country, data, hash);
     }
 
     // Return the latest id
     final all = _history.getAll();
     final inserted = all.firstWhere(
-      (e) => e['inputHash'] == hash && e['country'] == screenId,
+      (e) => e['inputHash'] == hash && e['country'] == country,
       orElse: () => {'id': 0},
     );
     return (inserted['id'] as int?) ?? 0;
@@ -59,8 +76,8 @@ class AutoLoanDatabaseAdapter implements DatabaseAdapter {
     bool? isPinned,
     int? limit,
   }) async {
-    // screenId is used as 'country' in HistoryService
-    final country = screenId ?? appKey;
+    final country =
+        screenId != null ? _countryFromScreenId(screenId) : appKey;
     List<Map<String, dynamic>> rows;
     if (isPinned == true) {
       rows = _history.getPinned(country);
