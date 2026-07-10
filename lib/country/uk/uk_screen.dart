@@ -740,10 +740,10 @@ class _UKRoadTaxSection extends StatelessWidget {
               showDuration: const Duration(seconds: 6),
               preferBelow: true,
               message:
-                  'VED Annual Rates (DVLA 2025/26)\n'
-                  'Electric:                  £195/yr (£10 yr 1)\n'
-                  'Petrol / Diesel / Hybrid:  £195/yr (standard rate)\n'
-                  'Diesel non-RDE2 surcharge: £630/yr',
+                  'VED Annual Rates (DVLA V149, 2026/27)\n'
+                  'Electric:                  £200/yr (£10 yr 1)\n'
+                  'Petrol / Diesel / Hybrid:  £200/yr (standard rate)\n'
+                  'Diesel non-RDE2 surcharge: £635/yr',
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

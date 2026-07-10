@@ -131,7 +131,7 @@ void main() {
       expect(r.vedMonthly, 0);
     });
 
-    test('petrolLarge VED = £195/yr → £16.25/mo (DVLA 2025/26 standard rate)', () {
+    test('petrolLarge VED = £200/yr → £16.67/mo (DVLA V149, 2026/27 standard rate)', () {
       // source: VehicleType.petrolLarge.vedAnnual (uk_logic.dart)
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
@@ -146,11 +146,11 @@ void main() {
       expect(r.monthlyPayment, closeTo(r.baseLoanPayment + vedAnnual / 12, 0.01));
     });
 
-    test('electric VED = £195/yr standard rate (DVLA 2025/26)', () {
+    test('electric VED = £200/yr standard rate (DVLA V149, 2026/27)', () {
       // UK EVs are no longer VED-exempt from April 2025. The £10 rate applies to
-      // the FIRST year only; the ongoing standard rate (year 2+) is £195/yr in
-      // 2025/26, which is what a multi-year loan pays.
-      // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
+      // the FIRST year only; the ongoing standard rate (year 2+) is £200/yr in
+      // 2026/27, which is what a multi-year loan pays.
+      // Source: https://www.gov.uk/government/publications/rates-of-vehicle-tax-v149
       final r = UKCalculation.calculate(
         vehiclePrice: 30000,
         downPayment: 5000,
@@ -159,8 +159,8 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.electric,
       );
-      expect(r.vedMonthly, closeTo(195.0 / 12, 0.01)); // £16.25/mo
-      expect(r.vedTotal, closeTo(195.0 / 12 * 48, 0.01)); // £780 over 48 months
+      expect(r.vedMonthly, closeTo(200.0 / 12, 0.01)); // £16.67/mo
+      expect(r.vedTotal, closeTo(200.0 / 12 * 48, 0.01)); // £800 over 48 months
     });
 
     test('total cost = price + interest + vedTotal', () {

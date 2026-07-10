@@ -23,7 +23,7 @@ class OnboardingScreen extends StatelessWidget {
 
 List<OnboardingPage> _buildPages(String flavor) {
   final pills1 = switch (flavor) {
-    'uk' => const ['PCP Calculator', 'HP Finance UK', 'VED 2025/26', 'Rule of 78'],
+    'uk' => const ['PCP Calculator', 'HP Finance UK', 'VED 2026/27', 'Rule of 78'],
     'ca' => const ['Km Overage Calc', 'Lease vs Finance', 'Province Tax', 'Français/English'],
     _ => const ['Car Affordability', 'Lease vs Finance', 'Credit Score Rates', '50 State Tax'],
   };

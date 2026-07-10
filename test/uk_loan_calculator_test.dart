@@ -123,11 +123,11 @@ void main() {
       );
     });
 
-    test('[UK-2a] VED Petrol >1000cc = £195/yr', () {
+    test('[UK-2a] VED Petrol >1000cc = £200/yr', () {
       expect(
         VehicleType.petrolLarge.vedAnnual,
-        closeTo(195.0, 0.01),
-        reason: '[UK-2a] vedAnnual petrolLarge = £195 (DVLA 2025/26 standard rate)',
+        closeTo(200.0, 0.01),
+        reason: '[UK-2a] vedAnnual petrolLarge = £200 (DVLA V149, 2026/27 standard rate)',
       );
     });
 
@@ -149,15 +149,15 @@ void main() {
       );
     });
 
-    test('[UK-2d] Total VED 60 mois = £975.00', () {
+    test('[UK-2d] Total VED 60 mois = £1000.00', () {
       expect(
         rWithVed.vedTotal,
-        closeTo(975.00, 0.01),
-        reason: '[UK-2d] £195 × 5 ans = £975 (DVLA 2025/26)',
+        closeTo(1000.00, 0.01),
+        reason: '[UK-2d] £200 × 5 ans = £1000 (DVLA V149, 2026/27)',
       );
     });
 
-    test('[UK-2e] Coût total avec VED = ≈£29,679.86 (VED £195/yr × 5)', () {
+    test('[UK-2e] Coût total avec VED = ≈£29,704.86 (VED £200/yr × 5)', () {
       final expected = 25000.0 + rWithVed.totalInterest + rWithVed.vedTotal;
       expect(
         rWithVed.totalCost,
@@ -166,8 +166,8 @@ void main() {
       );
       expect(
         rWithVed.totalCost,
-        closeTo(29679.86, 1.00),
-        reason: '[UK-2e] Spec attendu ≈ £29,679.86 (VED £195 × 5 ans)',
+        closeTo(29704.86, 1.00),
+        reason: '[UK-2e] Spec attendu ≈ £29,704.86 (VED £200 × 5 ans)',
       );
     });
 
@@ -187,7 +187,7 @@ void main() {
 
   // ═══════════════════════════════════════════════════════════════════
   // UK — TOUS LES TYPES VED (CAS UK-3)
-  // Taux 2025/26 DVLA : petrolSmall £195, petrolLarge £195, dieselSurcharge £630, diesel/hybrid £195
+  // Taux 2026/27 DVLA V149 : petrolSmall £200, petrolLarge £200, dieselSurcharge £635, diesel/hybrid £200
   // ═══════════════════════════════════════════════════════════════════
   group('UK — Types VED', () {
     void testVed(VehicleType type, double expectedAnnual, {double? customVed}) {
@@ -225,17 +225,17 @@ void main() {
       );
     }
 
-    testVed(VehicleType.petrolSmall, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26 standard rate)
-    testVed(VehicleType.petrolLarge, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26 standard rate)
-    // EV standard (year 2+) rate is £195/yr in 2025/26; £10 is first-year only.
-    // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
-    testVed(VehicleType.electric, 195.0); // £195/yr → £16.25/mo (DVLA 2025/26)
+    testVed(VehicleType.petrolSmall, 200.0); // £200/yr → £16.67/mo (DVLA V149, 2026/27 standard rate)
+    testVed(VehicleType.petrolLarge, 200.0); // £200/yr → £16.67/mo (DVLA V149, 2026/27 standard rate)
+    // EV standard (year 2+) rate is £200/yr in 2026/27; £10 is first-year only.
+    // Source: https://www.gov.uk/government/publications/rates-of-vehicle-tax-v149
+    testVed(VehicleType.electric, 200.0); // £200/yr → £16.67/mo (DVLA V149, 2026/27)
     testVed(
       VehicleType.diesel,
-      195.0,
-    ); // Standard rate 2025/26 RDE2-compliant diesel
-    testVed(VehicleType.dieselSurcharge, 630.0); // Non-RDE2 diesel surcharge (DVLA 2025/26)
-    testVed(VehicleType.hybrid, 195.0); // Hybrid = standard rate 2025/26 (AFV discount removed)
+      200.0,
+    ); // Standard rate 2026/27 RDE2-compliant diesel
+    testVed(VehicleType.dieselSurcharge, 635.0); // Non-RDE2 diesel surcharge (2026/27)
+    testVed(VehicleType.hybrid, 200.0); // Hybrid = standard rate 2026/27 (AFV discount removed)
 
     test('[UK-3-custom] Custom VED : rate fourni via customVedAnnual', () {
       const customRate = 350.0;
@@ -279,9 +279,9 @@ void main() {
       },
     );
 
-    test('[UK-3-elect] Électrique : VED standard = £195/an (DVLA 2025/26)', () {
-      // £10 first-year rate only; ongoing standard rate (year 2+) is £195/yr.
-      // Source: https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles
+    test('[UK-3-elect] Électrique : VED standard = £200/an (DVLA V149, 2026/27)', () {
+      // £10 first-year rate only; ongoing standard rate (year 2+) is £200/yr.
+      // Source: https://www.gov.uk/government/publications/rates-of-vehicle-tax-v149
       final r = UKCalculation.calculate(
         vehiclePrice: 25000,
         downPayment: 5000,
@@ -290,12 +290,12 @@ void main() {
         includeRoadTax: true,
         vehicleType: VehicleType.electric,
       );
-      expect(r.vedMonthly, closeTo(195.0 / 12, 0.01), reason: '[UK-3-elect] £195/12 = £16.25/mo');
-      expect(r.vedTotal, closeTo(195.0 * 5, 0.01), reason: '[UK-3-elect] £195 × 5 ans = £975 total');
+      expect(r.vedMonthly, closeTo(200.0 / 12, 0.01), reason: '[UK-3-elect] £200/12 = £16.67/mo');
+      expect(r.vedTotal, closeTo(200.0 * 5, 0.01), reason: '[UK-3-elect] £200 × 5 ans = £1000 total');
       expect(
         r.monthlyPayment,
-        closeTo(r.baseLoanPayment + 195.0 / 12, 0.01),
-        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment + vedMonthly (VED=£195/an)',
+        closeTo(r.baseLoanPayment + 200.0 / 12, 0.01),
+        reason: '[UK-3-elect] monthlyPayment = baseLoanPayment + vedMonthly (VED=£200/an)',
       );
     });
   });
