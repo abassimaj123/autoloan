@@ -684,6 +684,17 @@ class _ResultsCard extends StatelessWidget {
     final leaseWins = r.leaseIsChEaper;
     final primary = Theme.of(context).colorScheme.primary;
     final outline = Theme.of(context).colorScheme.outline;
+    final lang = Localizations.localeOf(context).languageCode;
+    final buyWord = switch (lang) {
+      'fr' => 'Achat',
+      'es' => 'Compra',
+      _ => 'Buy',
+    };
+    final leaseWord = switch (lang) {
+      'fr' => 'Location',
+      'es' => 'Arrendamiento',
+      _ => 'Lease',
+    };
 
     return SectionCard(
       title: l10n.comparisonResults,
@@ -694,7 +705,7 @@ class _ResultsCard extends StatelessWidget {
           children: [
             Expanded(
               child: _CompCol(
-                label: 'Buy ($buyTerm ${l10n.month})',
+                label: '$buyWord ($buyTerm ${l10n.month})',
                 total: fmt0.format(r.buyTotalCost),
                 highlight: !leaseWins,
                 betterLabel: l10n.betterBadge,
@@ -706,7 +717,7 @@ class _ResultsCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _CompCol(
-                label: 'Lease ($leaseTerm ${l10n.month})',
+                label: '$leaseWord ($leaseTerm ${l10n.month})',
                 total: fmt0.format(r.leaseTotalCost),
                 highlight: leaseWins,
                 betterLabel: l10n.betterBadge,

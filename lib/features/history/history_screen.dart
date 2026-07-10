@@ -315,17 +315,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
     int locked,
     bool hasFull,
   ) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final searchHint = switch (lang) {
+      'fr' => 'Rechercher des calculs…',
+      'es' => 'Buscar cálculos…',
+      _ => 'Search calculations…',
+    };
+    final noResultsTitle = switch (lang) {
+      'fr' => 'Aucun résultat',
+      'es' => 'Sin resultados',
+      _ => 'No results',
+    };
+    final noResultsBody = switch (lang) {
+      'fr' => 'Essayez un autre terme de recherche',
+      'es' => 'Prueba con otro término de búsqueda',
+      _ => 'Try a different search term',
+    };
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
         CalcwiseSearchBar(
+          hintText: searchHint,
           onChanged: (q) => setState(() => _searchQuery = q),
         ),
         if (_searchQuery.isNotEmpty && pinned.isEmpty && shownAutoSaves.isEmpty)
           CalcwiseEmptyState(
             icon: Icons.search_off_rounded,
-            title: 'No results',
-            body: 'Try a different search term',
+            title: noResultsTitle,
+            body: noResultsBody,
           ),
         // ── Pinned scenarios ─────────────────────────────────────────────
         if (pinned.isNotEmpty) ...[
@@ -405,6 +422,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
               title: l10n.history,
               description: l10n.unlockFull,
               price: IAPService.instance.localizedPrice,
+              buttonLabel: switch (widget.country) {
+                'ca' => l10n.getPremiumCA,
+                'uk' => l10n.getPremiumUK,
+                _ => l10n.getPremiumUS,
+              },
+              subtitle: switch (Localizations.localeOf(context).languageCode) {
+                'fr' => 'Achat unique · Aucun abonnement',
+                'es' => 'Compra única · Sin suscripción',
+                _ => 'One-time purchase · No subscription',
+              },
               onUnlock: () => PaywallSoft.show(context),
             ),
           ),
@@ -910,19 +937,40 @@ class _HistoryCard extends StatelessWidget {
     );
   }
 
+  // l1_json keys are internal field names (msrp, buyMonthly, ...) — map the
+  // ones AutoLoan's screens actually emit to human-readable labels instead of
+  // leaking raw dictionary keys into the card.
+  static const Map<String, Map<String, String>> _l1KeyLabels = {
+    'msrp': {'en': 'Price', 'fr': 'Prix', 'es': 'Precio'},
+    'price': {'en': 'Price', 'fr': 'Prix', 'es': 'Precio'},
+    'buyMonthly': {'en': 'Buy/mo', 'fr': 'Achat/mois', 'es': 'Compra/mes'},
+    'leaseMonthly': {'en': 'Lease/mo', 'fr': 'Location/mois', 'es': 'Arrendamiento/mes'},
+    'saving': {'en': 'Savings', 'fr': 'Économie', 'es': 'Ahorro'},
+    'buyApr': {'en': 'APR', 'fr': 'Taux', 'es': 'TAE'},
+  };
+
+  String _labelForKey(String key, String lang) =>
+      _l1KeyLabels[key]?[lang] ?? _l1KeyLabels[key]?['en'] ?? key;
+
   Widget _buildGenericCard(BuildContext context, ColorScheme cs) {
     final fmt = NumberFormat.currency(symbol: currency, decimalDigits: 0);
-    final dateFmt = DateFormat('MMM d, y', Localizations.localeOf(context).languageCode);
+    final lang = Localizations.localeOf(context).languageCode;
+    final dateFmt = DateFormat('MMM d, y', lang);
     final timeFmt = DateFormat('HH:mm');
     final ts = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
     final l1 = _decodeL1();
     final l1Entries = l1.entries.toList();
     final screenId = entry['screen_id'] as String?;
+    final savedScenarioLabel = switch (lang) {
+      'fr' => 'Scénario sauvegardé',
+      'es' => 'Escenario guardado',
+      _ => 'Saved scenario',
+    };
     final title = _isPinned && _pinLabel != null && _pinLabel!.isNotEmpty
         ? _pinLabel!
         : (l1Entries.isNotEmpty
-            ? '${l1Entries.first.key}: ${_fmtL1Value(l1Entries.first.value, fmt)}'
-            : (screenId ?? 'Saved scenario'));
+            ? '${_labelForKey(l1Entries.first.key, lang)}: ${_fmtL1Value(l1Entries.first.value, fmt)}'
+            : (screenId ?? savedScenarioLabel));
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -1012,7 +1060,7 @@ class _HistoryCard extends StatelessWidget {
                   runSpacing: 4,
                   children: l1Entries.skip(1).take(3).map((e) => _Tag(
                         icon: Icons.info_outline_rounded,
-                        label: '${e.key}: ${_fmtL1Value(e.value, fmt)}',
+                        label: '${_labelForKey(e.key, lang)}: ${_fmtL1Value(e.value, fmt)}',
                       )).toList(),
                 ),
               ],

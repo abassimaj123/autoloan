@@ -651,6 +651,12 @@ class _GatedCompareResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final adService = context.read<CalcwiseAdService>();
     final priceLabel = IAPService.instance.localizedPrice.value ?? 'Premium';
+    final langCode = Localizations.localeOf(context).languageCode;
+    final unlockComparisonLabel = switch (langCode) {
+      'fr' => 'Débloquer la comparaison',
+      'es' => 'Desbloquear comparación',
+      _ => 'Unlock Comparison',
+    };
 
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -756,15 +762,15 @@ class _GatedCompareResults extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.lock_outline,
+                            const Icon(Icons.lock_outline,
                                 color: Colors.white, size: 18),
-                            SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.sm),
                             Text(
-                              'Unlock Comparison',
-                              style: TextStyle(
+                              unlockComparisonLabel,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),

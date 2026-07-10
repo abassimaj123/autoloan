@@ -826,7 +826,9 @@ class _CAResults extends StatelessWidget {
             monthlyPayment: r.monthlyPayment,
             totalInterest: r.totalInterest,
             downPayment: r.downPayment,
+            isFr: isFr,
           ),
+          isFrench: isFr,
         ),
         const SizedBox(height: AppSpacing.sm),
         OutlinedButton.icon(
@@ -1024,6 +1026,8 @@ class _CAResults extends StatelessWidget {
             title: l10n.results,
             description: l10n.unlockFull,
             price: IAPService.instance.localizedPrice,
+            buttonLabel: l10n.getPremiumCA,
+            subtitle: isFr ? 'Achat unique · Aucun abonnement' : 'One-time purchase · No subscription',
             onUnlock: () => PaywallSoft.show(context),
           ),
         ],
@@ -1381,7 +1385,7 @@ class _ComparisonCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _ComparisonColumn(
-                  label: isFr ? 'Location ($leaseTermMonths mo)' : 'Lease ($leaseTermMonths mo)',
+                  label: isFr ? 'Location ($leaseTermMonths mois)' : 'Lease ($leaseTermMonths mo)',
                   monthly: AmountFormatter.ui(lease.monthlyLease, 'CAD'),
                   total: AmountFormatter.ui(lease.totalLeaseCost, 'CAD'),
                   highlight: leaseWins,
@@ -1390,11 +1394,11 @@ class _ComparisonCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _ComparisonColumn(
-                  label: isFr ? 'Achat ($buyTermMonths mo)' : 'Buy ($buyTermMonths mo)',
+                  label: isFr ? 'Achat ($buyTermMonths mois)' : 'Buy ($buyTermMonths mo)',
                   monthly: AmountFormatter.ui(buyMonthly, 'CAD'),
                   total: AmountFormatter.ui(buyTotalOverLeaseTerm, 'CAD'),
                   highlight: !leaseWins,
-                  footnote: isFr ? 'sur $leaseTermMonths mo' : 'over $leaseTermMonths mo',
+                  footnote: isFr ? 'sur $leaseTermMonths mois' : 'over $leaseTermMonths mo',
                 ),
               ),
             ],
@@ -2138,12 +2142,15 @@ class _PremiumToolCard extends StatelessWidget {
       builder: (context, _) {
         final hasFull =
             freemiumService.hasFullAccess || freemiumService.isRewarded;
+        final isFr = Localizations.localeOf(context).languageCode == 'fr';
         return hasFull
             ? _buildUnlockedCard(context, cs)
             : CalcwisePremiumGate(
                 title: label,
                 description: description,
                 price: IAPService.instance.localizedPrice,
+                buttonLabel: AppLocalizations.of(context)!.getPremiumCA,
+                subtitle: isFr ? 'Achat unique · Aucun abonnement' : 'One-time purchase · No subscription',
                 onUnlock: () => PaywallSoft.show(context),
               );
       },

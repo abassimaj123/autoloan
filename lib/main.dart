@@ -64,6 +64,11 @@ late final SmartHistoryService smartHistoryService;
 // Global locale notifier — initialized in main() before runApp(); used by splash.
 late final LocaleNotifier localeNotifier;
 
+// Mirrors localeNotifier.isFrench/isSpanish as ValueNotifier<bool> — the shape
+// CalcwiseAdFooter/CalcwiseRewardAdSheet.configure() require for localized copy.
+final ValueNotifier<bool> isFrenchNotifier = ValueNotifier<bool>(false);
+final ValueNotifier<bool> isSpanishNotifier = ValueNotifier<bool>(false);
+
 // Flavor injected at build time:
 //   Android: --dart-define=FLAVOR=CA  (via Gradle productFlavor buildConfigField)
 //   TODO: iOS — pass via xcconfig: DART_DEFINES or --dart-define in scheme
@@ -128,6 +133,12 @@ void main() async {
   unawaited(AnalyticsService.instance.logAppOpen(_flavor.toLowerCase()));
 
   localeNotifier = LocaleNotifier(prefs, _flavor.toLowerCase());
+  isFrenchNotifier.value = localeNotifier.isFrench;
+  isSpanishNotifier.value = localeNotifier.isSpanish;
+  localeNotifier.addListener(() {
+    isFrenchNotifier.value = localeNotifier.isFrench;
+    isSpanishNotifier.value = localeNotifier.isSpanish;
+  });
 
   // Initial system UI style — brightness-aware update happens in MaterialApp builder
   SystemChrome.setSystemUIOverlayStyle(
@@ -142,12 +153,16 @@ void main() async {
   CalcwiseAdFooter.configure(
     adService: adService,
     freemium: freemiumService,
+    isFrenchNotifier: isFrenchNotifier,
+    isSpanishNotifier: isSpanishNotifier,
     onGetPremium: () => IAPService.instance.buy(),
     analytics: AnalyticsService.instance,
   );
   CalcwiseRewardAdSheet.configure(
     adService: adService,
     freemium: freemiumService,
+    isFrenchNotifier: isFrenchNotifier,
+    isSpanishNotifier: isSpanishNotifier,
   );
   PaywallHard.setAnalytics(AnalyticsService.instance);
   PaywallSoft.setAnalytics(AnalyticsService.instance);

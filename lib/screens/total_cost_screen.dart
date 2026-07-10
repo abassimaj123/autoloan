@@ -608,10 +608,21 @@ class _GatedTcoResults extends StatelessWidget {
             freemiumService.hasFullAccess || freemiumService.isRewarded;
         if (!hasFull) {
           final l10n = AppLocalizations.of(context)!;
+          final isFr = Localizations.localeOf(context).languageCode == 'fr';
+          final isEs = Localizations.localeOf(context).languageCode == 'es';
+          final buttonLabel = switch (flavor) {
+            'ca' => l10n.getPremiumCA,
+            'uk' => l10n.getPremiumUK,
+            _ => l10n.getPremiumUS,
+          };
           return CalcwisePremiumGate(
             title: l10n.trueCostOfOwnership,
             description: l10n.unlockFull,
             price: IAPService.instance.localizedPrice,
+            buttonLabel: buttonLabel,
+            subtitle: isFr
+                ? 'Achat unique · Aucun abonnement'
+                : (isEs ? 'Compra única · Sin suscripción' : 'One-time purchase · No subscription'),
             onUnlock: () => PaywallSoft.show(context, priceLabel: priceLabel),
           );
         }
