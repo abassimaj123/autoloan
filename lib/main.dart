@@ -143,9 +143,7 @@ void main() async {
   // Initial system UI style — brightness-aware update happens in MaterialApp builder
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFFF8FAFC),
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
@@ -238,14 +236,9 @@ class AutoLoanApp extends StatelessWidget {
               final isDark = Theme.of(context).brightness == Brightness.dark;
               SystemChrome.setSystemUIOverlayStyle(
                 SystemUiOverlayStyle(
-                  // Transparent — the app draws under the system nav bar
-                  // (edge-to-edge) instead of painting it opaque, per
-                  // Android 15's forced behavior.
-                  systemNavigationBarColor: Colors.transparent,
                   systemNavigationBarIconBrightness: isDark
                       ? Brightness.light
                       : Brightness.dark,
-                  statusBarColor: Colors.transparent,
                   statusBarIconBrightness: isDark
                       ? Brightness.light
                       : Brightness.dark,
