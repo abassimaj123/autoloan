@@ -122,6 +122,7 @@ class _USScreenState extends State<USScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final adService = context.read<CalcwiseAdService>();
+    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
 
     return Scaffold(
       appBar: AppBar(
@@ -130,6 +131,7 @@ class _USScreenState extends State<USScreen> {
           CalcwiseAppBarActions(
             freemium: freemiumService,
             session: paywallSession,
+            isSpanish: isSpanish,
             onSettings: () {
               AnalyticsService.instance.logTabChanged('settings');
               Navigator.push(
