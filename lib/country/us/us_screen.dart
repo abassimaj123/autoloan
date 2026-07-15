@@ -999,6 +999,7 @@ class _USResults extends StatelessWidget {
                         loanAmount: r.financedAmount,
                         annualRate: r.effectiveRate,
                         termMonths: r.termMonths,
+                        flavor: 'us',
                         downPayment: r.downPayment,
                         currencySymbol: '\$',
                         isBiWeekly: p.isBiWeekly,

@@ -896,6 +896,7 @@ class _CAResults extends StatelessWidget {
                         loanAmount: r.loanAmount,
                         annualRate: r.annualRate,
                         termMonths: r.termMonths,
+                        flavor: 'ca',
                         downPayment: r.downPayment,
                         insuranceMonthly: p.insurance.monthlyTotal(
                           r.termMonths,

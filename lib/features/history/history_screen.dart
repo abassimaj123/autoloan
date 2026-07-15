@@ -726,6 +726,23 @@ class _HistoryCard extends StatelessWidget {
     return '$v';
   }
 
+  /// Chooses a formatter by key name instead of always applying the currency
+  /// formatter — l1 maps mix currency amounts with rates and term lengths
+  /// (e.g. amortization's 'annualRate'/'termMonths'), and blindly running
+  /// them through NumberFormat.currency renders "annualRate: C$8" for 7.9%
+  /// and "termMonths: C$60" for a 60-month term.
+  String _fmtL1ValueByKey(String key, dynamic v, NumberFormat currencyFmt) {
+    if (v is! num) return _fmtL1Value(v, currencyFmt);
+    final k = key.toLowerCase();
+    if (k.contains('rate') || k.contains('apr')) {
+      return '${v.toStringAsFixed(1)}%';
+    }
+    if (k.contains('term') || k == 'months') {
+      return '${v.toInt()} mo';
+    }
+    return currencyFmt.format(v);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -969,7 +986,7 @@ class _HistoryCard extends StatelessWidget {
     final title = _isPinned && _pinLabel != null && _pinLabel!.isNotEmpty
         ? _pinLabel!
         : (l1Entries.isNotEmpty
-            ? '${_labelForKey(l1Entries.first.key, lang)}: ${_fmtL1Value(l1Entries.first.value, fmt)}'
+            ? '${_labelForKey(l1Entries.first.key, lang)}: ${_fmtL1ValueByKey(l1Entries.first.key, l1Entries.first.value, fmt)}'
             : (screenId ?? savedScenarioLabel));
 
     return Card(
@@ -1060,7 +1077,7 @@ class _HistoryCard extends StatelessWidget {
                   runSpacing: 4,
                   children: l1Entries.skip(1).take(3).map((e) => _Tag(
                         icon: Icons.info_outline_rounded,
-                        label: '${_labelForKey(e.key, lang)}: ${_fmtL1Value(e.value, fmt)}',
+                        label: '${_labelForKey(e.key, lang)}: ${_fmtL1ValueByKey(e.key, e.value, fmt)}',
                       )).toList(),
                 ),
               ],

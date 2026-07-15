@@ -95,10 +95,14 @@ class AutoLoanDatabaseAdapter implements DatabaseAdapter {
   @override
   Future<Map<String, dynamic>?> getRowByHash({
     required String appKey,
+    required String screenId,
     required String resultHash,
   }) async {
     final all = _history.getAll();
-    final found = all.where((e) => e['inputHash'] == resultHash).firstOrNull;
+    final found = all
+        .where((e) =>
+            e['screen_id'] == screenId && e['inputHash'] == resultHash)
+        .firstOrNull;
     return found == null ? null : _toAdapterRow(found);
   }
 

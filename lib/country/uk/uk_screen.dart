@@ -1046,6 +1046,7 @@ class _UKResults extends StatelessWidget {
                         loanAmount: r.loanAmount,
                         annualRate: r.annualRate,
                         termMonths: r.termMonths,
+                        flavor: 'uk',
                         downPayment: r.downPayment,
                         balloonAmount: r.isPcp ? r.gmfvAmount : 0,
                         insuranceMonthly: r.vedMonthly,

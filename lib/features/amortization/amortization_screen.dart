@@ -118,11 +118,18 @@ class AmortizationScreen extends StatefulWidget {
   /// Override AppBar title (e.g. UK uses 'Amortisation Schedule')
   final String? title;
 
+  /// 'ca' | 'uk' | 'us' — required so saved scenarios land under the right
+  /// History tab. Without a flavor suffix, screenId 'amortization' falls
+  /// through AutoLoanDatabaseAdapter._countryFromScreenId's fallback and
+  /// gets stored under a fake country bucket no History tab ever queries.
+  final String flavor;
+
   const AmortizationScreen({
     super.key,
     required this.loanAmount,
     required this.annualRate,
     required this.termMonths,
+    required this.flavor,
     this.balloonAmount = 0,
     this.downPayment = 0,
     this.insuranceMonthly = 0,
@@ -279,7 +286,7 @@ class _AmortizationScreenState extends State<AmortizationScreen> {
     });
     await smartHistoryService.saveScenario(
       appKey: 'autoloan',
-      screenId: 'amortization',
+      screenId: 'amortization_${widget.flavor}',
       inputHash: hash,
       l1: {
         'loanAmount': loanAmount,
