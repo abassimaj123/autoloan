@@ -1324,6 +1324,54 @@ abstract class AppLocalizations {
   /// **'Remove pin'**
   String get historyRemovePin;
 
+  /// No description provided for @saveScenarioButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Scenario'**
+  String get saveScenarioButton;
+
+  /// No description provided for @saveScenarioButtonSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get saveScenarioButtonSaving;
+
+  /// No description provided for @saveScenarioSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario saved'**
+  String get saveScenarioSaved;
+
+  /// No description provided for @saveScenarioSavedNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario \"{label}\" saved'**
+  String saveScenarioSavedNamed(String label);
+
+  /// No description provided for @saveScenarioDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Scenario'**
+  String get saveScenarioDialogTitle;
+
+  /// No description provided for @saveScenarioDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario name (optional)'**
+  String get saveScenarioDialogHint;
+
+  /// No description provided for @saveScenarioDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get saveScenarioDialogCancel;
+
+  /// No description provided for @saveScenarioDialogSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveScenarioDialogSave;
+
   /// No description provided for @histDetailAnnualRate.
   ///
   /// In en, this message translates to:

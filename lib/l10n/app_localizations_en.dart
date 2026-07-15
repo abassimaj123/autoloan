@@ -652,6 +652,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyRemovePin => 'Remove pin';
 
   @override
+  String get saveScenarioButton => 'Save Scenario';
+
+  @override
+  String get saveScenarioButtonSaving => 'Saving…';
+
+  @override
+  String get saveScenarioSaved => 'Scenario saved';
+
+  @override
+  String saveScenarioSavedNamed(String label) {
+    return 'Scenario \"$label\" saved';
+  }
+
+  @override
+  String get saveScenarioDialogTitle => 'Save Scenario';
+
+  @override
+  String get saveScenarioDialogHint => 'Scenario name (optional)';
+
+  @override
+  String get saveScenarioDialogCancel => 'Cancel';
+
+  @override
+  String get saveScenarioDialogSave => 'Save';
+
+  @override
   String get histDetailAnnualRate => 'Annual Rate';
 
   @override

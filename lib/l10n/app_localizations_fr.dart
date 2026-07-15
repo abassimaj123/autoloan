@@ -659,6 +659,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get historyRemovePin => 'Retirer l\'épingle';
 
   @override
+  String get saveScenarioButton => 'Enregistrer le scénario';
+
+  @override
+  String get saveScenarioButtonSaving => 'Enregistrement…';
+
+  @override
+  String get saveScenarioSaved => 'Scénario enregistré';
+
+  @override
+  String saveScenarioSavedNamed(String label) {
+    return 'Scénario « $label » enregistré';
+  }
+
+  @override
+  String get saveScenarioDialogTitle => 'Enregistrer le scénario';
+
+  @override
+  String get saveScenarioDialogHint => 'Nom du scénario (facultatif)';
+
+  @override
+  String get saveScenarioDialogCancel => 'Annuler';
+
+  @override
+  String get saveScenarioDialogSave => 'Enregistrer';
+
+  @override
   String get histDetailAnnualRate => 'Taux annuel';
 
   @override

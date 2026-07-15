@@ -242,6 +242,19 @@
   "historyRenameTitle": "Renommer le scénario",
   "historyRenameHint": "Nom du scénario",
   "historyRemovePin": "Retirer l'épingle",
+  "saveScenarioButton": "Enregistrer le scénario",
+  "saveScenarioButtonSaving": "Enregistrement…",
+  "saveScenarioSaved": "Scénario enregistré",
+  "saveScenarioSavedNamed": "Scénario « {label} » enregistré",
+  "@saveScenarioSavedNamed": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "saveScenarioDialogTitle": "Enregistrer le scénario",
+  "saveScenarioDialogHint": "Nom du scénario (facultatif)",
+  "saveScenarioDialogCancel": "Annuler",
+  "saveScenarioDialogSave": "Enregistrer",
   "histDetailAnnualRate": "Taux annuel",
   "histDetailProvince": "Province",
   "histDetailTotalCost": "Coût total du prêt",

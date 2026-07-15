@@ -242,6 +242,19 @@
   "historyRenameTitle": "Renombrar escenario",
   "historyRenameHint": "Nombre del escenario",
   "historyRemovePin": "Quitar marcador",
+  "saveScenarioButton": "Guardar escenario",
+  "saveScenarioButtonSaving": "Guardando…",
+  "saveScenarioSaved": "Escenario guardado",
+  "saveScenarioSavedNamed": "Escenario \"{label}\" guardado",
+  "@saveScenarioSavedNamed": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "saveScenarioDialogTitle": "Guardar escenario",
+  "saveScenarioDialogHint": "Nombre del escenario (opcional)",
+  "saveScenarioDialogCancel": "Cancelar",
+  "saveScenarioDialogSave": "Guardar",
   "histDetailAnnualRate": "Tasa anual",
   "histDetailProvince": "Provincia",
   "histDetailTotalCost": "Costo total del préstamo",

@@ -242,6 +242,19 @@
   "historyRenameTitle": "Rename scenario",
   "historyRenameHint": "Scenario name",
   "historyRemovePin": "Remove pin",
+  "saveScenarioButton": "Save Scenario",
+  "saveScenarioButtonSaving": "Saving…",
+  "saveScenarioSaved": "Scenario saved",
+  "saveScenarioSavedNamed": "Scenario \"{label}\" saved",
+  "@saveScenarioSavedNamed": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "saveScenarioDialogTitle": "Save Scenario",
+  "saveScenarioDialogHint": "Scenario name (optional)",
+  "saveScenarioDialogCancel": "Cancel",
+  "saveScenarioDialogSave": "Save",
   "histDetailAnnualRate": "Annual Rate",
   "histDetailProvince": "Province",
   "histDetailTotalCost": "Total Cost of Loan",

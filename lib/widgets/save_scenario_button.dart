@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:calcwise_core/calcwise_core.dart' hide SectionCard, ResultTile;
 import '../core/freemium/freemium_service.dart';
+import '../l10n/app_localizations.dart';
 
 /// A "Save Scenario" button that pins the current calculator result.
 ///
@@ -41,12 +42,13 @@ class _SaveScenarioButtonState extends State<SaveScenarioButton> {
     try {
       await widget.onSave(label);
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             label != null && label.isNotEmpty
-                ? 'Scenario "$label" saved'
-                : 'Scenario saved',
+                ? l10n.saveScenarioSavedNamed(label)
+                : l10n.saveScenarioSaved,
           ),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
@@ -79,7 +81,11 @@ class _SaveScenarioButtonState extends State<SaveScenarioButton> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.bookmark_add_outlined, size: 18),
-          label: Text(_saving ? 'Saving…' : 'Save Scenario'),
+          label: Text(
+            _saving
+                ? AppLocalizations.of(context)!.saveScenarioButtonSaving
+                : AppLocalizations.of(context)!.saveScenarioButton,
+          ),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12),
           ),
@@ -114,25 +120,26 @@ class _SaveScenarioNameDialogState extends State<_SaveScenarioNameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Save Scenario'),
+      title: Text(l10n.saveScenarioDialogTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(
-          hintText: 'Scenario name (optional)',
+        decoration: InputDecoration(
+          hintText: l10n.saveScenarioDialogHint,
         ),
         onSubmitted: (v) => Navigator.pop(context, v),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.saveScenarioDialogCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _controller.text),
-          child: const Text('Save'),
+          child: Text(l10n.saveScenarioDialogSave),
         ),
       ],
     );

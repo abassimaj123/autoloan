@@ -659,6 +659,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyRemovePin => 'Quitar marcador';
 
   @override
+  String get saveScenarioButton => 'Guardar escenario';
+
+  @override
+  String get saveScenarioButtonSaving => 'Guardando…';
+
+  @override
+  String get saveScenarioSaved => 'Escenario guardado';
+
+  @override
+  String saveScenarioSavedNamed(String label) {
+    return 'Escenario \"$label\" guardado';
+  }
+
+  @override
+  String get saveScenarioDialogTitle => 'Guardar escenario';
+
+  @override
+  String get saveScenarioDialogHint => 'Nombre del escenario (opcional)';
+
+  @override
+  String get saveScenarioDialogCancel => 'Cancelar';
+
+  @override
+  String get saveScenarioDialogSave => 'Guardar';
+
+  @override
   String get histDetailAnnualRate => 'Tasa anual';
 
   @override
