@@ -145,7 +145,9 @@ class _UKScreenState extends State<UKScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
         selectedIndex: _selectedTab,
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
@@ -170,8 +172,11 @@ class _UKScreenState extends State<UKScreen> {
             label: l10n.history,
           ),
         ],
+        ),
       ),
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
           Expanded(
             child: Builder(
@@ -213,6 +218,7 @@ class _UKScreenState extends State<UKScreen> {
           ),
           const CalcwiseAdFooter(),
         ],
+        ),
       ),
     );
   }

@@ -150,7 +150,9 @@ class _USScreenState extends State<USScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
         selectedIndex: _selectedTab,
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
@@ -180,8 +182,11 @@ class _USScreenState extends State<USScreen> {
             label: l10n.history,
           ),
         ],
+        ),
       ),
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
           Expanded(
             child: Builder(
@@ -228,6 +233,7 @@ class _USScreenState extends State<USScreen> {
           ),
           const CalcwiseAdFooter(),
         ],
+        ),
       ),
     );
   }

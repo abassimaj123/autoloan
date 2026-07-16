@@ -155,7 +155,9 @@ class _CAScreenState extends State<CAScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
         selectedIndex: _selectedTab,
         onDestinationSelected: (i) => _onNavTap(i),
         destinations: [
@@ -180,8 +182,11 @@ class _CAScreenState extends State<CAScreen> {
             label: l10n.history,
           ),
         ],
+        ),
       ),
-      body: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
         children: [
           Expanded(
             child: Builder(
@@ -223,6 +228,7 @@ class _CAScreenState extends State<CAScreen> {
           ),
           const CalcwiseAdFooter(),
         ],
+        ),
       ),
     );
   }
