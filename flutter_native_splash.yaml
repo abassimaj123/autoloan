@@ -7,16 +7,16 @@
 # TODO: create per-flavor splash configs once brand assets are finalised.
 
 flutter_native_splash:
+  # NOTE: no `image`/`android_12` keys on purpose. Each flavor's Android 12+
+  # splash is hand-authored per-flavor in android/app/src/<flavor>/res/
+  # values-v31/styles.xml to use the animated 3-dot @drawable/animated_splash_dots
+  # icon with its own per-flavor color. Re-running `flutter_native_splash:create`
+  # with an image/android_12 block here would silently overwrite that back to a
+  # static image (this actually happened once on MortgageCA, commit c013dcb).
+  # These color keys only drive the pre-Android-12 fallback splash (main/res,
+  # not flavor-specific — flavor resources override this where they exist).
   color: "#0D47A1"
-  image: assets/icons/icon_foreground.png
   color_dark: "#0D47A1"
-  image_dark: assets/icons/icon_foreground.png
 
   android: true
   ios: false
-
-  android_12:
-    image: assets/icons/icon_foreground.png
-    icon_background_color: "#0D47A1"
-    image_dark: assets/icons/icon_foreground.png
-    icon_background_color_dark: "#0D47A1"
