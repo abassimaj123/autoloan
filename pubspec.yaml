@@ -35,7 +35,7 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.1
   path_provider: ^2.1.4
-  share_plus: ^10.0.2
+  share_plus: ^13.1.0
 
   # ── Links ─────────────────────────────────────────────────────────────────
   url_launcher: ^6.3.0
