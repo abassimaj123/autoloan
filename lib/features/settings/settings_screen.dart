@@ -213,7 +213,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : 'See all our calculators',
               onTap: () => launchUrl(
                 Uri.parse(
-                  'https://play.google.com/store/apps/developer?id=CalqWise',
+                  'https://play.google.com/store/apps/developer?id=Dailywave+Apps',
                 ),
               ),
             ),
