@@ -60,6 +60,10 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
   late _LoanResult _r2;
   late _LoanResult _r3;
 
+  /// True once Loan 1 has been pre-filled from the main calculator's live
+  /// provider values (rather than the hardcoded defaults above).
+  bool _seededFromCalc = false;
+
   String get _sym {
     switch (widget.flavor) {
       case 'uk':
@@ -274,6 +278,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
             _amount1 = p.vehiclePrice;
             _rate1 = p.annualRate;
             _term1 = p.termMonths;
+            _seededFromCalc = p.vehiclePrice > 0;
           });
         case 'uk':
           final p = context.read<UKProvider>();
@@ -281,6 +286,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
             _amount1 = p.vehiclePrice;
             _rate1 = p.annualRate;
             _term1 = p.termMonths;
+            _seededFromCalc = p.vehiclePrice > 0;
           });
         case 'us':
           final p = context.read<USProvider>();
@@ -288,6 +294,7 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
             _amount1 = p.vehiclePrice;
             _rate1 = p.annualRate;
             _term1 = p.termMonths;
+            _seededFromCalc = p.vehiclePrice > 0;
           });
       }
       _recalc();
@@ -358,6 +365,17 @@ class _LoanComparisonScreenState extends State<LoanComparisonScreen> {
       body: CalcwisePageEntrance(
         child: Column(
         children: [
+          if (_seededFromCalc)
+            Builder(builder: (context) {
+              final isFr = Localizations.localeOf(context).languageCode == 'fr';
+              final isEs = Localizations.localeOf(context).languageCode == 'es';
+              return CalcSourceBanner(
+                label: isFr
+                    ? "D'après ton calcul :"
+                    : (isEs ? 'Según tu cálculo:' : 'From your calculator:'),
+                summary: '${fmt.format(_amount1)} · ${_rate1.toStringAsFixed(1)}% · ${_term1 ~/ 12}${isFr ? 'a' : 'yr'}',
+              );
+            }),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(

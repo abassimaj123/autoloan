@@ -59,6 +59,10 @@ class _CompareScreenState extends State<CompareScreen> {
   _LoanResult? _resA;
   _LoanResult? _resB;
 
+  /// True once inputs have been pre-filled from the main calculator's live
+  /// provider values (rather than the hardcoded defaults above).
+  bool _seededFromCalc = false;
+
   bool get _showBiWeekly => true; // all flavors support bi-weekly
 
   String get _currencySymbol => widget.flavor == 'uk' ? '£' : widget.flavor == 'ca' ? 'C\$' : '\$';
@@ -232,29 +236,38 @@ class _CompareScreenState extends State<CompareScreen> {
       switch (widget.flavor) {
         case 'ca':
           final p = context.read<CAProvider>();
-          setState(() {
-            vehiclePrice = p.vehiclePrice;
-            downPayment = p.dpAmount;
-            rateA = p.annualRate;
-            termA = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              vehiclePrice = p.vehiclePrice;
+              downPayment = p.dpAmount;
+              rateA = p.annualRate;
+              termA = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
         case 'uk':
           final p = context.read<UKProvider>();
-          setState(() {
-            vehiclePrice = p.vehiclePrice;
-            downPayment = p.downPayment;
-            rateA = p.annualRate;
-            termA = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              vehiclePrice = p.vehiclePrice;
+              downPayment = p.downPayment;
+              rateA = p.annualRate;
+              termA = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
         case 'us':
           final p = context.read<USProvider>();
-          setState(() {
-            vehiclePrice = p.vehiclePrice;
-            downPayment = p.downPayment;
-            salesTaxPct = p.salesTaxPercent;
-            rateA = p.annualRate;
-            termA = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              vehiclePrice = p.vehiclePrice;
+              downPayment = p.downPayment;
+              salesTaxPct = p.salesTaxPercent;
+              rateA = p.annualRate;
+              termA = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
       }
       _calculate();
     });
@@ -497,6 +510,17 @@ class _CompareScreenState extends State<CompareScreen> {
       body: CalcwisePageEntrance(
         child: Column(
           children: [
+            if (_seededFromCalc)
+              Builder(builder: (context) {
+                final isFr = Localizations.localeOf(context).languageCode == 'fr';
+                final isEs = Localizations.localeOf(context).languageCode == 'es';
+                return CalcSourceBanner(
+                  label: isFr
+                      ? "D'après ton calcul :"
+                      : (isEs ? 'Según tu cálculo:' : 'From your calculator:'),
+                  summary: '${fmt.format(vehiclePrice)} · ${rateA.toStringAsFixed(1)}% · ${termA ~/ 12}${isFr ? 'a' : 'yr'}',
+                );
+              }),
             Expanded(child: listView),
             const CalcwiseAdFooter(),
           ],

@@ -172,6 +172,16 @@ void main() {
       final expectedMonthly = _expectedMonthlyPayment(price, rate, term);
       final fmt = NumberFormat.currency(symbol: 'C\$', decimalDigits: 2);
 
+      // The CalcSourceBanner (provenance label shown when seeded from the
+      // live calculator) pushes the results table further down the
+      // scrollable ListView than the default viewport shows — scroll it
+      // into view so the lazily-built Sliver children mount.
+      await tester.scrollUntilVisible(
+        find.text(fmt.format(expectedMonthly)),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
       expect(
         find.text(fmt.format(expectedMonthly)),
         findsOneWidget,
@@ -220,6 +230,12 @@ void main() {
       final expectedMonthly = _expectedMonthlyPayment(price, rate, term);
       final fmt = NumberFormat.currency(symbol: '£', decimalDigits: 2);
 
+      await tester.scrollUntilVisible(
+        find.text(fmt.format(expectedMonthly)),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
       expect(
         find.text(fmt.format(expectedMonthly)),
         findsOneWidget,
@@ -261,6 +277,12 @@ void main() {
 
       final expectedMonthly = _expectedMonthlyPayment(price, rate, term);
       final fmt = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
+      await tester.scrollUntilVisible(
+        find.text(fmt.format(expectedMonthly)),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       expect(
         find.text(fmt.format(expectedMonthly)),

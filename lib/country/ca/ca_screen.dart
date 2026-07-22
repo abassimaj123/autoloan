@@ -702,10 +702,10 @@ class _CAQuickToolsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         _PremiumToolCard(
           icon: Icons.compare_arrows_rounded,
-          label: l10n.compare3Loans,
+          label: isFr ? 'Comparer 3 offres de pret' : 'Compare 3 Loan Offers',
           description: isFr
-              ? 'Comparez jusqu\'a 3 offres de pret cote a cote'
-              : 'Compare up to 3 loan offers side by side',
+              ? 'Compare jusqu\'a 3 offres completes cote a cote (plus detaille que l\'onglet Comparer)'
+              : 'Compare up to 3 full offers side by side (more detail than the Compare tab)',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -804,7 +804,6 @@ class _CAResults extends StatelessWidget {
         ),
         const Divider(),
         // Cost breakdown — always visible
-        ResultTile(label: l10n.financedAmount, value: AmountFormatter.ui(r.loanAmount, 'CAD')),
         ResultTile(
           label: l10n.totalInterest,
           value: AmountFormatter.ui(r.totalInterest, 'CAD'),

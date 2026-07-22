@@ -334,6 +334,17 @@ class _TotalCostScreenState extends State<TotalCostScreen> {
       body: CalcwisePageEntrance(
         child: Column(
         children: [
+          if (widget.vehiclePrice != null && widget.vehiclePrice! > 0)
+            Builder(builder: (context) {
+              final isFr = Localizations.localeOf(context).languageCode == 'fr';
+              final isEs = Localizations.localeOf(context).languageCode == 'es';
+              return CalcSourceBanner(
+                label: isFr
+                    ? "D'après ton calcul :"
+                    : (isEs ? 'Según tu cálculo:' : 'From your calculator:'),
+                summary: '${fmt.format(_vehiclePrice)} · ${fmt.format(_monthlyPayment)}/${l10n.month}',
+              );
+            }),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(

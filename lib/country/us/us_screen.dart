@@ -174,7 +174,7 @@ class _USScreenState extends State<USScreen> {
           const NavigationDestination(
             icon: Icon(Icons.swap_horiz_outlined),
             selectedIcon: Icon(Icons.swap_horiz_rounded),
-            label: 'Refi',
+            label: 'Refinance',
           ),
           NavigationDestination(
             icon: const Icon(Icons.history_outlined),
@@ -726,6 +726,15 @@ class _USCreditScoreSection extends StatelessWidget {
     return SectionCard(
       title: l10n.creditScore,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: Text(
+            'Pick the range your credit score falls in — lenders use it to set your interest rate.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
         // ignore: deprecated_member_use
         ...CreditScore.values.map(
           (cs) => RadioListTile<CreditScore>(
@@ -745,11 +754,18 @@ class _USCreditScoreSection extends StatelessWidget {
             },
           ),
         ),
-        if (p.result != null)
+        if (p.result != null) ...[
           ResultTile(
             label: l10n.effectiveRate,
             value: '${p.result!.effectiveRate.toStringAsFixed(2)}%',
           ),
+          Text(
+            'Includes fees — the real cost of the loan',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
       ],
     );
   }
@@ -881,10 +897,10 @@ class _USQuickToolsSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         _PremiumToolCard(
           icon: Icons.compare_arrows_rounded,
-          label: isSpanish ? 'Comparar 3 Préstamos' : 'Compare 3 Loans',
+          label: isSpanish ? 'Comparar 3 Ofertas de Préstamo' : 'Compare 3 Loan Offers',
           description: isSpanish
-              ? 'Compara hasta 3 ofertas de préstamo lado a lado'
-              : 'Compare up to 3 loan offers side by side',
+              ? 'Compara hasta 3 ofertas completas lado a lado (más detalle que la pestaña Comparar)'
+              : 'Compare up to 3 full offers side by side (more detail than the Compare tab)',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -962,10 +978,6 @@ class _USResults extends StatelessWidget {
           ),
         const Divider(),
         ResultTile(
-          label: l10n.financedAmount,
-          value: AmountFormatter.ui(r.financedAmount, 'USD'),
-        ),
-        ResultTile(
           label: l10n.totalInterest,
           value: AmountFormatter.ui(r.totalInterest, 'USD'),
         ),
@@ -979,6 +991,12 @@ class _USResults extends StatelessWidget {
         ResultTile(
           label: l10n.effectiveRate,
           value: '${r.effectiveRate.toStringAsFixed(2)}%',
+        ),
+        Text(
+          'Includes fees — the real cost of the loan',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: AppSpacing.sm),
         // ── Smart Insights ────────────────────────────────────────────

@@ -54,6 +54,10 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
 
   _LvBResult? _result;
 
+  /// True once Buy inputs have been pre-filled from the main calculator's
+  /// live provider values (rather than the hardcoded defaults above).
+  bool _seededFromCalc = false;
+
   String get _sym => widget.flavor == 'uk' ? '£' : widget.flavor == 'ca' ? 'C\$' : '\$';
 
   static double _roundTo(double v, double step) => (v / step).round() * step;
@@ -170,28 +174,37 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       switch (widget.flavor) {
         case 'ca':
           final p = context.read<CAProvider>();
-          setState(() {
-            _msrp = p.vehiclePrice;
-            _buyDown = p.dpAmount;
-            _buyApr = p.annualRate;
-            _buyTerm = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              _msrp = p.vehiclePrice;
+              _buyDown = p.dpAmount;
+              _buyApr = p.annualRate;
+              _buyTerm = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
         case 'uk':
           final p = context.read<UKProvider>();
-          setState(() {
-            _msrp = p.vehiclePrice;
-            _buyDown = p.downPayment;
-            _buyApr = p.annualRate;
-            _buyTerm = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              _msrp = p.vehiclePrice;
+              _buyDown = p.downPayment;
+              _buyApr = p.annualRate;
+              _buyTerm = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
         case 'us':
           final p = context.read<USProvider>();
-          setState(() {
-            _msrp = p.vehiclePrice;
-            _buyDown = p.downPayment;
-            _buyApr = p.annualRate;
-            _buyTerm = p.termMonths;
-          });
+          if (p.vehiclePrice > 0) {
+            setState(() {
+              _msrp = p.vehiclePrice;
+              _buyDown = p.downPayment;
+              _buyApr = p.annualRate;
+              _buyTerm = p.termMonths;
+              _seededFromCalc = true;
+            });
+          }
       }
       _calculate();
     });
@@ -527,6 +540,17 @@ class _LeaseVsBuyScreenState extends State<LeaseVsBuyScreen> {
       ),
       body: Column(
         children: [
+          if (_seededFromCalc)
+            Builder(builder: (context) {
+              final isFr = Localizations.localeOf(context).languageCode == 'fr';
+              final isEs = Localizations.localeOf(context).languageCode == 'es';
+              return CalcSourceBanner(
+                label: isFr
+                    ? "D'après ton calcul :"
+                    : (isEs ? 'Según tu cálculo:' : 'From your calculator:'),
+                summary: '${fmt0.format(_msrp)} · ${_buyApr.toStringAsFixed(1)}% · ${_buyTerm ~/ 12}${isFr ? 'a' : 'yr'}',
+              );
+            }),
           Expanded(child: scrollContent),
           const CalcwiseAdFooter(),
         ],

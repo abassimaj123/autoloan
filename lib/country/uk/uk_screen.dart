@@ -641,7 +641,7 @@ class _UKRoadTaxSection extends StatelessWidget {
               initialValue: p.customVedAnnual.toStringAsFixed(0),
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Custom annual VED (£)',
+                labelText: 'Custom annual VED / road tax (£)',
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
                   vertical: 12,
@@ -675,7 +675,7 @@ class _UKRoadTaxSection extends StatelessWidget {
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Advanced: CO2-Based VED (post-2017 cars)',
+            'Advanced: CO2-Based VED / road tax (post-2017 cars)',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -760,7 +760,7 @@ class _UKRoadTaxSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'VED annual rates',
+                    'VED / road tax annual rates',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       decoration: TextDecoration.underline,
@@ -857,7 +857,7 @@ class _UKQuickToolsSection extends StatelessWidget {
         _PremiumToolCard(
           icon: Icons.compare_arrows_rounded,
           label: 'Compare 3 Finance Deals',
-          description: 'Compare up to 3 finance offers side by side',
+          description: 'Compare up to 3 full finance offers side by side (more detail than the Compare tab)',
           onTap: () => Navigator.push(
             context,
             PageRouteBuilder(
@@ -966,7 +966,6 @@ class _UKResults extends StatelessWidget {
         ResultTile(label: l10n.loanAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         const Divider(),
         // Cost breakdown — always visible
-        ResultTile(label: l10n.financedAmount, value: AmountFormatter.ui(r.loanAmount, 'GBP')),
         ResultTile(
           label: l10n.totalInterest,
           value: AmountFormatter.ui(r.totalInterest, 'GBP'),
@@ -1827,7 +1826,7 @@ class _UKHpVsPcpSectionState extends State<_UKHpVsPcpSection> {
           const SizedBox(height: AppSpacing.md),
           // GMFV slider
           _UKTcoSlider(
-            label: 'GMFV balloon (%)',
+            label: 'GMFV balloon (Guaranteed Min. Future Value, %)',
             value: _gmfvPercent,
             min: 10,
             max: 60,
